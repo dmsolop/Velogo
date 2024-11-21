@@ -1,7 +1,33 @@
-
 import 'package:flutter/material.dart';
 import 'base_colors.dart';
 import 'base_fonts.dart';
+
+class CustomLogo extends StatelessWidget {
+  final double? size; // Розмір логотипа (якщо null, пропорційний)
+
+  const CustomLogo({Key? key, this.size}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = size ?? MediaQuery.of(context).size.width * 0.7;
+    final double height =
+        size != null ? size! * 0.6 : MediaQuery.of(context).size.width * 0.4;
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12), // Скруглені кути
+        image: const DecorationImage(
+          image: NetworkImage(
+            'https://assets.api.uizard.io/api/cdn/stream/4f2572ff-e7da-48c5-b076-a4dccb1d8584.png',
+          ),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+}
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
