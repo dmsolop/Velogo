@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'base_widgets_with_colors_fonts.dart';
+import 'base_widgets.dart';
 import 'base_colors.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -19,22 +18,8 @@ class LoginScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 24),
 
-                // Логотип
-                Center(
-                  child: Container(
-                    width: 409,
-                    height: 254,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(6)),
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          'https://assets.api.uizard.io/api/cdn/stream/4f2572ff-e7da-48c5-b076-a4dccb1d8584.png',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
+                // Використання базового логотипа
+                const CustomLogo(),
 
                 const SizedBox(height: 24),
 

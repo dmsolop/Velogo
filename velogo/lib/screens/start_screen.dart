@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'base_widgets_with_colors_fonts.dart';
+import 'base_widgets.dart';
 import 'base_colors.dart';
 
 class StartScreen extends StatelessWidget {
@@ -30,17 +29,10 @@ class StartScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            Container(
-              width: 327,
-              height: 200,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                      'https://assets.api.uizard.io/api/cdn/stream/4f2572ff-e7da-48c5-b076-a4dccb1d8584.png'),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
+
+            // Використання базового логотипа
+            const CustomLogo(),
+
             CustomButton(
               label: 'Get started',
               onPressed: () {
