@@ -90,6 +90,147 @@ class CustomButton extends StatelessWidget {
   }
 }
 
+// class ProportionalButton extends StatelessWidget {
+//   final String label;
+//   final VoidCallback onPressed;
+
+//   const ProportionalButton({
+//     Key? key,
+//     required this.label,
+//     required this.onPressed,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return LayoutBuilder(
+//       builder: (context, constraints) {
+//         // Розрахунок ширини на основі довжини тексту
+//         final double calculatedWidth = (label.length * 10)
+//             .toDouble()
+//             .clamp(80, constraints.maxWidth * 0.3);
+
+//         return SizedBox(
+//           width: calculatedWidth,
+//           height: 50, // Фіксована висота кнопки
+//           child: ElevatedButton(
+//             onPressed: onPressed,
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: AppColors.primary,
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(6),
+//               ),
+//             ),
+//             child: FittedBox(
+//               fit:
+//                   BoxFit.scaleDown, // Текст масштабуватиметься всередині кнопки
+//               child: Text(
+//                 label,
+//                 style: const TextStyle(
+//                   color: AppColors.white,
+//                   fontWeight: FontWeight.bold,
+//                   fontSize: 14, // Уніфікований розмір тексту
+//                 ),
+//               ),
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+
+class ProportionalButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final double aspectRatio; // Співвідношення ширини до висоти
+  final double minHeight; // Мінімальна висота для кнопки
+
+  const ProportionalButton({
+    Key? key,
+    required this.label,
+    required this.onPressed,
+    this.aspectRatio = 3, // Співвідношення ширини до висоти за замовчуванням
+    this.minHeight = 40, // Мінімальна висота за замовчуванням
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Мінімальна ширина для кнопки
+        final double width = constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : MediaQuery.of(context).size.width / 4;
+        final double height =
+            (width / aspectRatio).clamp(minHeight, double.infinity);
+
+        return SizedBox(
+          width: width,
+          height: height,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// class ProportionalButton extends StatelessWidget {
+//   final String label;
+//   final VoidCallback onPressed;
+//   final double aspectRatio; // Співвідношення ширини до висоти
+
+//   const ProportionalButton({
+//     Key? key,
+//     required this.label,
+//     required this.onPressed,
+//     this.aspectRatio = 3, // Стандартне співвідношення 3:1
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return AspectRatio(
+//       aspectRatio: aspectRatio,
+//       child: ElevatedButton(
+//         onPressed: onPressed,
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: AppColors.primary,
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(6),
+//           ),
+//         ),
+//         child: FittedBox(
+//           fit: BoxFit.scaleDown, // Масштабування тексту
+//           child: Text(
+//             label,
+//             style: const TextStyle(
+//               color: AppColors.white,
+//               fontWeight: FontWeight.bold,
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 class CustomText extends StatelessWidget {
   final String text;
   final double fontSize;
