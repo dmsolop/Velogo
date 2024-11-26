@@ -34,7 +34,7 @@ class RouteScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: AppColors.white),
                   onPressed: () {
-                    // Функція повернення буде додана пізніше
+                    print('Back button pressed');
                   },
                 ),
               ),
@@ -73,7 +73,7 @@ class RouteScreen extends StatelessWidget {
                         child: ProportionalButton(
                           label: 'Collapse',
                           onPressed: () {
-                            // Функціонал додамо пізніше
+                            print('Collapse pressed');
                           },
                         ),
                       ),
@@ -117,7 +117,7 @@ class RouteScreen extends StatelessWidget {
                         child: ProportionalButton(
                           label: 'Start Navigation',
                           onPressed: () {
-                            // Функціонал додамо пізніше
+                            print('Start Navigation pressed');
                           },
                         ),
                       ),
@@ -126,7 +126,7 @@ class RouteScreen extends StatelessWidget {
                         child: ProportionalButton(
                           label: 'Add Stop',
                           onPressed: () {
-                            // Функціонал додамо пізніше
+                            print('Add Stop pressed');
                           },
                         ),
                       ),
@@ -135,7 +135,7 @@ class RouteScreen extends StatelessWidget {
                         child: ProportionalButton(
                           label: 'Save',
                           onPressed: () {
-                            // Функціонал додамо пізніше
+                            print('Save pressed');
                           },
                         ),
                       ),
@@ -144,7 +144,7 @@ class RouteScreen extends StatelessWidget {
                         child: ProportionalButton(
                           label: 'Share',
                           onPressed: () {
-                            // Функціонал додамо пізніше
+                            print('Share pressed');
                           },
                         ),
                       ),

@@ -13,16 +13,18 @@ class CustomLogo extends StatelessWidget {
     final double height =
         size != null ? size! * 0.6 : MediaQuery.of(context).size.width * 0.4;
 
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12), // Скруглені кути
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://assets.api.uizard.io/api/cdn/stream/4f2572ff-e7da-48c5-b076-a4dccb1d8584.png',
+    return Center(
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12), // Скруглені кути
+          image: const DecorationImage(
+            image: NetworkImage(
+              'https://assets.api.uizard.io/api/cdn/stream/4f2572ff-e7da-48c5-b076-a4dccb1d8584.png',
+            ),
+            fit: BoxFit.cover,
           ),
-          fit: BoxFit.cover,
         ),
       ),
     );
