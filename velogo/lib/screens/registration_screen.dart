@@ -8,7 +8,7 @@ class RegistrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: BaseColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

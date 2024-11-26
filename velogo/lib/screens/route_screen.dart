@@ -8,7 +8,7 @@ class RouteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: BaseColors.background,
       body: Stack(
         children: [
           // Карта (заглушка)
@@ -30,9 +30,9 @@ class RouteScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: CircleAvatar(
-                backgroundColor: AppColors.primary,
+                backgroundColor: BaseColors.primary,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppColors.white),
+                  icon: const Icon(Icons.arrow_back, color: BaseColors.white),
                   onPressed: () {
                     print('Back button pressed');
                   },
@@ -49,7 +49,7 @@ class RouteScreen extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 200),
               padding: const EdgeInsets.all(16.0),
               decoration: const BoxDecoration(
-                color: AppColors.background,
+                color: BaseColors.background,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Column(
@@ -65,7 +65,7 @@ class RouteScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.white,
+                          color: BaseColors.white,
                         ),
                       ),
                       SizedBox(
@@ -85,11 +85,11 @@ class RouteScreen extends StatelessWidget {
                   // Інформація про маршрут
                   const Text(
                     'Distance: 24 miles',
-                    style: TextStyle(fontSize: 14, color: AppColors.white),
+                    style: TextStyle(fontSize: 14, color: BaseColors.white),
                   ),
                   const Text(
                     'Estimated Time: 1h 45m',
-                    style: TextStyle(fontSize: 14, color: AppColors.white),
+                    style: TextStyle(fontSize: 14, color: BaseColors.white),
                   ),
 
                   const SizedBox(height: 16),
@@ -102,7 +102,7 @@ class RouteScreen extends StatelessWidget {
                     child: const Center(
                       child: Text(
                         'Route Graph Placeholder',
-                        style: TextStyle(fontSize: 12, color: AppColors.white),
+                        style: TextStyle(fontSize: 12, color: BaseColors.white),
                       ),
                     ),
                   ),
