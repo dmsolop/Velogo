@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'base_widgets.dart'; // Файл з оновленим логотипом
-import 'base_colors.dart';
+import '../shared/base_widgets.dart'; // Файл з оновленим логотипом
+import '../shared/base_colors.dart';
 
 class PasswordRecoveryScreen extends StatelessWidget {
   const PasswordRecoveryScreen({Key? key}) : super(key: key);
