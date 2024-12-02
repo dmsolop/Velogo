@@ -5,25 +5,26 @@ import 'package:velogo/route_logic/draw_sections.dart';
 import '../route_logic/route_section.dart';
 import '../route_logic/calculate_difficulty.dart';
 
-class RouteScreen extends StatefulWidget {
-  const RouteScreen({Key? key}) : super(key: key);
+class CreateRouteScreen extends StatefulWidget {
+  const CreateRouteScreen({Key? key}) : super(key: key);
 
   @override
-  _RouteScreenState createState() => _RouteScreenState();
+  _CreateRouteScreenState createState() => _CreateRouteScreenState();
 }
 
-class _RouteScreenState extends State<RouteScreen> {
+class _CreateRouteScreenState extends State<CreateRouteScreen> {
   final List<RouteSection> _sections = [];
   LatLng? _lastPoint;
+  bool _isDrawingMode = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Route Planning"),
+        title: const Text("Create Route"),
         backgroundColor: Colors.black87,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -33,7 +34,9 @@ class _RouteScreenState extends State<RouteScreen> {
             options: MapOptions(
               center: LatLng(48.858844, 2.294351),
               zoom: 10,
-              onTap: (_, point) => _addRoutePoint(point),
+              onTap: (_, point) => _isDrawingMode
+                  ? _addRoutePoint(point)
+                  : _addInterestPoint(point),
             ),
             children: [
               TileLayer(
@@ -49,6 +52,7 @@ class _RouteScreenState extends State<RouteScreen> {
               ),
             ],
           ),
+          _buildControlPanel(),
           _buildBottomPanel(),
         ],
       ),
@@ -71,6 +75,10 @@ class _RouteScreenState extends State<RouteScreen> {
     _lastPoint = point;
   }
 
+  void _addInterestPoint(LatLng point) {
+    // TODO: Implement interest point logic
+  }
+
   List<Polyline> _generatePolylines() {
     return _sections.map((section) {
       final color = getColorBasedOnDifficulty(section.difficulty);
@@ -89,7 +97,45 @@ class _RouteScreenState extends State<RouteScreen> {
           point: _lastPoint!,
           builder: (ctx) => const Icon(Icons.place, color: Colors.green),
         ),
+      for (var section in _sections)
+        Marker(
+          point: section.coordinates.last,
+          builder: (ctx) => const Icon(Icons.flag, color: Colors.red),
+        ),
     ];
+  }
+
+  Widget _buildControlPanel() {
+    return Positioned(
+      right: 16,
+      top: 100,
+      child: Column(
+        children: [
+          FloatingActionButton(
+            heroTag: "zoomIn",
+            onPressed: () {},
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: "zoomOut",
+            onPressed: () {},
+            child: const Icon(Icons.remove),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: "toggleDraw",
+            onPressed: () {
+              setState(() {
+                _isDrawingMode = !_isDrawingMode;
+              });
+            },
+            backgroundColor: _isDrawingMode ? Colors.orange : Colors.blue,
+            child: const Icon(Icons.edit),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBottomPanel() {
@@ -117,9 +163,9 @@ class _RouteScreenState extends State<RouteScreen> {
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
-                // Логіка збереження маршруту
+                // Логіка завершення маршруту
               },
-              child: const Text("Save Route"),
+              child: const Text("Done"),
             ),
           ],
         ),
