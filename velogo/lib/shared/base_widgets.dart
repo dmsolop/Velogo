@@ -178,6 +178,61 @@ class ProportionalButton extends StatelessWidget {
   }
 }
 
+class CustomFloatingButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color? color;
+
+  const CustomFloatingButton({
+    Key? key,
+    required this.onPressed,
+    required this.icon,
+    this.color,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: onPressed,
+      backgroundColor: color ?? BaseColors.headerDark,
+      child: Icon(icon, color: Colors.white),
+      elevation: 6, // Тінь для ефекту "плавання"
+    );
+  }
+}
+
+class CustomRoundedButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String text;
+  final Color? color;
+
+  const CustomRoundedButton({
+    Key? key,
+    required this.onPressed,
+    required this.text,
+    this.color,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color ?? BaseColors.headerDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16), // Закруглені кути
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        elevation: 4, // Тінь
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+}
+
 class CustomText extends StatelessWidget {
   final String text;
   final double fontSize;
