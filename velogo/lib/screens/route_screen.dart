@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:velogo/route_logic/draw_sections.dart';
+import '../shared/base_widgets.dart';
+import '../shared/base_colors.dart';
+import '../shared/custom_bottom_navigation_bar.dart';
 import '../route_logic/route_section.dart';
 import '../route_logic/calculate_difficulty.dart';
+import '../shared/dev_helpers.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({Key? key}) : super(key: key);
@@ -14,26 +18,32 @@ class RouteScreen extends StatefulWidget {
 
 class _RouteScreenState extends State<RouteScreen> {
   final List<RouteSection> _sections = [];
+  final List<String> _interestingPlaces = ["Place A", "Place B", "Place C"];
+  final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: BaseColors.headerDark,
+        statusBarIconBrightness: Brightness.dark, // Елементи статус-бару світлі
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Route Planning"),
-        backgroundColor: Colors.black87,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: Stack(
         children: [
           FlutterMap(
             options: MapOptions(
-              center: LatLng(48.858844, 2.294351),
+              center: defaultCenter,
               zoom: 10,
               onTap: (_, point) => _addRoutePoint(point),
+              interactiveFlags: InteractiveFlag.all, // Увімкнути пінч
             ),
             children: [
               TileLayer(
@@ -49,9 +59,152 @@ class _RouteScreenState extends State<RouteScreen> {
               ),
             ],
           ),
-          _buildBottomPanel(),
+          _buildSearchBar(),
+          _buildInterestingPlaces(),
+          _buildControlButtons(),
+          _buildDraggableBottomPanel(),
         ],
       ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 0, // Індекс для цього екрану
+        onTap: (index) {
+          // Логіка навігації між екранами
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 8,
+      left: 8,
+      right: 8,
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: "Search by location or coordinates",
+          fillColor: BaseColors.headerDark, // Колір кнопок
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          prefixIcon: const Icon(Icons.search, color: Colors.white),
+          hintStyle: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInterestingPlaces() {
+    return Positioned(
+      left: 8,
+      right: 8,
+      bottom: 40 + 8, // Відступ до інформаційної панелі (8 пікселів)
+      child: SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: _interestingPlaces.length,
+          itemBuilder: (context, index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              width: MediaQuery.of(context).size.width - 64, // Ширина панелі
+              decoration: BoxDecoration(
+                color: BaseColors.headerDark, // Колір кнопок
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  _interestingPlaces[index],
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlButtons() {
+    return Positioned(
+      right: 8,
+      bottom:
+          40 + 100 + 8 + 8, // Відступ до колекції цікавих місць (8 пікселів)
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          CustomFloatingButton(
+            onPressed: () {
+              // Логіка для 3D View
+            },
+            icon: Icons.threed_rotation,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            onPressed: () {
+              // Логіка для Compass
+            },
+            icon: Icons.explore,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            onPressed: () {
+              // Логіка для шарів карти
+            },
+            icon: Icons.layers,
+          ),
+          const SizedBox(height: 8),
+          CustomRoundedButton(
+            onPressed: () {
+              // Логіка створення маршруту
+            },
+            text: "Plan Route",
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDraggableBottomPanel() {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.05, // Майже невидима у згорнутому стані
+      minChildSize: 0.05,
+      maxChildSize: 0.6, // Висота для повністю розгорнутого стану
+      snap: true,
+      snapSizes: const [0.05, 0.6], // Два стани
+      builder: (context, scrollController) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8), // Відступи
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Text(
+                "Total Distance: ${_calculateTotalDistance().toStringAsFixed(2)} km",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Total Difficulty: ${_calculateTotalDifficulty().toStringAsFixed(2)}",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -92,47 +245,18 @@ class _RouteScreenState extends State<RouteScreen> {
     ];
   }
 
-  Widget _buildBottomPanel() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        height: 200,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Total Distance: ${_calculateTotalDistance()} km",
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Total Difficulty: ${_calculateTotalDifficulty()}",
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                // Логіка збереження маршруту
-              },
-              child: const Text("Save Route"),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   double _calculateElevationGain(LatLng start, LatLng end) => 10;
-
-  double _calculateWindEffect(LatLng start, LatLng end) => -2;
 
   double _calculateTotalDistance() =>
       _sections.fold(0, (sum, section) => sum + 1.0);
+
+  double _calculateWindEffect(LatLng start, LatLng end) => 0.0;
+
+  Color getColorBasedOnDifficulty(double difficulty) {
+    if (difficulty < 3) return Colors.green;
+    if (difficulty < 6) return Colors.yellow;
+    return Colors.red;
+  }
 
   double _calculateTotalDifficulty() =>
       _sections.fold(0, (sum, section) => sum + section.difficulty);
