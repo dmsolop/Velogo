@@ -5,9 +5,10 @@ import 'package:latlong2/latlong.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
 import '../shared/custom_bottom_navigation_bar.dart';
+import '../shared/dev_helpers.dart';
 import '../route_logic/route_section.dart';
 import '../route_logic/calculate_difficulty.dart';
-import '../shared/dev_helpers.dart';
+import '../screens/create_route_screen.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({Key? key}) : super(key: key);
@@ -35,41 +36,43 @@ class _RouteScreenState extends State<RouteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          FlutterMap(
-            options: MapOptions(
-              center: defaultCenter,
-              zoom: 10,
-              onTap: (_, point) => _addRoutePoint(point),
-              interactiveFlags: InteractiveFlag.all, // Увімкнути пінч
+    return MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                center: defaultCenter,
+                zoom: 10,
+                onTap: (_, point) => _addRoutePoint(point),
+                interactiveFlags: InteractiveFlag.all, // Увімкнути пінч
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: ['a', 'b', 'c'],
+                ),
+                PolylineLayer(
+                  polylines: _generatePolylines(),
+                ),
+                MarkerLayer(
+                  markers: _generateMarkers(),
+                ),
+              ],
             ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c'],
-              ),
-              PolylineLayer(
-                polylines: _generatePolylines(),
-              ),
-              MarkerLayer(
-                markers: _generateMarkers(),
-              ),
-            ],
-          ),
-          _buildSearchBar(),
-          _buildInterestingPlaces(),
-          _buildControlButtons(),
-          _buildDraggableBottomPanel(),
-        ],
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 0, // Індекс для цього екрану
-        onTap: (index) {
-          // Логіка навігації між екранами
-        },
+            _buildSearchBar(),
+            _buildInterestingPlaces(),
+            _buildControlButtons(),
+            _buildDraggableBottomPanel(),
+          ],
+        ),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: 0, // Індекс для цього екрану
+          onTap: (index) {
+            // Логіка навігації між екранами
+          },
+        ),
       ),
     );
   }
@@ -123,7 +126,7 @@ class _RouteScreenState extends State<RouteScreen> {
               child: Center(
                 child: Text(
                   _interestingPlaces[index],
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: const TextStyle(color: BaseColors.white, fontSize: 16),
                 ),
               ),
             );
@@ -143,6 +146,7 @@ class _RouteScreenState extends State<RouteScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           CustomFloatingButton(
+            heroTag: '3DViewTag',
             onPressed: () {
               // Логіка для 3D View
             },
@@ -150,22 +154,34 @@ class _RouteScreenState extends State<RouteScreen> {
           ),
           const SizedBox(height: 8),
           CustomFloatingButton(
-            onPressed: () {
-              // Логіка для Compass
-            },
-            icon: Icons.explore,
-          ),
-          const SizedBox(height: 8),
-          CustomFloatingButton(
+            heroTag: 'mapLaers1Tag',
             onPressed: () {
               // Логіка для шарів карти
             },
             icon: Icons.layers,
           ),
           const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'compas1Tag',
+            onPressed: () {
+              // Логіка для Compass
+            },
+            icon: Icons.explore,
+          ),
+          const SizedBox(height: 8),
           CustomRoundedButton(
             onPressed: () {
-              // Логіка створення маршруту
+              try {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateRouteScreen(),
+                  ),
+                );
+              } catch (e, stackTrace) {
+                print("Navigation error: $e");
+                print(stackTrace);
+              }
             },
             text: "Plan Route",
           ),
@@ -186,7 +202,7 @@ class _RouteScreenState extends State<RouteScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 8), // Відступи
           padding: const EdgeInsets.all(8),
           decoration: const BoxDecoration(
-            color: Colors.black87,
+            color: BaseColors.backgroundDark,
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: ListView(
@@ -194,12 +210,12 @@ class _RouteScreenState extends State<RouteScreen> {
             children: [
               Text(
                 "Total Distance: ${_calculateTotalDistance().toStringAsFixed(2)} km",
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: BaseColors.white, fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
                 "Total Difficulty: ${_calculateTotalDifficulty().toStringAsFixed(2)}",
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: BaseColors.white, fontSize: 16),
               ),
             ],
           ),
