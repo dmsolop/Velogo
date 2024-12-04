@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:velogo/route_logic/draw_sections.dart';
+import '../route_logic/draw_sections.dart';
 import '../route_logic/route_section.dart';
 import '../route_logic/calculate_difficulty.dart';
+import '../shared/base_colors.dart';
+import '../shared/base_widgets.dart';
+import '../shared/dev_helpers.dart';
 
 class CreateRouteScreen extends StatefulWidget {
   const CreateRouteScreen({Key? key}) : super(key: key);
@@ -14,6 +17,7 @@ class CreateRouteScreen extends StatefulWidget {
 
 class _CreateRouteScreenState extends State<CreateRouteScreen> {
   final List<RouteSection> _sections = [];
+  final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
   bool _isDrawingMode = false;
 
@@ -21,18 +25,27 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Create Route"),
-        backgroundColor: Colors.black87,
+        title: const Text(
+          "Create Route",
+          style: TextStyle(
+            color: BaseColors.white,
+          ),
+        ),
+        backgroundColor: BaseColors.background,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(
+            Icons.close,
+            color: BaseColors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Stack(
+      body: /* Center(child: Text("This is Create Route Screen")) */
+          Stack(
         children: [
           FlutterMap(
             options: MapOptions(
-              center: LatLng(48.858844, 2.294351),
+              center: defaultCenter,
               zoom: 10,
               onTap: (_, point) => _isDrawingMode
                   ? _addRoutePoint(point)
@@ -108,30 +121,45 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   Widget _buildControlPanel() {
     return Positioned(
       right: 16,
-      top: 100,
+      // top: 100,
+      bottom: 140,
       child: Column(
         children: [
-          FloatingActionButton(
-            heroTag: "zoomIn",
-            onPressed: () {},
-            child: const Icon(Icons.add),
-          ),
           const SizedBox(height: 8),
-          FloatingActionButton(
-            heroTag: "zoomOut",
-            onPressed: () {},
-            child: const Icon(Icons.remove),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            heroTag: "toggleDraw",
+          CustomFloatingButton(
+            heroTag: 'mapLayers2Tag',
             onPressed: () {
-              setState(() {
-                _isDrawingMode = !_isDrawingMode;
-              });
+              setState(() {});
+              // Логіка для шарів карти
             },
-            backgroundColor: _isDrawingMode ? Colors.orange : Colors.blue,
-            child: const Icon(Icons.edit),
+            icon: Icons.layers,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'compas2Tag',
+            onPressed: () {
+              setState(() {});
+              // Логіка для Compass
+            },
+            icon: Icons.explore,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'completeRouteNavigateBackTag',
+            onPressed: () {
+              // Add the logic to finish the route or navigate back.
+              Navigator.pop(context);
+            },
+            icon: Icons.check,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'createRouteAndBackTag',
+            onPressed: () {
+              setState(() {});
+              // Логіка для cтворення маршруту
+            },
+            icon: Icons.create,
           ),
         ],
       ),
@@ -142,30 +170,28 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        height: 200,
+        height: 130,
+        width: MediaQuery.of(context).size.width,
         padding: const EdgeInsets.all(16),
         decoration: const BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          color: BaseColors.background,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Total Distance: ${_calculateTotalDistance()} km",
-              style: const TextStyle(color: Colors.white),
+              "Distance: ${_calculateTotalDistance()} km",
+              style: const TextStyle(color: BaseColors.white),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
-              "Total Difficulty: ${_calculateTotalDifficulty()}",
-              style: const TextStyle(color: Colors.white),
+              "Elevation Gain: ${_sections.fold(0.0, (sum, s) => sum + s.elevationGain)} m",
+              style: const TextStyle(color: BaseColors.white),
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                // Логіка завершення маршруту
-              },
-              child: const Text("Done"),
+            const SizedBox(height: 4),
+            Text(
+              "Difficulty: ${_calculateTotalDifficulty()}",
+              style: const TextStyle(color: BaseColors.white),
             ),
           ],
         ),
