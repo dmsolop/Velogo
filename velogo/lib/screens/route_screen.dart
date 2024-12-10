@@ -67,12 +67,13 @@ class _RouteScreenState extends State<RouteScreen> {
             _buildDraggableBottomPanel(),
           ],
         ),
-        bottomNavigationBar: CustomBottomNavigationBar(
-          currentIndex: 0, // Індекс для цього екрану
-          onTap: (index) {
-            // Логіка навігації між екранами
-          },
-        ),
+        // bottomNavigationBar: CustomBottomNavigationBar(
+        //   currentIndex: 0, // Індекс для цього екрану
+        //   onTap: (index) {
+        //     // Логіка навігації між екранами
+        //   },
+        //   isDarkTheme: null,
+        // ),
       ),
     );
   }

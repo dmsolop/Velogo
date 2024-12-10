@@ -126,6 +126,59 @@ class OutlinedCustomButton extends StatelessWidget {
   }
 }
 
+class AdaptiveButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final double padding; // Відступи
+
+  const AdaptiveButton({
+    Key? key,
+    required this.label,
+    required this.onPressed,
+    this.padding = 16.0, // Відступи за замовчуванням
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Використовуємо TextPainter для вимірювання розміру тексту
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: BaseFonts.body.copyWith(
+          color: BaseColors.white,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    // Обчислюємо ширину тексту і додаємо відступи
+    final double buttonWidth = textPainter.width + (padding * 2);
+
+    return SizedBox(
+      width: buttonWidth,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: BaseColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // Зкруглені кути
+          ),
+          padding: EdgeInsets.zero, // Без зайвих відступів
+        ),
+        child: Center(
+          child: Text(
+            label,
+            textAlign: TextAlign.center, // Текст центрований горизонтально
+            style: BaseFonts.body.copyWith(
+              color: BaseColors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ProportionalButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;

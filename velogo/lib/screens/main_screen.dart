@@ -84,6 +84,7 @@ class MainScreen extends StatelessWidget {
                       const Icon(Icons.filter_alt, color: BaseColors.iconLight),
                   onPressed: () {
                     // Дія при натисканні
+                    print('Search button pressed');
                   },
                 ),
               ],
@@ -98,6 +99,7 @@ class MainScreen extends StatelessWidget {
               label: "Plan the Route",
               onPressed: () {
                 // Дія при натисканні
+                print('Plan the route button pressed');
               },
             ),
             const SizedBox(height: 8),
@@ -105,6 +107,7 @@ class MainScreen extends StatelessWidget {
               label: "Start Navigation",
               onPressed: () {
                 // Дія при натисканні
+                print('Start navigation button pressed');
               },
             ),
             const SizedBox(height: 8),
@@ -112,6 +115,7 @@ class MainScreen extends StatelessWidget {
               label: "Explore Historical Sites",
               onPressed: () {
                 // Дія при натисканні
+                print('Historical button pressed');
               },
             ),
             const SizedBox(height: 24),
@@ -181,13 +185,13 @@ class MainScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 0, // Вкажи активний індекс
-        onTap: (index) {
-          // Логіка навігації між екранами
-          print("Selected index: $index");
-        },
-      ),
+      // bottomNavigationBar: CustomBottomNavigationBar(
+      //   currentIndex: 0, // Вкажи активний індекс
+      //   onTap: (index) {
+      //     // Логіка навігації між екранами
+      //     print("Selected index: $index");
+      //   },
+      // ),
     );
   }
 }

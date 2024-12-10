@@ -122,7 +122,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
     return Positioned(
       right: 16,
       // top: 100,
-      bottom: 140,
+      bottom: 160,
       child: Column(
         children: [
           const SizedBox(height: 8),
@@ -144,14 +144,14 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
             icon: Icons.explore,
           ),
           const SizedBox(height: 8),
-          CustomFloatingButton(
-            heroTag: 'completeRouteNavigateBackTag',
-            onPressed: () {
-              // Add the logic to finish the route or navigate back.
-              Navigator.pop(context);
-            },
-            icon: Icons.check,
-          ),
+          // CustomFloatingButton(
+          //   heroTag: 'completeRouteNavigateBackTag',
+          //   onPressed: () {
+          //     // Add the logic to finish the route or navigate back.
+          //     Navigator.pop(context);
+          //   },
+          //   icon: Icons.check,
+          // ),
           const SizedBox(height: 8),
           CustomFloatingButton(
             heroTag: 'createRouteAndBackTag',
@@ -170,28 +170,57 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        height: 130,
+        height: 150, // Зменшена загальна висота панелі
         width: MediaQuery.of(context).size.width,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: const BoxDecoration(
           color: BaseColors.background,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Distance: ${_calculateTotalDistance()} km",
-              style: const TextStyle(color: BaseColors.white),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 40,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Базове текстове поле
+                  const Expanded(
+                    child: CustomTextField(
+                      hintText: "Your route",
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Кнопка по ширині тексту
+                  AdaptiveButton(
+                    label: "Done",
+                    onPressed: () {
+                      // Логіка для збереження маршруту
+                    },
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            CustomText(
+              text: "Distance: ${_calculateTotalDistance()} km",
+              fontSize: 14,
+              color: BaseColors.white,
             ),
             const SizedBox(height: 4),
-            Text(
-              "Elevation Gain: ${_sections.fold(0.0, (sum, s) => sum + s.elevationGain)} m",
-              style: const TextStyle(color: BaseColors.white),
+            CustomText(
+              text:
+                  "Elevation Gain: ${_sections.fold(0.0, (sum, s) => sum + s.elevationGain)} m",
+              fontSize: 14,
+              color: BaseColors.white,
             ),
             const SizedBox(height: 4),
-            Text(
-              "Difficulty: ${_calculateTotalDifficulty()}",
-              style: const TextStyle(color: BaseColors.white),
+            CustomText(
+              text: "Difficulty: ${_calculateTotalDifficulty()}",
+              fontSize: 14,
+              color: BaseColors.white,
             ),
           ],
         ),
