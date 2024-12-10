@@ -6,6 +6,7 @@ import '../providers/theme_provider.dart';
 import '../shared/base_colors.dart';
 import '../screens/main_screen.dart';
 import '../screens/route_screen.dart';
+import '../screens/my_routes_screen.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   const CustomBottomNavigationBar({Key? key}) : super(key: key);
@@ -21,7 +22,8 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   // Список екранів для навігації
   final List<Widget> _screens = [
     const MainScreen(),
-    const RouteScreen(),
+    // const RouteScreen(),
+    const MyRoutesScreen(),
     // Можна додати інші екрани тут
   ];
 
@@ -49,11 +51,11 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
               },
               items: const [
                 BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.map),
-                  label: "Plan Route",
+                  icon: Icon(CupertinoIcons.home),
+                  label: "Home",
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.location),
+                  icon: Icon(CupertinoIcons.map),
                   label: "My Routes",
                 ),
               ],

@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
-import '../shared/custom_bottom_navigation_bar.dart';
 import '../shared/dev_helpers.dart';
 import '../route_logic/route_section.dart';
 import '../route_logic/calculate_difficulty.dart';

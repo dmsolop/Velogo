@@ -1,5 +1,4 @@
 import 'package:latlong2/latlong.dart';
-import 'package:flutter/material.dart';
 
 class RouteSection {
   final List<LatLng> coordinates; // Координати секції

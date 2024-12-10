@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../shared/base_widgets.dart'; // Для CustomButton і OutlinedCustomButton
 import '../shared/base_colors.dart'; // Стилі кольорів
 import '../shared/base_fonts.dart'; // Стилі текстів
-import '../shared/custom_bottom_navigation_bar.dart'; // Для CustomBottomNavigationBar
 
 class MainScreen extends StatelessWidget {
   const MainScreen({Key? key}) : super(key: key);
