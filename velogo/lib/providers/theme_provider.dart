@@ -47,8 +47,9 @@ class ThemeProvider extends ChangeNotifier {
     } else if (_appThemeMode == AppThemeMode.light) {
       return false;
     } else {
-      // Якщо вибрано "системну тему", перевіряємо _systemBrightness
       return _systemBrightness == Brightness.dark;
     }
   }
+
+  bool get isSystemTheme => _appThemeMode == AppThemeMode.system;
 }

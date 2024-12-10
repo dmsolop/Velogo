@@ -59,6 +59,48 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+class CustomSegmentedButton<T> extends StatelessWidget {
+  final List<ButtonSegment<T>> segments;
+  final Set<T> selected;
+  final ValueChanged<Set<T>> onSelectionChanged;
+
+  const CustomSegmentedButton({
+    Key? key,
+    required this.segments,
+    required this.selected,
+    required this.onSelectionChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<T>(
+      segments: segments,
+      selected: selected,
+      onSelectionChanged: onSelectionChanged,
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return BaseColors.primary; // Фон активної кнопки
+          }
+          return BaseColors.cardBackground; // Фон неактивної кнопки
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return BaseColors.white; // Колір тексту активної кнопки
+          }
+          return BaseColors.textSecondary; // Колір тексту неактивної кнопки
+        }),
+        textStyle: WidgetStateProperty.all(
+          BaseFonts.bodyTextBold, // Стиль тексту
+        ),
+        overlayColor: WidgetStateProperty.all(
+          BaseColors.iconSelected.withOpacity(0.1), // Колір натискання
+        ),
+      ),
+    );
+  }
+}
+
 class CustomButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
