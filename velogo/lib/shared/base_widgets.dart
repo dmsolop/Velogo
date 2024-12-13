@@ -59,6 +59,37 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+class CustomTextFieldWithLabel extends StatelessWidget {
+  final String label;
+  final String initialValue;
+  final bool isReadOnly;
+
+  const CustomTextFieldWithLabel({
+    Key? key,
+    required this.label,
+    required this.initialValue,
+    this.isReadOnly = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      readOnly: isReadOnly,
+      controller: TextEditingController(text: initialValue),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: BaseFonts.bodyTextLight,
+        filled: true,
+        fillColor: BaseColors.inputBackground,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+}
+
 class CustomSegmentedButton<T> extends StatelessWidget {
   final List<ButtonSegment<T>> segments;
   final Set<T> selected;
@@ -426,6 +457,31 @@ class SectionContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: child,
+    );
+  }
+}
+
+class CustomCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final Color backgroundColor;
+
+  const CustomCard({
+    Key? key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.backgroundColor = BaseColors.cardBackground,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: child,
     );
   }

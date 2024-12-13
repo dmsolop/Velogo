@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../shared/base_colors.dart';
 import '../screens/main_screen.dart';
-import '../screens/route_screen.dart';
 import '../screens/my_routes_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/profile_screen.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   const CustomBottomNavigationBar({Key? key}) : super(key: key);
@@ -25,6 +25,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     const MainScreen(),
     // const RouteScreen(),
     const MyRoutesScreen(),
+    const ProfileScreen(),
     const SettingsScreen(),
     // Можна додати інші екрани тут
   ];
@@ -59,6 +60,10 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                 BottomNavigationBarItem(
                   icon: Icon(CupertinoIcons.map),
                   label: "My Routes",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.profile_circled),
+                  label: "Profile",
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(CupertinoIcons.settings),
