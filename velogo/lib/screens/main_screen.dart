@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../shared/base_widgets.dart'; // Для CustomButton і OutlinedCustomButton
 import '../shared/base_colors.dart'; // Стилі кольорів
 import '../shared/base_fonts.dart'; // Стилі текстів
+import '../screens/create_route_screen.dart';
+import '../screens/route_screen.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -36,15 +38,20 @@ class MainScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundImage: NetworkImage(
-                      'https://example.com/avatar.jpg'), // URL аватарки
+                  backgroundColor: Colors.blue,
+                  child: Image.asset(
+                    'assets/images/avatar.png',
+                    // width: 24,
+                    // height: 24,
+                    fit: BoxFit.cover, // Масштабування
+                  ),
                 ),
-                SizedBox(width: 12),
-                Column(
+                const SizedBox(width: 12),
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -97,16 +104,36 @@ class MainScreen extends StatelessWidget {
             CustomButton(
               label: "Plan the Route",
               onPressed: () {
-                // Дія при натисканні
-                print('Plan the route button pressed');
+                try {
+                  print('Plan the route button pressed');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateRouteScreen(),
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  print("Navigation error: $e");
+                  print(stackTrace);
+                }
               },
             ),
             const SizedBox(height: 8),
             CustomButton(
               label: "Start Navigation",
               onPressed: () {
-                // Дія при натисканні
-                print('Start navigation button pressed');
+                try {
+                  print('Start navigation button pressed');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RouteScreen(),
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  print("Navigation error: $e");
+                  print(stackTrace);
+                }
               },
             ),
             const SizedBox(height: 8),
@@ -125,8 +152,8 @@ class MainScreen extends StatelessWidget {
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://example.com/route_image.jpg',
+              child: Image.asset(
+                'assets/images/mountain_syclists(2).png',
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
