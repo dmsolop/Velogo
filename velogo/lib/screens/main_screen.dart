@@ -101,48 +101,65 @@ class MainScreen extends StatelessWidget {
               style: BaseFonts.headingLarge,
             ),
             const SizedBox(height: 16),
-            CustomButton(
-              label: "Plan the Route",
-              onPressed: () {
-                try {
-                  print('Plan the route button pressed');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateRouteScreen(),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      label: "Plan the Route",
+                      onPressed: () {
+                        try {
+                          print('Plan the route button pressed');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CreateRouteScreen(),
+                            ),
+                          );
+                        } catch (e, stackTrace) {
+                          print("Navigation error: $e");
+                          print(stackTrace);
+                        }
+                      },
                     ),
-                  );
-                } catch (e, stackTrace) {
-                  print("Navigation error: $e");
-                  print(stackTrace);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            CustomButton(
-              label: "Start Navigation",
-              onPressed: () {
-                try {
-                  print('Start navigation button pressed');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RouteScreen(),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      label: "Start Navigation",
+                      onPressed: () {
+                        try {
+                          print('Start navigation button pressed');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RouteScreen(),
+                            ),
+                          );
+                        } catch (e, stackTrace) {
+                          print("Navigation error: $e");
+                          print(stackTrace);
+                        }
+                      },
                     ),
-                  );
-                } catch (e, stackTrace) {
-                  print("Navigation error: $e");
-                  print(stackTrace);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            OutlinedCustomButton(
-              label: "Explore Historical Sites",
-              onPressed: () {
-                // Дія при натисканні
-                print('Historical button pressed');
-              },
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedCustomButton(
+                      label: "Explore Historical Sites",
+                      onPressed: () {
+                        // Дія при натисканні
+                        print('Historical button pressed');
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
