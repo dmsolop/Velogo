@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
 import '../shared/base_fonts.dart';
