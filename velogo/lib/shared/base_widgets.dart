@@ -486,3 +486,259 @@ class CustomCard extends StatelessWidget {
     );
   }
 }
+
+class CustomSectionTitle extends StatelessWidget {
+  final String title;
+
+  const CustomSectionTitle({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(
+        title,
+        style: BaseFonts.headingMedium.copyWith(color: BaseColors.textPrimary),
+      ),
+    );
+  }
+}
+
+class CustomSwitchTile extends StatelessWidget {
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const CustomSwitchTile({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: Text(
+        label,
+        style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+      ),
+      value: value,
+      onChanged: onChanged,
+      activeColor: BaseColors.primary,
+    );
+  }
+}
+
+class CustomRadioGroup<T> extends StatelessWidget {
+  final String title;
+  final List<T> options;
+  final T selectedValue;
+  final ValueChanged<T> onChanged;
+  final String Function(T) labelBuilder;
+
+  const CustomRadioGroup({
+    Key? key,
+    required this.title,
+    required this.options,
+    required this.selectedValue,
+    required this.onChanged,
+    required this.labelBuilder,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomSectionTitle(title: title),
+        ...options.map((option) {
+          return RadioListTile<T>(
+            title: Text(
+              labelBuilder(option),
+              style: BaseFonts.bodyTextLight
+                  .copyWith(color: BaseColors.textPrimary),
+            ),
+            value: option,
+            groupValue: selectedValue,
+            onChanged: (value) {
+              if (value != null) {
+                onChanged(value);
+              }
+            },
+            activeColor: BaseColors.primary,
+          );
+        }).toList(),
+      ],
+    );
+  }
+}
+
+class CustomDropdown<T> extends StatelessWidget {
+  final String label; // Назва поля
+  final String hintText; // Текст підказки
+  final T selectedValue; // Поточне вибране значення
+  final List<T> items; // Варіанти вибору
+  final void Function(T?) onChanged; // Колбек для зміни
+  final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
+
+  const CustomDropdown({
+    Key? key,
+    required this.label,
+    required this.hintText,
+    required this.selectedValue,
+    required this.items,
+    required this.onChanged,
+    required this.itemLabelBuilder,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: BaseFonts.bodyTextBold,
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<T>(
+          value: selectedValue,
+          decoration: InputDecoration(
+            hintText: hintText, // Використовується підказка
+            fillColor: BaseColors.inputBackground,
+            filled: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<T>(
+                  value: item,
+                  child: Text(itemLabelBuilder(item)), // Побудова тексту
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+// class CustomDropdown<T> extends StatelessWidget {
+//   final String label;
+//   final String hintText; // Підказка
+//   final T selectedValue; // Поточне вибране значення
+//   final List<T> items; // Список елементів
+//   final void Function(T?) onChanged; // Колбек
+//   final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
+
+//   const CustomDropdown({
+//     Key? key,
+//     required this.label,
+//     required this.hintText,
+//     required this.selectedValue,
+//     required this.items,
+//     required this.onChanged,
+//     required this.itemLabelBuilder,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(
+//           label,
+//           style: BaseFonts.bodyTextBold,
+//         ),
+//         const SizedBox(height: 8),
+//         DropdownButtonFormField<T>(
+//           value: selectedValue,
+//           decoration: InputDecoration(
+//             hintText: hintText, // Використовується підказка
+//             fillColor: BaseColors.inputBackground,
+//             filled: true,
+//             border: OutlineInputBorder(
+//               borderRadius: BorderRadius.circular(8),
+//               borderSide: BorderSide.none,
+//             ),
+//           ),
+//           items: items
+//               .map(
+//                 (item) => DropdownMenuItem<T>(
+//                   value: item,
+//                   child: Text(itemLabelBuilder(item)), // Побудова тексту
+//                 ),
+//               )
+//               .toList(),
+//           onChanged: onChanged,
+//         ),
+//       ],
+//     );
+//   }
+// }
+
+class CustomTextLink extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+
+  const CustomTextLink({
+    Key? key,
+    required this.text,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        text,
+        style: BaseFonts.bodyTextLight.copyWith(
+          color: BaseColors.primary,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}
+
+class CustomKeyValue extends StatelessWidget {
+  final String keyText;
+  final String valueText;
+
+  const CustomKeyValue({
+    Key? key,
+    required this.keyText,
+    required this.valueText,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            keyText,
+            style: BaseFonts.bodyTextLight
+                .copyWith(color: BaseColors.textSecondary),
+          ),
+          Text(
+            valueText,
+            style:
+                BaseFonts.bodyTextBold.copyWith(color: BaseColors.textPrimary),
+          ),
+        ],
+      ),
+    );
+  }
+}
