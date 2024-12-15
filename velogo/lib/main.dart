@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:sensors/sensors.dart';
-import 'package:provider/provider.dart';
-import 'screens/start_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/registration_screen.dart';
-import 'screens/password_recovery_screen.dart';
-import 'screens/route_screen.dart';
-import 'screens/main_screen.dart';
-import 'screens/route_screen.dart';
-import 'screens/create_route_screen.dart';
-import 'providers/theme_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'bloc/settings/settings_cubit.dart';
+import 'bloc/theme/theme_cubit.dart';
 import 'shared/custom_bottom_navigation_bar.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Ініціалізація сховища для HydratedBloc
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await getApplicationDocumentsDirectory(),
+  );
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => SettingsCubit()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -26,24 +30,66 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Builder(
-      builder: (context) {
-        // Безпечне оновлення теми після побудови
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final systemBrightness = MediaQuery.of(context).platformBrightness;
-          themeProvider.updateSystemBrightness(systemBrightness);
-        });
+    return BlocBuilder<ThemeCubit, AppThemeMode>(
+      builder: (context, themeMode) {
+        final isDark = themeMode == AppThemeMode.dark ||
+            (themeMode == AppThemeMode.system &&
+                MediaQuery.of(context).platformBrightness == Brightness.dark);
 
         return MaterialApp(
           title: 'Custom Navigation App',
-          theme: themeProvider.themeData,
-          home: const Scaffold(
-            body: CustomBottomNavigationBar(),
-          ),
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+          home: const CustomBottomNavigationBar(),
         );
       },
     );
   }
 }
+
+
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:hydrated_bloc/hydrated_bloc.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'bloc/settings/settings_cubit.dart';
+// import 'bloc/theme/theme_cubit.dart';
+// import 'shared/custom_bottom_navigation_bar.dart';
+
+// void main() {
+//   runApp(
+//     MultiBlocProvider(
+//       providers: [
+//         BlocProvider(create: (_) => ThemeCubit()),
+//         BlocProvider(create: (_) => SettingsCubit()),
+//       ],
+//       child: const MyApp(),
+//     ),
+//   );
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<ThemeCubit, AppThemeMode>(
+//       builder: (context, themeMode) {
+//         final isDark = themeMode == AppThemeMode.dark ||
+//             (themeMode == AppThemeMode.system &&
+//                 MediaQuery.of(context).platformBrightness == Brightness.dark);
+
+//         return MaterialApp(
+//           title: 'Custom Navigation App',
+//           theme: ThemeData.light(),
+//           darkTheme: ThemeData.dark(),
+//           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+//           home: const CustomBottomNavigationBar(),
+//         );
+//       },
+//     );
+//   }
+// }
+
