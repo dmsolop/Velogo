@@ -94,38 +94,47 @@ class CustomSegmentedButton<T> extends StatelessWidget {
   final List<ButtonSegment<T>> segments;
   final Set<T> selected;
   final ValueChanged<Set<T>> onSelectionChanged;
+  final EdgeInsetsGeometry padding; // Педдінг зліва та справа
 
   const CustomSegmentedButton({
     Key? key,
     required this.segments,
     required this.selected,
     required this.onSelectionChanged,
+    this.padding =
+        const EdgeInsets.symmetric(horizontal: 0), // Дефолтний педдінг
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<T>(
-      segments: segments,
-      selected: selected,
-      onSelectionChanged: onSelectionChanged,
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return BaseColors.primary; // Фон активної кнопки
-          }
-          return BaseColors.cardBackground; // Фон неактивної кнопки
-        }),
-        foregroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return BaseColors.white; // Колір тексту активної кнопки
-          }
-          return BaseColors.textSecondary; // Колір тексту неактивної кнопки
-        }),
-        textStyle: WidgetStateProperty.all(
-          BaseFonts.bodyTextBold, // Стиль тексту
-        ),
-        overlayColor: WidgetStateProperty.all(
-          BaseColors.iconSelected.withOpacity(0.1), // Колір натискання
+    return Padding(
+      padding: padding, // Застосування зовнішнього педдінгу
+      child: SizedBox(
+        width: double.infinity, // Ширина на весь доступний простір
+        child: SegmentedButton<T>(
+          segments: segments,
+          selected: selected,
+          onSelectionChanged: onSelectionChanged,
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return BaseColors.primary; // Фон активної кнопки
+              }
+              return BaseColors.cardBackground; // Фон неактивної кнопки
+            }),
+            foregroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return BaseColors.white; // Колір тексту активної кнопки
+              }
+              return BaseColors.textSecondary; // Колір тексту неактивної кнопки
+            }),
+            textStyle: WidgetStateProperty.all(
+              BaseFonts.bodyTextBold, // Стиль тексту
+            ),
+            overlayColor: WidgetStateProperty.all(
+              BaseColors.iconSelected.withOpacity(0.1), // Колір натискання
+            ),
+          ),
         ),
       ),
     );
@@ -184,7 +193,7 @@ class OutlinedCustomButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        side: BorderSide(
+        side: const BorderSide(
             color: BaseColors.grey), // Використовуємо вже існуючий колір
         minimumSize: Size(width, height),
         shape: RoundedRectangleBorder(
@@ -362,6 +371,130 @@ class CustomRoundedButton extends StatelessWidget {
   }
 }
 
+class CompactOutlinedButtonRow extends StatelessWidget {
+  final String label; // Текст лейбла
+  final String buttonText; // Текст кнопки
+  final VoidCallback onPressed; // Колбек при натисканні кнопки
+  final Color? borderColor; // Колір обводки кнопки
+  final Color? textColor; // Колір тексту кнопки
+  final Color? backgroundColor; // Колір фону кнопки
+  final double borderWidth; // Товщина обводки
+
+  const CompactOutlinedButtonRow({
+    Key? key,
+    required this.label,
+    required this.buttonText,
+    required this.onPressed,
+    this.borderColor,
+    this.textColor,
+    this.backgroundColor,
+    this.borderWidth = 1.5, // Значення за замовчуванням
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Елементи по краях
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Лейбл
+        Text(
+          label,
+          style:
+              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+        ),
+        // OutlinedButton з можливістю налаштування
+        SizedBox(
+          height: 40, // Фіксована висота кнопки
+          width: 120, // Фіксована ширина кнопки
+          child: OutlinedButton(
+            onPressed: onPressed,
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(
+                color: borderColor ?? BaseColors.primary, // Колір обводки
+                width: borderWidth, // Товщина обводки
+              ),
+              backgroundColor:
+                  backgroundColor ?? Colors.transparent, // Колір фону
+              foregroundColor: textColor ?? BaseColors.primary, // Колір тексту
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Закруглені кути
+              ),
+            ),
+            child: Text(
+              buttonText,
+              style: BaseFonts.bodyTextBold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CompactElevatedButtonRow extends StatelessWidget {
+  final String label; // Текст лейбла
+  final String buttonText; // Текст кнопки
+  final VoidCallback onPressed; // Колбек при натисканні кнопки
+  final Color? borderColor; // Колір обводки кнопки
+  final Color? backgroundColor; // Колір фону кнопки
+  final Color? textColor; // Колір тексту кнопки
+  final double borderWidth; // Товщина обводки
+
+  const CompactElevatedButtonRow({
+    Key? key,
+    required this.label,
+    required this.buttonText,
+    required this.onPressed,
+    this.borderColor,
+    this.backgroundColor,
+    this.textColor,
+    this.borderWidth = 1.5, // Значення за замовчуванням
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Елементи по краях
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Лейбл
+        Text(
+          label,
+          style:
+              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+        ),
+        // ElevatedButton з можливістю налаштування
+        SizedBox(
+          height: 40, // Фіксована висота кнопки
+          width: 120, // Фіксована ширина кнопки
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  backgroundColor ?? BaseColors.primary, // Колір фону кнопки
+              foregroundColor:
+                  textColor ?? BaseColors.white, // Колір тексту кнопки
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Закруглені кути
+                side: BorderSide(
+                  color: borderColor ?? BaseColors.primary, // Колір обводки
+                  width: borderWidth, // Товщина обводки
+                ),
+              ),
+              elevation: 2, // Легка тінь для об'ємного ефекту
+            ),
+            child: Text(
+              buttonText,
+              style: BaseFonts.bodyTextBold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class CustomText extends StatelessWidget {
   final String text;
   final double fontSize;
@@ -529,6 +662,57 @@ class CustomSwitchTile extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       activeColor: BaseColors.primary,
+      activeTrackColor: BaseColors.headerDark,
+      inactiveThumbColor: BaseColors.primary,
+      inactiveTrackColor: BaseColors.headerDark,
+    );
+  }
+}
+
+class CustomToggleTile extends StatelessWidget {
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const CustomToggleTile({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Лейбл
+        Expanded(
+          child: Text(
+            label,
+            style:
+                BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+          ),
+        ),
+        // Кастомний Switch
+        Transform.scale(
+          scale: 1.2, // Збільшуємо розмір Switch (за потреби)
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: BaseColors.primary, // Колір активного thumb
+            activeTrackColor: BaseColors.headerDark, // Колір активного треку
+            inactiveThumbColor:
+                BaseColors.primary, // Колір thumb у неактивному стані
+            inactiveTrackColor: BaseColors.headerDark, // Фон треку
+            trackOutlineColor: MaterialStateProperty.resolveWith<Color?>(
+              (states) => states.contains(MaterialState.disabled)
+                  ? BaseColors.headerDark // Колір у неактивному стані
+                  : BaseColors.primary, // Колір обводки (кромки)
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -602,7 +786,8 @@ class CustomDropdown<T> extends StatelessWidget {
       children: [
         Text(
           label,
-          style: BaseFonts.bodyTextBold,
+          style:
+              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
@@ -631,59 +816,74 @@ class CustomDropdown<T> extends StatelessWidget {
   }
 }
 
-// class CustomDropdown<T> extends StatelessWidget {
-//   final String label;
-//   final String hintText; // Підказка
-//   final T selectedValue; // Поточне вибране значення
-//   final List<T> items; // Список елементів
-//   final void Function(T?) onChanged; // Колбек
-//   final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
+class CompactDropdown<T> extends StatelessWidget {
+  final String label; // Назва поля
+  final String hintText; // Текст підказки
+  final T selectedValue; // Поточне вибране значення
+  final List<T> items; // Варіанти вибору
+  final void Function(T?) onChanged; // Колбек для зміни
+  final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
 
-//   const CustomDropdown({
-//     Key? key,
-//     required this.label,
-//     required this.hintText,
-//     required this.selectedValue,
-//     required this.items,
-//     required this.onChanged,
-//     required this.itemLabelBuilder,
-//   }) : super(key: key);
+  const CompactDropdown({
+    Key? key,
+    required this.label,
+    required this.hintText,
+    required this.selectedValue,
+    required this.items,
+    required this.onChanged,
+    required this.itemLabelBuilder,
+  }) : super(key: key);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           label,
-//           style: BaseFonts.bodyTextBold,
-//         ),
-//         const SizedBox(height: 8),
-//         DropdownButtonFormField<T>(
-//           value: selectedValue,
-//           decoration: InputDecoration(
-//             hintText: hintText, // Використовується підказка
-//             fillColor: BaseColors.inputBackground,
-//             filled: true,
-//             border: OutlineInputBorder(
-//               borderRadius: BorderRadius.circular(8),
-//               borderSide: BorderSide.none,
-//             ),
-//           ),
-//           items: items
-//               .map(
-//                 (item) => DropdownMenuItem<T>(
-//                   value: item,
-//                   child: Text(itemLabelBuilder(item)), // Побудова тексту
-//                 ),
-//               )
-//               .toList(),
-//           onChanged: onChanged,
-//         ),
-//       ],
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Лейбл
+        Text(
+          label,
+          style:
+              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+        ),
+        // const SizedBox(width: 12), // Проміжок між лейблом і дропдауном
+        // Невеликий фіксований дропдаун
+        SizedBox(
+          width: 120, // Фіксована ширина дропдауну
+          height: 40, // Фіксована висота дропдауну
+          child: DropdownButtonFormField<T>(
+            value: selectedValue,
+            decoration: InputDecoration(
+              hintText: hintText,
+              fillColor: BaseColors.inputBackground,
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: 8, horizontal: 8), // Внутрішні відступи
+            ),
+            items: items
+                .map(
+                  (item) => DropdownMenuItem<T>(
+                    value: item,
+                    child: Text(
+                      itemLabelBuilder(item),
+                      style: const TextStyle(fontSize: 14), // Зменшений шрифт
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: onChanged,
+            icon:
+                const Icon(Icons.arrow_drop_down, size: 20), // Зменшена іконка
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class CustomTextLink extends StatelessWidget {
   final String text;
@@ -702,7 +902,7 @@ class CustomTextLink extends StatelessWidget {
       child: Text(
         text,
         style: BaseFonts.bodyTextLight.copyWith(
-          color: BaseColors.primary,
+          color: BaseColors.textPrimary,
           decoration: TextDecoration.underline,
         ),
       ),

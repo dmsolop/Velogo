@@ -64,7 +64,7 @@ class BaseFonts {
 
   static const TextStyle appBarTitle = TextStyle(
     fontFamily: primaryFont,
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: FontWeight.bold,
     color: BaseColors.textPrimary,
   );
