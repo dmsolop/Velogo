@@ -27,16 +27,3 @@ class ThemeCubit extends HydratedCubit<AppThemeMode> {
     return {'theme': state.toString()};
   }
 }
-
-
-// import 'package:flutter_bloc/flutter_bloc.dart';
-
-// enum AppThemeMode { system, light, dark }
-
-// class ThemeCubit extends Cubit<AppThemeMode> {
-//   ThemeCubit() : super(AppThemeMode.system);
-
-//   void setTheme(AppThemeMode mode) {
-//     emit(mode);
-//   }
-// }
