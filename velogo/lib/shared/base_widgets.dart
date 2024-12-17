@@ -90,6 +90,71 @@ class CustomTextFieldWithLabel extends StatelessWidget {
   }
 }
 
+class CompactLabelRow extends StatelessWidget {
+  final String label; // Основний лейбл
+  final String value; // Текст значення
+  final Color? backgroundColor; // Фон значення
+
+  const CompactLabelRow({
+    Key? key,
+    required this.label,
+    required this.value,
+    this.backgroundColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Row(
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween, // Розташування по краях
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Лейбл
+        Text(
+          label,
+          style: BaseFonts.bodyTextLight.copyWith(
+            color: isDark ? BaseColors.textSecondary : BaseColors.textPrimary,
+          ),
+        ),
+        // Значення з декорацією
+        SizedBox(
+          width: 120.0,
+          height: 40.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: backgroundColor ??
+                  (isDark ? BaseColors.headerDark : BaseColors.cardBackground),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                value,
+                style: BaseFonts.bodyTextBold.copyWith(
+                  color: isDark
+                      ? BaseColors.textPrimary
+                      : BaseColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class CustomSegmentedButton<T> extends StatelessWidget {
   final List<ButtonSegment<T>> segments;
   final Set<T> selected;
