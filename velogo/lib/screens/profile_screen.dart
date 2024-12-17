@@ -60,14 +60,14 @@ class ProfileScreen extends StatelessWidget {
             CustomCard(
               child: Column(
                 children: [
-                  const CustomTextFieldWithLabel(
+                  const CompactLabelRow(
                     label: "Gender",
-                    initialValue: "Male",
+                    value: "Male",
                   ),
                   const SizedBox(height: 8),
-                  const CustomTextFieldWithLabel(
+                  const CompactLabelRow(
                     label: "Age",
-                    initialValue: "55",
+                    value: "55",
                   ),
                   const SizedBox(height: 16),
                   CustomButton(
