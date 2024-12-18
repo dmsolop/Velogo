@@ -59,33 +59,91 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+// class CustomTextFieldWithLabel extends StatelessWidget {
+//   final String label;
+//   final String initialValue;
+//   final bool isReadOnly;
+
+//   const CustomTextFieldWithLabel({
+//     Key? key,
+//     required this.label,
+//     required this.initialValue,
+//     this.isReadOnly = false,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return TextField(
+//       readOnly: isReadOnly,
+//       controller: TextEditingController(text: initialValue),
+//       decoration: InputDecoration(
+//         labelText: label,
+//         labelStyle: BaseFonts.bodyTextLight,
+//         filled: true,
+//         fillColor: BaseColors.inputBackground,
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(8),
+//           borderSide: BorderSide.none,
+//         ),
+//       ),
+//     );
+//   }
+// }
+
 class CustomTextFieldWithLabel extends StatelessWidget {
   final String label;
-  final String initialValue;
-  final bool isReadOnly;
+  final String? hintText; // Підказка
+  final String? initialValue;
+  final TextInputType keyboardType;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextFieldWithLabel({
     Key? key,
     required this.label,
-    required this.initialValue,
-    this.isReadOnly = false,
+    this.hintText, // Підказка
+    this.initialValue,
+    this.keyboardType = TextInputType.text,
+    this.onChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      readOnly: isReadOnly,
-      controller: TextEditingController(text: initialValue),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: BaseFonts.bodyTextLight,
-        filled: true,
-        fillColor: BaseColors.inputBackground,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: BaseFonts.bodyTextBold.copyWith(
+            color: isDark ? BaseColors.textPrimary : BaseColors.textSecondary,
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: initialValue,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
+          style: BaseFonts.bodyTextLight,
+          decoration: InputDecoration(
+            hintText: hintText, // Підказка
+            hintStyle: BaseFonts.bodyTextLight.copyWith(
+              color: isDark
+                  ? BaseColors.textSecondary.withOpacity(0.7)
+                  : BaseColors.textPrimary.withOpacity(0.7),
+            ),
+            filled: true,
+            fillColor: isDark
+                ? BaseColors.inputBackground
+                : BaseColors.backgroundLight,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
