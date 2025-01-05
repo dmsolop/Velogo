@@ -34,17 +34,20 @@ class CustomLogo extends StatelessWidget {
 class CustomTextField extends StatelessWidget {
   final String hintText;
   final bool isObscure;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     Key? key,
     required this.hintText,
     this.isObscure = false,
+    this.onChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       obscureText: isObscure,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: BaseFonts.body.copyWith(color: BaseColors.textSecondary),
