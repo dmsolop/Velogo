@@ -11,6 +11,8 @@ import 'screens/main_screen.dart';
 import 'screens/route_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
+import 'navigation/app_navigation.dart';
+import 'navigation/screen_navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +44,10 @@ class MyApp extends StatelessWidget {
                 MediaQuery.of(context).platformBrightness == Brightness.dark);
 
         return MaterialApp(
-          title: 'Custom Navigation App',
+          title: 'Velogo App',
+          navigatorKey: ScreenNavigationService.navigatorKey,
+          initialRoute: AppNavigation.start,
+          onGenerateRoute: AppNavigation.generateRoute,
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,

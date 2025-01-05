@@ -1,8 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '/navigation/screen_navigation_service.dart';
 import 'registration_state.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
   RegistrationCubit() : super(const RegistrationState());
+
+  void navigateToRegistrationScreen() {
+    ScreenNavigationService.navigateTo('/registration');
+  }
+
+  void navigateToLoginScreen() {
+    ScreenNavigationService.navigateTo('/login');
+  }
 
   void updateUsername(String username) {
     emit(state.copyWith(username: username));
