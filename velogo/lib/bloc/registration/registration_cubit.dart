@@ -25,6 +25,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     emit(state.copyWith(password: password));
   }
 
+  void updateGender(String gender) {
+    emit(state.copyWith(gender: gender));
+  }
+
   Future<void> submitRegistration() async {
     emit(state.copyWith(isSubmitting: true, isSuccess: false, isError: false));
     try {
