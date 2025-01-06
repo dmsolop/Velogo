@@ -59,4 +59,19 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       emit(state.copyWith(isSubmitting: false, isError: true));
     }
   }
+
+  Future<void> sendRecoveryLink() async {
+    emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
+    try {
+      // Імітація запиту на сервер
+      await Future.delayed(const Duration(seconds: 2));
+      if (state.email.isNotEmpty) {
+        emit(state.copyWith(isSubmitting: false, isSuccess: true));
+      } else {
+        throw Exception('Invalid email');
+      }
+    } catch (e) {
+      emit(state.copyWith(isSubmitting: false, isError: true));
+    }
+  }
 }
