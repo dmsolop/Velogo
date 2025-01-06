@@ -40,4 +40,23 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       emit(state.copyWith(isSubmitting: false, isError: true));
     }
   }
+
+  // Логіка для логіну
+  Future<void> login() async {
+    emit(state.copyWith(isSubmitting: true, isError: false));
+    try {
+      // Імітація серверного запиту
+      await Future.delayed(const Duration(seconds: 2));
+      // Перевірка успішності (мок):
+      if (state.email.isNotEmpty && state.password.isNotEmpty) {
+        emit(state.copyWith(isSubmitting: false, isError: false));
+        // Навігація до головного екрану
+        ScreenNavigationService.navigateTo('/main');
+      } else {
+        throw Exception('Invalid credentials');
+      }
+    } catch (e) {
+      emit(state.copyWith(isSubmitting: false, isError: true));
+    }
+  }
 }
