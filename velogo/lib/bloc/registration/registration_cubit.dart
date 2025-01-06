@@ -66,12 +66,22 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       // Імітація запиту на сервер
       await Future.delayed(const Duration(seconds: 2));
       if (state.email.isNotEmpty) {
-        emit(state.copyWith(isSubmitting: false, isSuccess: true));
+        emit(state.copyWith(
+          isSubmitting: false,
+          isSuccess: true,
+          successMessage: 'Recovery link sent successfully!',
+        ));
       } else {
         throw Exception('Invalid email');
       }
     } catch (e) {
-      emit(state.copyWith(isSubmitting: false, isError: true));
+      emit(state.copyWith(
+        isSubmitting: false,
+        isError: true,
+        errorMessage: e.toString() == 'Exception: Invalid email'
+            ? 'Invalid email address.'
+            : 'Failed to send recovery link. Please try again.',
+      ));
     }
   }
 }
