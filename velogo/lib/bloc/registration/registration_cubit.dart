@@ -13,6 +13,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     ScreenNavigationService.navigateTo('/login');
   }
 
+  void navigateToPasswordRecoveryScreen() {
+    ScreenNavigationService.navigateTo('/password-recovery');
+  }
+
   void updateUsername(String username) {
     emit(state.copyWith(
       username: username,

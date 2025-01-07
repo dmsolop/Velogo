@@ -110,57 +110,13 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ),
 
-                    if (state.isError)
-                      const Center(
-                        child: Text(
-                          'Login failed. Please try again.',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-
-                    const SizedBox(height: 16),
-
-                    // Альтернативний вхід
-                    const Center(
-                      child: CustomText(
-                        text: 'or log in with',
-                        fontSize: 14,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Кнопки Google і Facebook
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CustomButton(
-                          label: 'G',
-                          onPressed: () {
-                            print('Google login');
-                          },
-                          width: 50,
-                          height: 50,
-                        ),
-                        const SizedBox(width: 16),
-                        CustomButton(
-                          label: 'f',
-                          onPressed: () {
-                            print('Facebook login');
-                          },
-                          width: 50,
-                          height: 50,
-                        ),
-                      ],
-                    ),
-
                     const SizedBox(height: 16),
 
                     // Забули пароль
                     ClickableText(
                       text: 'Forgot Password?',
                       onTap: () {
-                        Navigator.pushNamed(context, '/password-recovery');
+                        registrationCubit.navigateToPasswordRecoveryScreen();
                       },
                     ),
 
@@ -181,7 +137,7 @@ class LoginScreen extends StatelessWidget {
                       child: CustomButton(
                         label: 'Register',
                         onPressed: () {
-                          Navigator.pushNamed(context, '/registration');
+                          registrationCubit.navigateToRegistrationScreen();
                         },
                         width: 295,
                         height: 56,
@@ -195,7 +151,11 @@ class LoginScreen extends StatelessWidget {
                       child: ClickableText(
                         text: 'Terms & Conditions',
                         onTap: () {
-                          print('Terms & Conditions tapped');
+                          MessageService.showMessage(
+                            context,
+                            message: 'Terms & Conditions tapped',
+                            isError: false,
+                          );
                         },
                       ),
                     ),
