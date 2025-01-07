@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
+import '../bloc/registration/registration_cubit.dart';
+import '../bloc/registration/registration_state.dart';
+import '../shared/status_message.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final registrationCubit = context.read<RegistrationCubit>();
+
     return Scaffold(
       backgroundColor: BaseColors.background,
       body: SafeArea(
@@ -33,14 +39,31 @@ class StartScreen extends StatelessWidget {
             // Використання базового логотипа
             const CustomLogo(),
 
+            // Відображення повідомлень
+            BlocBuilder<RegistrationCubit, RegistrationState>(
+              builder: (context, state) {
+                return StatusMessage(
+                  message: state.isError
+                      ? state.errorMessage
+                      : state.isSuccess
+                          ? state.successMessage
+                          : null,
+                  isError: state.isError,
+                );
+              },
+            ),
+
+            // Кнопка "Get started"
             CustomButton(
               label: 'Get started',
               onPressed: () {
-                print('Get started pressed');
+                registrationCubit.navigateToRegistrationScreen();
               },
               width: 327,
               height: 56,
             ),
+
+            // Перехід на "Sign in"
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Row(
@@ -54,7 +77,7 @@ class StartScreen extends StatelessWidget {
                   ClickableText(
                     text: 'Sign in',
                     onTap: () {
-                      print('Sign in pressed');
+                      registrationCubit.navigateToLoginScreen();
                     },
                   ),
                 ],
