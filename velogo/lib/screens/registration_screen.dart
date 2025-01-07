@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
+import '../shared/status_message.dart';
+import '../services/message_service.dart';
 import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 
@@ -37,20 +39,29 @@ class RegistrationScreen extends StatelessWidget {
                     // Поля для введення даних
                     CustomTextField(
                       hintText: 'Email',
-                      onChanged: registrationCubit.updateEmail,
+                      onChanged: (value) =>
+                          registrationCubit.updateEmail(value),
+                      errorText:
+                          !state.isEmailValid ? 'Invalid email address' : null,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       hintText: 'Password',
                       isObscure: true,
-                      onChanged: registrationCubit.updatePassword,
+                      onChanged: (value) =>
+                          registrationCubit.updatePassword(value),
+                      errorText: !state.isPasswordValid
+                          ? 'Password must be at least 6 characters'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       hintText: 'First Name',
-                      onChanged: (value) {
-                        registrationCubit.updateUsername(value);
-                      },
+                      onChanged: (value) =>
+                          registrationCubit.updateUsername(value),
+                      errorText: !state.isUsernameValid
+                          ? 'Username cannot be empty'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     const CustomTextField(hintText: 'Last Name'),
@@ -122,6 +133,7 @@ class RegistrationScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
 
                     // Обробка станів
@@ -143,15 +155,38 @@ class RegistrationScreen extends StatelessWidget {
                           style: TextStyle(color: Colors.green),
                         ),
                       ),
+                    const SizedBox(height: 16),
+
+                    StatusMessage(
+                      message: state.isError
+                          ? state.errorMessage
+                          : state.isSuccess
+                              ? state.successMessage
+                              : null,
+                      isError: state.isError,
+                    ),
+
+                    const SizedBox(height: 16),
 
                     // Кнопка реєстрації
                     if (!state.isSubmitting)
                       Center(
                         child: CustomButton(
                           label: 'Join',
-                          onPressed: () {
-                            registrationCubit.submitRegistration();
-                          },
+                          onPressed: registrationCubit.isFormValid()
+                              ? () {
+                                  registrationCubit.submitRegistration();
+                                  if (state.isError || state.isSuccess) {
+                                    MessageService.showMessage(
+                                      context,
+                                      message: state.isError
+                                          ? state.errorMessage
+                                          : state.successMessage,
+                                      isError: state.isError,
+                                    );
+                                  }
+                                }
+                              : null,
                         ),
                       ),
                   ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
+import '../shared/status_message.dart';
+import '../services/message_service.dart';
 import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 
@@ -73,7 +75,18 @@ class LoginScreen extends StatelessWidget {
                       onChanged: registrationCubit.updatePassword,
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    StatusMessage(
+                      message: state.isError
+                          ? state.errorMessage
+                          : state.isSuccess
+                              ? state.successMessage
+                              : null,
+                      isError: state.isError,
+                    ),
+
+                    const SizedBox(height: 16),
 
                     // Кнопка входу
                     if (state.isSubmitting)
@@ -84,6 +97,15 @@ class LoginScreen extends StatelessWidget {
                           label: 'Log In',
                           onPressed: () {
                             registrationCubit.login();
+                            if (state.isError || state.isSuccess) {
+                              MessageService.showMessage(
+                                context,
+                                message: state.isError
+                                    ? state.errorMessage
+                                    : state.successMessage,
+                                isError: state.isError,
+                              );
+                            }
                           },
                         ),
                       ),
