@@ -33,12 +33,14 @@ class CustomLogo extends StatelessWidget {
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
+  final String? errorText;
   final bool isObscure;
   final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     Key? key,
     required this.hintText,
+    this.errorText,
     this.isObscure = false,
     this.onChanged,
   }) : super(key: key);
@@ -51,6 +53,7 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: BaseFonts.body.copyWith(color: BaseColors.textSecondary),
+        errorText: errorText,
         filled: true,
         fillColor: BaseColors.white,
         border: OutlineInputBorder(
@@ -269,7 +272,7 @@ class CustomSegmentedButton<T> extends StatelessWidget {
 
 class CustomButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double width;
   final double height;
 

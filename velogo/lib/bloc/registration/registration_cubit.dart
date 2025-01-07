@@ -14,19 +14,45 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   }
 
   void updateUsername(String username) {
-    emit(state.copyWith(username: username));
+    emit(state.copyWith(
+      username: username,
+      isUsernameValid: _validateUsername(username),
+    ));
   }
 
   void updateEmail(String email) {
-    emit(state.copyWith(email: email));
+    emit(state.copyWith(
+      email: email,
+      isEmailValid: _validateEmail(email),
+    ));
   }
 
   void updatePassword(String password) {
-    emit(state.copyWith(password: password));
+    emit(state.copyWith(
+      password: password,
+      isPasswordValid: _validatePassword(password),
+    ));
   }
 
   void updateGender(String gender) {
     emit(state.copyWith(gender: gender));
+  }
+
+  bool _validateEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool _validatePassword(String password) {
+    return password.length >= 6;
+  }
+
+  bool _validateUsername(String username) {
+    return username.isNotEmpty;
+  }
+
+  bool isFormValid() {
+    return state.isEmailValid && state.isPasswordValid && state.isUsernameValid;
   }
 
   Future<void> submitRegistration() async {
