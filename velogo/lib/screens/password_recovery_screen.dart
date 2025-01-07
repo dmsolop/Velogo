@@ -59,6 +59,7 @@ class PasswordRecoveryScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
+                    // Відображення повідомлень
                     StatusMessage(
                       message: state.isError
                           ? state.errorMessage
@@ -97,32 +98,13 @@ class PasswordRecoveryScreen extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // Повідомлення про успіх чи помилку
-                    if (state.isSuccess)
-                      const CustomText(
-                        text:
-                            'A recovery link has been sent to your email. Please check your inbox.',
-                        fontSize: 14,
-                        textAlign: TextAlign.center,
-                        color: Colors.green,
-                      ),
-                    if (state.isError)
-                      const CustomText(
-                        text: 'Failed to send recovery link. Please try again.',
-                        fontSize: 14,
-                        textAlign: TextAlign.center,
-                        color: Colors.red,
-                      ),
-
-                    const SizedBox(height: 32),
-
                     // Клікабельні тексти
                     Column(
                       children: [
                         ClickableText(
                           text: 'Return to Login',
                           onTap: () {
-                            Navigator.pushNamed(context, '/login');
+                            registrationCubit.navigateToLoginScreen();
                           },
                         ),
                         const SizedBox(height: 16),
@@ -161,6 +143,7 @@ class PasswordRecoveryScreen extends StatelessWidget {
     );
   }
 }
+
 
 
 
