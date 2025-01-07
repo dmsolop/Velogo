@@ -55,6 +55,8 @@ class PasswordRecoveryScreen extends StatelessWidget {
                     CustomTextField(
                       hintText: 'Email Address',
                       onChanged: registrationCubit.updateEmail,
+                      errorText:
+                          !state.isEmailValid ? 'Invalid email format' : null,
                     ),
 
                     const SizedBox(height: 24),
