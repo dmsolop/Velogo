@@ -58,19 +58,12 @@ class PasswordRecoveryScreen extends StatelessWidget {
                       errorText:
                           !state.isEmailValid ? 'Invalid email format' : null,
                     ),
-
                     const SizedBox(height: 24),
 
                     // Відображення повідомлень
                     StatusMessage(
-                      message: state.isError
-                          ? state.errorMessage
-                          : state.isSuccess
-                              ? state.successMessage
-                              : null,
-                      isError: state.isError,
+                      state: state,
                     ),
-
                     const SizedBox(height: 24),
 
                     // Кнопка відправлення
@@ -82,20 +75,10 @@ class PasswordRecoveryScreen extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          label: 'Send Recovery Link',
-                          onPressed: () {
-                            registrationCubit.sendRecoveryLink();
-                            if (state.isError || state.isSuccess) {
-                              MessageService.showMessage(
-                                context,
-                                message: state.isError
-                                    ? state.errorMessage
-                                    : state.successMessage,
-                                isError: state.isError,
-                              );
-                            }
-                          },
-                        ),
+                            label: 'Send Recovery Link',
+                            onPressed: state.isEmailValid
+                                ? () => registrationCubit.sendRecoveryLink()
+                                : null),
                       ),
 
                     const SizedBox(height: 32),
@@ -123,8 +106,8 @@ class PasswordRecoveryScreen extends StatelessWidget {
                                   ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
+                                      onPressed: () => registrationCubit
+                                          .showHelpDialog(context),
                                       child: const Text('Close'),
                                     ),
                                   ],

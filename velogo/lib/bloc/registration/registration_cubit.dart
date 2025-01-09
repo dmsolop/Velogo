@@ -138,6 +138,26 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     }
   }
 
+  void showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Need More Help?'),
+          content: const Text(
+            'Please contact our support team at support@example.com.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<bool> _mockCheckEmail(String email) async {
     await Future.delayed(const Duration(seconds: 2));
     return email != 'already@used.com';
