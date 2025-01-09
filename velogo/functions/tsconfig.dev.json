@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*", // Включає всі файли в src
+    "lib/**/*", // Включає всі файли в lib
+    ".eslintrc.js" // Включає конфігураційний файл ESLint
+  ],
+  "exclude": [
+    "node_modules" // Виключає node_modules
+  ]
+}
+// {
+//   "compilerOptions": {
+//     "target": "es6",
+//     "module": "commonjs",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true
+//   },
+//   "include": [
+//     "src/**/*", // Включає всі файли в папці src
+//     ".eslintrc.js" // Включає конфігураційний файл ESLint
+//   ],
+//   "exclude": [
+//     "node_modules" // Виключає node_modules
+//   ]
+// }
+// {
+//   "include": [
+//     ".eslintrc.js"
+//   ]
+// }
