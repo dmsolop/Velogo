@@ -36,20 +36,23 @@ class CustomTextField extends StatelessWidget {
   final String? errorText;
   final bool isObscure;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
 
-  const CustomTextField({
-    Key? key,
-    required this.hintText,
-    this.errorText,
-    this.isObscure = false,
-    this.onChanged,
-  }) : super(key: key);
+  const CustomTextField(
+      {Key? key,
+      required this.hintText,
+      this.errorText,
+      this.isObscure = false,
+      this.onChanged,
+      this.onFieldSubmitted})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       obscureText: isObscure,
       onChanged: onChanged,
+      onSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: BaseFonts.body.copyWith(color: BaseColors.textSecondary),
@@ -64,37 +67,6 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
-
-// class CustomTextFieldWithLabel extends StatelessWidget {
-//   final String label;
-//   final String initialValue;
-//   final bool isReadOnly;
-
-//   const CustomTextFieldWithLabel({
-//     Key? key,
-//     required this.label,
-//     required this.initialValue,
-//     this.isReadOnly = false,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return TextField(
-//       readOnly: isReadOnly,
-//       controller: TextEditingController(text: initialValue),
-//       decoration: InputDecoration(
-//         labelText: label,
-//         labelStyle: BaseFonts.bodyTextLight,
-//         filled: true,
-//         fillColor: BaseColors.inputBackground,
-//         border: OutlineInputBorder(
-//           borderRadius: BorderRadius.circular(8),
-//           borderSide: BorderSide.none,
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class CustomTextFieldWithLabel extends StatelessWidget {
   final String label;
