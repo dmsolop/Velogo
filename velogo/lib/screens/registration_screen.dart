@@ -17,188 +17,216 @@ class RegistrationScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: BaseColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: BlocBuilder<RegistrationCubit, RegistrationState>(
-              builder: (context, state) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 24),
-                    const CustomLogo(),
-                    const SizedBox(height: 24),
-                    const Center(
-                      child: CustomText(
-                        text: 'Explore new routes every ride!',
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Поля для введення даних
-                    CustomTextField(
-                      hintText: 'Email',
-                      onChanged: (value) =>
-                          registrationCubit.updateEmail(value),
-                      errorText:
-                          !state.isEmailValid ? 'Invalid email address' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      hintText: 'Password',
-                      isObscure: true,
-                      onChanged: (value) =>
-                          registrationCubit.updatePassword(value),
-                      errorText: !state.isPasswordValid
-                          ? 'Password must be at least 6 characters'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      hintText: 'First Name',
-                      onChanged: (value) =>
-                          registrationCubit.updateUsername(value),
-                      errorText: !state.isUsernameValid
-                          ? 'Username cannot be empty'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    const CustomTextField(hintText: 'Last Name'),
-                    const SizedBox(height: 24),
-
-                    // Секція вибору дати народження
-                    const CustomText(
-                      text: 'Birthday',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    const SizedBox(height: 8),
-                    CustomButton(
-                      label: 'DD.MM.YYYY',
-                      onPressed: () {
-                        print('Date picker opened');
-                      },
-                      width: 120,
-                      height: 36,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Секція вибору статі
-                    const CustomText(
-                      text: 'Gender',
-                      fontSize: 16,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+        child: BlocListener<RegistrationCubit, RegistrationState>(
+            listener: (context, state) {
+              if (state.isError || state.isSuccess) {
+                MessageService.showMessage(
+                  context,
+                  message:
+                      state.isError ? state.errorMessage : state.successMessage,
+                  isError: state.isError,
+                );
+              }
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: BlocBuilder<RegistrationCubit, RegistrationState>(
+                  builder: (context, state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomCheckbox(
-                          label: 'Male',
-                          value: state.gender == 'Male',
-                          onChanged: (val) {
-                            if (val == true) {
-                              registrationCubit.updateGender('Male');
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 16),
-                        CustomCheckbox(
-                          label: 'Female',
-                          value: state.gender == 'Female',
-                          onChanged: (val) {
-                            if (val == true) {
-                              registrationCubit.updateGender('Female');
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Секція вибору країни
-                    SectionContainer(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const CustomText(
-                            text: 'Country',
-                            fontSize: 12,
+                        const SizedBox(height: 24),
+                        const CustomLogo(),
+                        const SizedBox(height: 24),
+                        const Center(
+                          child: CustomText(
+                            text: 'Explore new routes every ride!',
+                            fontSize: 16,
                           ),
-                          ClickableText(
-                            text: 'Ukraine',
-                            onTap: () {
-                              print('Country selection opened');
-                            },
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Поля для введення даних
+                        CustomTextField(
+                          hintText: 'Email',
+                          onChanged: registrationCubit.updateEmail,
+                          onFieldSubmitted: (value) {
+                            if (value.isNotEmpty && state.isEmailValid) {
+                              registrationCubit.checkEmailAvailability(value);
+                            }
+                          },
+                          errorText: !state.isEmailValid
+                              ? 'Invalid email address'
+                              : state.warningMessage.isNotEmpty
+                                  ? state.warningMessage
+                                  : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        CustomTextField(
+                          hintText: 'Password',
+                          isObscure: true,
+                          onChanged: registrationCubit.updatePassword,
+                          errorText: !state.isPasswordValid
+                              ? 'Password must be at least 6 characters'
+                              : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        CustomTextField(
+                          hintText: 'First Name',
+                          onChanged: registrationCubit.updateUsername,
+                          errorText: !state.isUsernameValid
+                              ? 'Username cannot be empty'
+                              : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        CustomTextField(
+                          hintText: 'Last Name',
+                          onChanged: registrationCubit.updateLastName,
+                          errorText: !state.isUsernameValid
+                              ? 'Last name cannot be empty'
+                              : null,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Секція вибору дати народження
+                        const CustomText(
+                          text: 'Birthday',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        const SizedBox(height: 8),
+
+                        CustomButton(
+                          label: state.birthday != null
+                              ? '${state.birthday!.day}.${state.birthday!.month}.${state.birthday!.year}'
+                              : 'DD.MM.YYYY',
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now(),
+                            );
+                            if (pickedDate != null) {
+                              registrationCubit.updateBirthday(pickedDate);
+                            }
+                          },
+                          width: 120,
+                          height: 36,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Секція вибору статі
+                        const CustomText(
+                          text: 'Gender',
+                          fontSize: 16,
+                        ),
+                        const SizedBox(height: 8),
+
+                        Row(
+                          children: [
+                            CustomCheckbox(
+                              label: 'Male',
+                              value: state.gender == 'Male',
+                              onChanged: (val) {
+                                if (val == true) {
+                                  registrationCubit.updateGender('Male');
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            CustomCheckbox(
+                              label: 'Female',
+                              value: state.gender == 'Female',
+                              onChanged: (val) {
+                                if (val == true) {
+                                  registrationCubit.updateGender('Female');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Секція вибору країни
+                        SectionContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CustomText(
+                                text: 'Country',
+                                fontSize: 12,
+                              ),
+                              const SizedBox(height: 8),
+                              CustomDropdown<String>(
+                                label: 'Select Country',
+                                hintText: 'Select Country',
+                                selectedValue: state.country,
+                                items: const [
+                                  'Ukraine',
+                                  'USA',
+                                  'Canada',
+                                  'Germany',
+                                  'France',
+                                ], // Приклад списку країн
+                                itemLabelBuilder: (item) => item,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    registrationCubit.updateCountry(value);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Обробка стану загрузки
+                        if (state.isSubmitting) ...[
+                          const ModalBarrier(
+                            dismissible: false,
+                            color: Colors.black26,
+                          ),
+                          const Center(
+                            child: CircularProgressIndicator(),
                           ),
                         ],
-                      ),
-                    ),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        StatusMessage(state: state),
+                        const SizedBox(height: 16),
 
-                    // Обробка станів
-                    if (state.isSubmitting)
-                      const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    if (state.isError)
-                      const Center(
-                        child: Text(
-                          'Registration failed. Please try again.',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    if (state.isSuccess)
-                      const Center(
-                        child: Text(
-                          'Registration successful! Redirecting...',
-                          style: TextStyle(color: Colors.green),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-
-                    StatusMessage(
-                      message: state.isError
-                          ? state.errorMessage
-                          : state.isSuccess
-                              ? state.successMessage
-                              : null,
-                      isError: state.isError,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Кнопка реєстрації
-                    if (!state.isSubmitting)
-                      Center(
-                        child: CustomButton(
-                          label: 'Join',
-                          onPressed: registrationCubit.isFormValid()
-                              ? () {
-                                  registrationCubit.submitRegistration();
-                                  if (state.isError || state.isSuccess) {
-                                    MessageService.showMessage(
-                                      context,
-                                      message: state.isError
-                                          ? state.errorMessage
-                                          : state.successMessage,
-                                      isError: state.isError,
-                                    );
-                                  }
-                                }
-                              : null,
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
+                        // Кнопка реєстрації
+                        if (!state.isSubmitting)
+                          Center(
+                            child: CustomButton(
+                              label: 'Join',
+                              onPressed: registrationCubit.isFormValid()
+                                  ? () => registrationCubit.submitRegistration()
+                                  : null,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            )),
       ),
     );
   }
 }
+
 
 
 

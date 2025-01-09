@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../navigation/screen_navigation_service.dart';
@@ -29,10 +30,13 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   Future<void> submitRegistration() async {
     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
     try {
-      await _auth.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: state.email,
         password: state.password,
       );
+      await userCredential.user
+          ?.updateDisplayName('${state.username} ${state.lastName}');
+
       emit(state.copyWith(
         isSubmitting: false,
         isSuccess: true,
@@ -168,9 +172,29 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     emit(state.copyWith(gender: gender));
   }
 
+  // Оновлення Last Name
+  void updateLastName(String lastName) {
+    emit(state.copyWith(lastName: lastName));
+  }
+
+  // Оновлення Birthday
+  void updateBirthday(DateTime birthday) {
+    emit(state.copyWith(birthday: birthday));
+  }
+
+  // Оновлення Country
+  void updateCountry(String country) {
+    emit(state.copyWith(country: country));
+  }
+
   // Перевірка форми
   bool isFormValid() {
-    return state.isEmailValid && state.isPasswordValid && state.isUsernameValid;
+    return state.isEmailValid &&
+        state.isPasswordValid &&
+        state.isUsernameValid &&
+        state.isLastnameValid &&
+        state.country.isNotEmpty &&
+        state.gender.isNotEmpty;
   }
 
   // Валідація email
@@ -187,6 +211,11 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   // Валідація username
   bool _validateUsername(String username) {
     return username.isNotEmpty;
+  }
+
+  // Валідація lastname
+  bool _validateLastname(String lastname) {
+    return lastname.isNotEmpty;
   }
 
   // Мапінг помилок Firebase
