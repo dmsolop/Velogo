@@ -200,10 +200,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     );
   }
 
-  Future<bool> _mockCheckEmail(String email) async {
-    await Future.delayed(const Duration(seconds: 2));
-    return email != 'already@used.com';
-  }
+  // Future<bool> _mockCheckEmail(String email) async {
+  //   await Future.delayed(const Duration(seconds: 2));
+  //   return email != 'already@used.com';
+  // }
 
   // Оновлення username
   void updateUsername(String username) {
@@ -236,7 +236,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
 
   // Оновлення Last Name
   void updateLastName(String lastName) {
-    emit(state.copyWith(lastName: lastName));
+    emit(state.copyWith(
+      lastName: lastName,
+      isLastnameValid: _validateLastname(lastName),
+    ));
   }
 
   // Оновлення Birthday
