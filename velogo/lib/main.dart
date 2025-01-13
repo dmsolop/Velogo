@@ -16,6 +16,7 @@ import 'navigation/screen_navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,9 @@ void main() async {
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: HydratedStorageDirectory(directory.path),
   );
+
+  // Ініціалізуйте Firebase
+  await Firebase.initializeApp();
 
   FirebaseFirestore.instance.settings = const Settings(
     host: 'localhost:8080',
