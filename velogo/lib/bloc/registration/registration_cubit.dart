@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../../navigation/screen_navigation_service.dart';
 import 'registration_state.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
   final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
 
-  RegistrationCubit({FirebaseAuth? firebaseAuth})
+  RegistrationCubit(
+      {FirebaseAuth? firebaseAuth, FirebaseFunctions? firebaseFunctions})
       : _auth = firebaseAuth ?? FirebaseAuth.instance,
+        _functions = firebaseFunctions ?? FirebaseFunctions.instance,
         super(const RegistrationState());
 
   // Навігація до RegistrationScreen
@@ -113,30 +117,68 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     }
   }
 
-  // Перевірка доступності email
+  // Перевірка доступності email через Cloud Function
   Future<void> checkEmailAvailability(String email) async {
     emit(state.copyWith(isLoading: true, isError: false, warningMessage: ''));
     try {
-      final isAvailable = await _mockCheckEmail(email);
+      // Виклик Cloud Function
+      final result = await _functions
+          .httpsCallable('checkEmailAvailability')
+          .call({'email': email});
+
+      final isAvailable = result.data['available'] as bool;
+      final message = result.data['message'] as String;
+
       if (isAvailable) {
         emit(state.copyWith(
           isLoading: false,
-          successMessage: 'Email is available!',
+          successMessage: message,
         ));
       } else {
         emit(state.copyWith(
           isLoading: false,
-          warningMessage: 'This email is already taken.',
+          warningMessage: message,
         ));
       }
+    } on FirebaseFunctionsException catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        isError: true,
+        errorMessage: 'Error checking email: ${e.message}',
+      ));
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         isError: true,
-        errorMessage: 'Failed to check email. Please try again.',
+        errorMessage: 'An unexpected error occurred. Please try again.',
       ));
     }
   }
+
+  // // Перевірка доступності email
+  // Future<void> checkEmailAvailability(String email) async {
+  //   emit(state.copyWith(isLoading: true, isError: false, warningMessage: ''));
+  //   try {
+  //     final isAvailable = await _mockCheckEmail(email);
+  //     if (isAvailable) {
+  //       emit(state.copyWith(
+  //         isLoading: false,
+  //         successMessage: 'Email is available!',
+  //       ));
+  //     } else {
+  //       emit(state.copyWith(
+  //         isLoading: false,
+  //         warningMessage: 'This email is already taken.',
+  //       ));
+  //     }
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       isLoading: false,
+  //       isError: true,
+  //       errorMessage: 'Failed to check email. Please try again.',
+  //     ));
+  //   }
+  // }
 
   void showHelpDialog(BuildContext context) {
     showDialog(
@@ -263,126 +305,3 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     print('State changed: ${change.currentState} -> ${change.nextState}');
   }
 }
-
-
-
-
-
-
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import '/navigation/screen_navigation_service.dart';
-// import 'registration_state.dart';
-
-// class RegistrationCubit extends Cubit<RegistrationState> {
-//   RegistrationCubit() : super(const RegistrationState());
-
-//   void navigateToRegistrationScreen() {
-//     ScreenNavigationService.navigateTo('/registration');
-//   }
-
-//   void navigateToLoginScreen() {
-//     ScreenNavigationService.navigateTo('/login');
-//   }
-
-//   void navigateToPasswordRecoveryScreen() {
-//     ScreenNavigationService.navigateTo('/password-recovery');
-//   }
-
-//   void updateUsername(String username) {
-//     emit(state.copyWith(
-//       username: username,
-//       isUsernameValid: _validateUsername(username),
-//     ));
-//   }
-
-//   void updateEmail(String email) {
-//     emit(state.copyWith(
-//       email: email,
-//       isEmailValid: _validateEmail(email),
-//     ));
-//   }
-
-//   void updatePassword(String password) {
-//     emit(state.copyWith(
-//       password: password,
-//       isPasswordValid: _validatePassword(password),
-//     ));
-//   }
-
-//   void updateGender(String gender) {
-//     emit(state.copyWith(gender: gender));
-//   }
-
-//   bool _validateEmail(String email) {
-//     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-//     return emailRegex.hasMatch(email);
-//   }
-
-//   bool _validatePassword(String password) {
-//     return password.length >= 6;
-//   }
-
-//   bool _validateUsername(String username) {
-//     return username.isNotEmpty;
-//   }
-
-//   bool isFormValid() {
-//     return state.isEmailValid && state.isPasswordValid && state.isUsernameValid;
-//   }
-
-//   Future<void> submitRegistration() async {
-//     emit(state.copyWith(isSubmitting: true, isSuccess: false, isError: false));
-//     try {
-//       // Імітація запиту на сервер
-//       await Future.delayed(const Duration(seconds: 2));
-//       // Перевірка успішності
-//       emit(state.copyWith(isSubmitting: false, isSuccess: true));
-//     } catch (e) {
-//       emit(state.copyWith(isSubmitting: false, isError: true));
-//     }
-//   }
-
-//   // Логіка для логіну
-//   Future<void> login() async {
-//     emit(state.copyWith(isSubmitting: true, isError: false));
-//     try {
-//       // Імітація серверного запиту
-//       await Future.delayed(const Duration(seconds: 2));
-//       // Перевірка успішності (мок):
-//       if (state.email.isNotEmpty && state.password.isNotEmpty) {
-//         emit(state.copyWith(isSubmitting: false, isError: false));
-//         // Навігація до головного екрану
-//         ScreenNavigationService.navigateTo('/main');
-//       } else {
-//         throw Exception('Invalid credentials');
-//       }
-//     } catch (e) {
-//       emit(state.copyWith(isSubmitting: false, isError: true));
-//     }
-//   }
-
-//   Future<void> sendRecoveryLink() async {
-//     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
-//     try {
-//       // Імітація запиту на сервер
-//       await Future.delayed(const Duration(seconds: 2));
-//       if (state.email.isNotEmpty) {
-//         emit(state.copyWith(
-//           isSubmitting: false,
-//           isSuccess: true,
-//           successMessage: 'Recovery link sent successfully!',
-//         ));
-//       } else {
-//         throw Exception('Invalid email');
-//       }
-//     } catch (e) {
-//       emit(state.copyWith(
-//         isSubmitting: false,
-//         isError: true,
-//         errorMessage: e.toString() == 'Exception: Invalid email'
-//             ? 'Invalid email address.'
-//             : 'Failed to send recovery link. Please try again.',
-//       ));
-//     }
-//   }
-// }
