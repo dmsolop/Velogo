@@ -10,7 +10,7 @@ import '../route_logic/calculate_difficulty.dart';
 import '../screens/create_route_screen.dart';
 
 class RouteScreen extends StatefulWidget {
-  const RouteScreen({Key? key}) : super(key: key);
+  const RouteScreen({super.key});
 
   @override
   _RouteScreenState createState() => _RouteScreenState();
@@ -50,7 +50,7 @@ class _RouteScreenState extends State<RouteScreen> {
                 TileLayer(
                   urlTemplate:
                       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'],
+                  subdomains: const ['a', 'b', 'c'],
                 ),
                 PolylineLayer(
                   polylines: _generatePolylines(),

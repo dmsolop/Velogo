@@ -12,7 +12,7 @@ import '../screens/profile_screen.dart';
 import '../screens/settings_screen.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
-  const CustomBottomNavigationBar({Key? key}) : super(key: key);
+  const CustomBottomNavigationBar({super.key});
 
   final List<Widget> _screens = const [
     MainScreen(),
@@ -28,8 +28,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
         final isDark = themeMode == AppThemeMode.dark;
         final backgroundColor =
             isDark ? BaseColors.bottomBarDark : BaseColors.bottomBarLight;
-        final activeColor = BaseColors.iconSelected;
-        final inactiveColor = BaseColors.iconUnselected;
+        const activeColor = BaseColors.iconSelected;
+        const inactiveColor = BaseColors.iconUnselected;
 
         return BlocBuilder<NavigationCubit, NavigationState>(
           builder: (context, state) {
@@ -93,8 +93,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 }
-
-
 
 // import 'dart:io';
 // import 'package:flutter/cupertino.dart';

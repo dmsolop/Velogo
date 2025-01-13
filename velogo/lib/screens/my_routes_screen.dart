@@ -4,7 +4,7 @@ import '../shared/base_colors.dart'; // Для кольорів
 import '../shared/base_fonts.dart'; // Для шрифтів
 
 class MyRoutesScreen extends StatelessWidget {
-  const MyRoutesScreen({Key? key}) : super(key: key);
+  const MyRoutesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +91,10 @@ class RouteDetailsScreen extends StatelessWidget {
   final String description;
 
   const RouteDetailsScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

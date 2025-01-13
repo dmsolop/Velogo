@@ -4,7 +4,7 @@ import '../shared/base_fonts.dart';
 import '../shared/base_widgets.dart';
 
 class EditProfileScreen extends StatelessWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

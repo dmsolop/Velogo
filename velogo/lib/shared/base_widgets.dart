@@ -5,7 +5,7 @@ import 'base_fonts.dart';
 class CustomLogo extends StatelessWidget {
   final double? size;
 
-  const CustomLogo({Key? key, this.size}) : super(key: key);
+  const CustomLogo({super.key, this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +39,12 @@ class CustomTextField extends StatelessWidget {
   final ValueChanged<String>? onFieldSubmitted;
 
   const CustomTextField(
-      {Key? key,
+      {super.key,
       required this.hintText,
       this.errorText,
       this.isObscure = false,
       this.onChanged,
-      this.onFieldSubmitted})
-      : super(key: key);
+      this.onFieldSubmitted});
 
   @override
   Widget build(BuildContext context) {
@@ -76,13 +75,13 @@ class CustomTextFieldWithLabel extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   const CustomTextFieldWithLabel({
-    Key? key,
+    super.key,
     required this.label,
     this.hintText, // Підказка
     this.initialValue,
     this.keyboardType = TextInputType.text,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,11 +131,11 @@ class CompactLabelRow extends StatelessWidget {
   final Color? backgroundColor; // Фон значення
 
   const CompactLabelRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -198,13 +197,13 @@ class CustomSegmentedButton<T> extends StatelessWidget {
   final EdgeInsetsGeometry padding; // Педдінг зліва та справа
 
   const CustomSegmentedButton({
-    Key? key,
+    super.key,
     required this.segments,
     required this.selected,
     required this.onSelectionChanged,
     this.padding =
         const EdgeInsets.symmetric(horizontal: 0), // Дефолтний педдінг
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -249,12 +248,12 @@ class CustomButton extends StatelessWidget {
   final double height;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.width = 295,
     this.height = 56,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -282,12 +281,12 @@ class OutlinedCustomButton extends StatelessWidget {
   final double height;
 
   const OutlinedCustomButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.width = 295,
     this.height = 56,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -315,11 +314,11 @@ class AdaptiveButton extends StatelessWidget {
   final double padding; // Відступи
 
   const AdaptiveButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.padding = 16.0, // Відступи за замовчуванням
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -369,12 +368,12 @@ class ProportionalButton extends StatelessWidget {
   final double minHeight;
 
   const ProportionalButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.aspectRatio = 3,
     this.minHeight = 40,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -421,12 +420,12 @@ class CustomFloatingButton extends StatelessWidget {
   final String? heroTag;
 
   const CustomFloatingButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.icon,
     this.color,
     this.heroTag,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -434,8 +433,8 @@ class CustomFloatingButton extends StatelessWidget {
       heroTag: heroTag,
       onPressed: onPressed,
       backgroundColor: color ?? BaseColors.headerDark,
-      child: Icon(icon, color: BaseColors.white),
-      elevation: 6, // Тінь для ефекту "плавання"
+      elevation: 6,
+      child: Icon(icon, color: BaseColors.white), // Тінь для ефекту "плавання"
     );
   }
 }
@@ -446,11 +445,11 @@ class CustomRoundedButton extends StatelessWidget {
   final Color? color;
 
   const CustomRoundedButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.text,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -482,7 +481,7 @@ class CompactOutlinedButtonRow extends StatelessWidget {
   final double borderWidth; // Товщина обводки
 
   const CompactOutlinedButtonRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.buttonText,
     required this.onPressed,
@@ -490,7 +489,7 @@ class CompactOutlinedButtonRow extends StatelessWidget {
     this.textColor,
     this.backgroundColor,
     this.borderWidth = 1.5, // Значення за замовчуванням
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +542,7 @@ class CompactElevatedButtonRow extends StatelessWidget {
   final double borderWidth; // Товщина обводки
 
   const CompactElevatedButtonRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.buttonText,
     required this.onPressed,
@@ -551,7 +550,7 @@ class CompactElevatedButtonRow extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.borderWidth = 1.5, // Значення за замовчуванням
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -604,13 +603,13 @@ class CustomText extends StatelessWidget {
   final TextAlign? textAlign;
 
   const CustomText({
-    Key? key,
+    super.key,
     required this.text,
     this.fontSize = 14,
     this.fontWeight = FontWeight.normal,
     this.color = BaseColors.textPrimary,
     this.textAlign,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -632,11 +631,11 @@ class CustomCheckbox extends StatelessWidget {
   final ValueChanged<bool?> onChanged;
 
   const CustomCheckbox({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -662,10 +661,10 @@ class ClickableText extends StatelessWidget {
   final VoidCallback onTap;
 
   const ClickableText({
-    Key? key,
+    super.key,
     required this.text,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -685,7 +684,7 @@ class ClickableText extends StatelessWidget {
 class SectionContainer extends StatelessWidget {
   final Widget child;
 
-  const SectionContainer({Key? key, required this.child}) : super(key: key);
+  const SectionContainer({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -702,11 +701,11 @@ class CustomCard extends StatelessWidget {
   final Color backgroundColor;
 
   const CustomCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.backgroundColor = BaseColors.cardBackground,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -725,9 +724,9 @@ class CustomSectionTitle extends StatelessWidget {
   final String title;
 
   const CustomSectionTitle({
-    Key? key,
+    super.key,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -747,11 +746,11 @@ class CustomSwitchTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const CustomSwitchTile({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -776,11 +775,11 @@ class CustomToggleTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const CustomToggleTile({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -806,8 +805,8 @@ class CustomToggleTile extends StatelessWidget {
             inactiveThumbColor:
                 BaseColors.primary, // Колір thumb у неактивному стані
             inactiveTrackColor: BaseColors.headerDark, // Фон треку
-            trackOutlineColor: MaterialStateProperty.resolveWith<Color?>(
-              (states) => states.contains(MaterialState.disabled)
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+              (states) => states.contains(WidgetState.disabled)
                   ? BaseColors.headerDark // Колір у неактивному стані
                   : BaseColors.primary, // Колір обводки (кромки)
             ),
@@ -826,13 +825,13 @@ class CustomRadioGroup<T> extends StatelessWidget {
   final String Function(T) labelBuilder;
 
   const CustomRadioGroup({
-    Key? key,
+    super.key,
     required this.title,
     required this.options,
     required this.selectedValue,
     required this.onChanged,
     required this.labelBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -856,7 +855,7 @@ class CustomRadioGroup<T> extends StatelessWidget {
             },
             activeColor: BaseColors.primary,
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -871,14 +870,14 @@ class CustomDropdown<T> extends StatelessWidget {
   final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
 
   const CustomDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.hintText,
     required this.selectedValue,
     required this.items,
     required this.onChanged,
     required this.itemLabelBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -926,14 +925,14 @@ class CompactDropdown<T> extends StatelessWidget {
   final String Function(T) itemLabelBuilder; // Побудова тексту для елементів
 
   const CompactDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.hintText,
     required this.selectedValue,
     required this.items,
     required this.onChanged,
     required this.itemLabelBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -991,10 +990,10 @@ class CustomTextLink extends StatelessWidget {
   final VoidCallback onTap;
 
   const CustomTextLink({
-    Key? key,
+    super.key,
     required this.text,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1016,10 +1015,10 @@ class CustomKeyValue extends StatelessWidget {
   final String valueText;
 
   const CustomKeyValue({
-    Key? key,
+    super.key,
     required this.keyText,
     required this.valueText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

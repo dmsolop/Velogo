@@ -8,7 +8,7 @@ import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

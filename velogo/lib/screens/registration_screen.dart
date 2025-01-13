@@ -8,7 +8,7 @@ import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 
 class RegistrationScreen extends StatelessWidget {
-  const RegistrationScreen({Key? key}) : super(key: key);
+  const RegistrationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -226,9 +226,6 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 }
-
-
-
 
 // import 'package:flutter/material.dart';
 // import '../shared/base_widgets.dart';

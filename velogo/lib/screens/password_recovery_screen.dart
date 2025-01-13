@@ -7,7 +7,7 @@ import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 
 class PasswordRecoveryScreen extends StatelessWidget {
-  const PasswordRecoveryScreen({Key? key}) : super(key: key);
+  const PasswordRecoveryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -127,9 +127,6 @@ class PasswordRecoveryScreen extends StatelessWidget {
     );
   }
 }
-
-
-
 
 // import 'package:flutter/material.dart';
 // import '../shared/base_widgets.dart'; // Файл з оновленим логотипом

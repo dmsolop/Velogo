@@ -8,7 +8,7 @@ import '../bloc/settings/settings_cubit.dart';
 import '../bloc/settings/settings_state.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

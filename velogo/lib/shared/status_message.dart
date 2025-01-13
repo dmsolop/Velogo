@@ -8,11 +8,11 @@ class StatusMessage extends StatelessWidget {
   final RegistrationState? state;
 
   const StatusMessage({
-    Key? key,
+    super.key,
     this.message,
     this.isError = false,
     this.state,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
