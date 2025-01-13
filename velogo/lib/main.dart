@@ -13,12 +13,25 @@ import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'navigation/app_navigation.dart';
 import 'navigation/screen_navigation_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationDocumentsDirectory(),
   );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    host: 'localhost:8080',
+    sslEnabled: false,
+    persistenceEnabled: false,
+  );
+
+  FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+
+  FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
 
   runApp(
     MultiBlocProvider(

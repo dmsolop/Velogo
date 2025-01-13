@@ -1,40 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ES2020",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "lib", // Вихідна папка для JS-файлів
+    "rootDir": "src" // Вказує на вихідну папку з TypeScript
   },
   "include": [
-    "src/**/*", // Включає всі файли в src
-    "lib/**/*", // Включає всі файли в lib
-    ".eslintrc.js" // Включає конфігураційний файл ESLint
+    "src/**/*", // Включає тільки вихідні файли
+    ".eslintrc.js" // Включає конфігураційний файл ESLint, якщо потрібно
   ],
   "exclude": [
-    "node_modules" // Виключає node_modules
+    "node_modules", // Виключає node_modules
+    "lib" // Виключає папку зі згенерованими файлами
   ]
 }
-// {
-//   "compilerOptions": {
-//     "target": "es6",
-//     "module": "commonjs",
-//     "strict": true,
-//     "esModuleInterop": true,
-//     "skipLibCheck": true,
-//     "forceConsistentCasingInFileNames": true
-//   },
-//   "include": [
-//     "src/**/*", // Включає всі файли в папці src
-//     ".eslintrc.js" // Включає конфігураційний файл ESLint
-//   ],
-//   "exclude": [
-//     "node_modules" // Виключає node_modules
-//   ]
-// }
-// {
-//   "include": [
-//     ".eslintrc.js"
-//   ]
-// }
