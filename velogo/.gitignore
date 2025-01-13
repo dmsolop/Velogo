@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -46,3 +48,10 @@ app.*.map.json
 # Exclude assets
 /assets/*
 
+# Swift Package Manager
+.build/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+*.xcodeproj/xcuserdata/
+*.swiftpm/
+Package.resolved
