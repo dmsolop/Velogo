@@ -45,8 +45,8 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
         children: [
           FlutterMap(
             options: MapOptions(
-              center: defaultCenter,
-              zoom: 10,
+              initialCenter: defaultCenter,
+              initialZoom: 10,
               onTap: (_, point) => _isDrawingMode
                   ? _addRoutePoint(point)
                   : _addInterestPoint(point),
@@ -108,12 +108,12 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
       if (_lastPoint != null)
         Marker(
           point: _lastPoint!,
-          builder: (ctx) => const Icon(Icons.place, color: Colors.green),
+          child: const Icon(Icons.place, color: Colors.green),
         ),
       for (var section in _sections)
         Marker(
           point: section.coordinates.last,
-          builder: (ctx) => const Icon(Icons.flag, color: Colors.red),
+          child: const Icon(Icons.flag, color: Colors.red),
         ),
     ];
   }

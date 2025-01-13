@@ -41,10 +41,17 @@ class _RouteScreenState extends State<RouteScreen> {
           children: [
             FlutterMap(
               options: MapOptions(
-                center: defaultCenter,
-                zoom: 10,
+                initialCenter: defaultCenter,
+                initialZoom: 10,
                 onTap: (_, point) => _addRoutePoint(point),
-                interactiveFlags: InteractiveFlag.all, // Увімкнути пінч
+                interactionOptions: InteractionOptions(
+                  flags: InteractiveFlag.drag |
+                      InteractiveFlag
+                          .pinchZoom, // Панорамування і масштабування
+                  rotationThreshold: 25.0, // Менш чутливе обертання
+                  pinchZoomThreshold: 1.0, // Збільшений поріг масштабування
+                  scrollWheelVelocity: 0.01, // Плавне масштабування для мишки
+                ),
               ),
               children: [
                 TileLayer(
@@ -256,7 +263,7 @@ class _RouteScreenState extends State<RouteScreen> {
       if (_lastPoint != null)
         Marker(
           point: _lastPoint!,
-          builder: (ctx) => const Icon(Icons.place, color: Colors.green),
+          child: const Icon(Icons.place, color: Colors.green),
         ),
     ];
   }
