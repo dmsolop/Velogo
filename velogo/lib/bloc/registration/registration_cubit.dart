@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../navigation/screen_navigation_service.dart';
 import 'registration_state.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
   final FirebaseAuth _auth;
   final FirebaseFunctions _functions;
+  final FirebaseFirestore _firestore;
 
   RegistrationCubit(
-      {FirebaseAuth? firebaseAuth, FirebaseFunctions? firebaseFunctions})
+      {FirebaseAuth? firebaseAuth,
+      FirebaseFunctions? firebaseFunctions,
+      FirebaseFirestore? firestore})
       : _auth = firebaseAuth ?? FirebaseAuth.instance,
         _functions = firebaseFunctions ?? FirebaseFunctions.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance,
         super(const RegistrationState());
 
   // Навігація до RegistrationScreen
@@ -30,6 +35,41 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     ScreenNavigationService.navigateTo('/password-recovery');
   }
 
+  // Збереження даних користувача в Firestore
+  Future<void> saveUserData() async {
+    emit(state.copyWith(isSubmitting: true, isError: false));
+    try {
+      final user = _auth.currentUser;
+
+      if (user != null) {
+        final userData = {
+          'username': state.username,
+          'lastName': state.lastName,
+          'email': state.email,
+          'birthday': state.birthday?.toIso8601String(),
+          'gender': state.gender,
+          'country': state.country,
+        };
+
+        await _firestore.collection('users').doc(user.uid).set(userData);
+
+        emit(state.copyWith(
+          isSubmitting: false,
+          isSuccess: true,
+          successMessage: 'User data saved successfully!',
+        ));
+      } else {
+        throw Exception('User not logged in');
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        isSubmitting: false,
+        isError: true,
+        errorMessage: 'Failed to save user data: ${e.toString()}',
+      ));
+    }
+  }
+
   // Реєстрація нового користувача
   Future<void> submitRegistration() async {
     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
@@ -40,6 +80,9 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       );
       await userCredential.user
           ?.updateDisplayName('${state.username} ${state.lastName}');
+
+      // Збереження даних у Firestore
+      await saveUserData();
 
       emit(state.copyWith(
         isSubmitting: false,
