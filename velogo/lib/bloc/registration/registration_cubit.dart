@@ -89,6 +89,11 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         isSuccess: true,
         successMessage: 'Registration successful!',
       ));
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        emit(state.copyWith(successMessage: null, isSuccess: false));
+      });
+
       navigateToLoginScreen();
     } on FirebaseAuthException catch (e) {
       emit(state.copyWith(
@@ -198,31 +203,6 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     }
   }
 
-  // // Перевірка доступності email
-  // Future<void> checkEmailAvailability(String email) async {
-  //   emit(state.copyWith(isLoading: true, isError: false, warningMessage: ''));
-  //   try {
-  //     final isAvailable = await _mockCheckEmail(email);
-  //     if (isAvailable) {
-  //       emit(state.copyWith(
-  //         isLoading: false,
-  //         successMessage: 'Email is available!',
-  //       ));
-  //     } else {
-  //       emit(state.copyWith(
-  //         isLoading: false,
-  //         warningMessage: 'This email is already taken.',
-  //       ));
-  //     }
-  //   } catch (e) {
-  //     emit(state.copyWith(
-  //       isLoading: false,
-  //       isError: true,
-  //       errorMessage: 'Failed to check email. Please try again.',
-  //     ));
-  //   }
-  // }
-
   void showHelpDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -242,11 +222,6 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       },
     );
   }
-
-  // Future<bool> _mockCheckEmail(String email) async {
-  //   await Future.delayed(const Duration(seconds: 2));
-  //   return email != 'already@used.com';
-  // }
 
   // Оновлення username
   void updateUsername(String username) {
@@ -269,6 +244,14 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     emit(state.copyWith(
       password: password,
       isPasswordValid: _validatePassword(password),
+    ));
+  }
+
+  // Оновлення підтвердження паролю
+  void updateConfirmPassword(String confirmPassword) {
+    emit(state.copyWith(
+      confirmPassword: confirmPassword,
+      isPasswordsMatch: _validateConfirmPassword(confirmPassword),
     ));
   }
 
@@ -299,6 +282,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   bool isFormValid() {
     return state.isEmailValid &&
         state.isPasswordValid &&
+        state.isPasswordsMatch &&
         state.isUsernameValid &&
         state.isLastnameValid &&
         state.country.isNotEmpty &&
@@ -314,6 +298,13 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   // Валідація паролю
   bool _validatePassword(String password) {
     return password.length >= 6;
+  }
+
+  // Валідація паролю
+  bool _validateConfirmPassword(String confirmPassword) {
+    final password = state.password;
+    bool isMatch = password == confirmPassword;
+    return isMatch;
   }
 
   // Валідація username

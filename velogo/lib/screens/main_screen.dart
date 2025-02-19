@@ -228,13 +228,6 @@ class MainScreen extends StatelessWidget {
           ],
         ),
       ),
-      // bottomNavigationBar: CustomBottomNavigationBar(
-      //   currentIndex: 0, // Вкажи активний індекс
-      //   onTap: (index) {
-      //     // Логіка навігації між екранами
-      //     print("Selected index: $index");
-      //   },
-      // ),
     );
   }
 }

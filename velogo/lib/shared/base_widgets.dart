@@ -37,14 +37,17 @@ class CustomTextField extends StatelessWidget {
   final bool isObscure;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
+  final Brightness keyboardAppearance;
 
-  const CustomTextField(
-      {super.key,
-      required this.hintText,
-      this.errorText,
-      this.isObscure = false,
-      this.onChanged,
-      this.onFieldSubmitted});
+  const CustomTextField({
+    super.key,
+    required this.hintText,
+    this.errorText,
+    this.isObscure = false,
+    this.onChanged,
+    this.onFieldSubmitted,
+    this.keyboardAppearance = Brightness.dark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +55,11 @@ class CustomTextField extends StatelessWidget {
       obscureText: isObscure,
       onChanged: onChanged,
       onSubmitted: onFieldSubmitted,
+      keyboardAppearance: keyboardAppearance,
+      style: BaseFonts.body.copyWith(color: BaseColors.cardBackgroundDark),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: BaseFonts.body.copyWith(color: BaseColors.textSecondary),
+        hintStyle: BaseFonts.body.copyWith(color: BaseColors.cardBackground),
         errorText: errorText,
         filled: true,
         fillColor: BaseColors.white,
@@ -63,6 +68,63 @@ class CustomTextField extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
       ),
+    );
+  }
+}
+
+class CustomPasswordTextField extends StatelessWidget {
+  final String hintText;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
+  final Brightness keyboardAppearance;
+
+  const CustomPasswordTextField({
+    super.key,
+    required this.hintText,
+    this.errorText,
+    this.onChanged,
+    this.onFieldSubmitted,
+    this.keyboardAppearance = Brightness.dark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Локальна змінна для зберігання стану isObscure
+    ValueNotifier<bool> isObscure = ValueNotifier(true);
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: isObscure,
+      builder: (context, obscure, _) {
+        return TextField(
+          obscureText: obscure,
+          onChanged: onChanged,
+          onSubmitted: onFieldSubmitted,
+          keyboardAppearance: keyboardAppearance,
+          style: BaseFonts.body.copyWith(color: BaseColors.cardBackgroundDark),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle:
+                BaseFonts.body.copyWith(color: BaseColors.cardBackground),
+            errorText: errorText,
+            filled: true,
+            fillColor: BaseColors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscure ? Icons.visibility_off : Icons.visibility,
+                color: BaseColors.iconUnselected,
+              ),
+              onPressed: () {
+                isObscure.value = !obscure; // Змінити стан
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -864,7 +926,7 @@ class CustomRadioGroup<T> extends StatelessWidget {
 class CustomDropdown<T> extends StatelessWidget {
   final String label; // Назва поля
   final String hintText; // Текст підказки
-  final T selectedValue; // Поточне вибране значення
+  final T? selectedValue; // Поточне вибране значення
   final List<T> items; // Варіанти вибору
   final void Function(T?) onChanged; // Колбек для зміни
   final String Function(T) itemLabelBuilder; // Побудова тексту для елементів

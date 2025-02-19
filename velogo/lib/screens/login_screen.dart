@@ -117,26 +117,37 @@ class LoginScreen extends StatelessWidget {
                         const SizedBox(height: 16),
 
                         // Новий користувач
-                        const Center(
-                          child: CustomText(
-                            text: 'New to Velogo?',
-                            fontSize: 14,
-                          ),
-                        ),
+                        // const Center(
+                        //   child: CustomText(
+                        //     text: 'New to Velogo?',
+                        //     fontSize: 14,
+                        //   ),
+                        // ),
 
                         const SizedBox(height: 16),
 
                         // Кнопка реєстрації
-                        Center(
-                          child: CustomButton(
-                            label: 'Register',
-                            onPressed: () {
-                              registrationCubit.navigateToRegistrationScreen();
-                            },
-                            width: 295,
-                            height: 56,
-                          ),
+                        CompactElevatedButtonRow(
+                          label: 'New to Velogo?',
+                          buttonText: 'Register',
+                          onPressed: () {
+                            registrationCubit.navigateToRegistrationScreen();
+                          },
+                          borderColor: BaseColors.grey,
+                          backgroundColor: BaseColors.headerDark,
+                          borderWidth: 2.0,
                         ),
+
+                        // Center(
+                        //   child: CustomButton(
+                        //     label: 'Register',
+                        //     onPressed: () {
+                        //       registrationCubit.navigateToRegistrationScreen();
+                        //     },
+                        //     width: 295,
+                        //     height: 56,
+                        //   ),
+                        // ),
 
                         const SizedBox(height: 16),
 

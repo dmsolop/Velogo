@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:velogo/bloc/registration/registration_cubit.dart';
 import 'bloc/theme/theme_cubit.dart';
 import 'bloc/settings/settings_cubit.dart';
 import 'bloc/navigation/navigation_cubit.dart';
@@ -43,8 +44,9 @@ void main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
-        BlocProvider(create: (_) => SettingsCubit()), // Збережено
+        BlocProvider(create: (_) => SettingsCubit()),
         BlocProvider(create: (_) => NavigationCubit()),
+        BlocProvider(create: (_) => RegistrationCubit()),
       ],
       child: const MyApp(),
     ),
@@ -62,39 +64,48 @@ class MyApp extends StatelessWidget {
             (themeMode == AppThemeMode.system &&
                 MediaQuery.of(context).platformBrightness == Brightness.dark);
 
-        return MaterialApp(
-          title: 'Velogo App',
-          navigatorKey: ScreenNavigationService.navigatorKey,
-          initialRoute: AppNavigation.start,
-          onGenerateRoute: AppNavigation.generateRoute,
-          theme: ThemeData.light(),
-          darkTheme: ThemeData.dark(),
-          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-          home: BlocBuilder<NavigationCubit, NavigationState>(
-            builder: (context, state) {
-              Widget currentScreen;
-              switch (state.selectedTab) {
-                case NavigationTab.home:
-                  currentScreen = const MainScreen();
-                  break;
-                case NavigationTab.myRoutes:
-                  currentScreen = const RouteScreen();
-                  break;
-                case NavigationTab.profile:
-                  currentScreen = const ProfileScreen();
-                  break;
-                case NavigationTab.settings:
-                  currentScreen = const SettingsScreen();
-                  break;
+        return FutureBuilder<User?>(
+            future: FirebaseAuth.instance.authStateChanges().first,
+            builder: (context, snapshot) {
+              String initialRoute = AppNavigation.start;
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                initialRoute = AppNavigation.main;
               }
+              return MaterialApp(
+                title: 'Velogo App',
+                navigatorKey: ScreenNavigationService.navigatorKey,
+                initialRoute: initialRoute,
+                onGenerateRoute: AppNavigation.generateRoute,
+                theme: ThemeData.light(),
+                darkTheme: ThemeData.dark(),
+                themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+                // home: BlocBuilder<NavigationCubit, NavigationState>(
+                //   builder: (context, state) {
+                //     Widget currentScreen;
+                //     switch (state.selectedTab) {
+                //       case NavigationTab.home:
+                //         currentScreen = const MainScreen();
+                //         break;
+                //       case NavigationTab.myRoutes:
+                //         currentScreen = const RouteScreen();
+                //         break;
+                //       case NavigationTab.profile:
+                //         currentScreen = const ProfileScreen();
+                //         break;
+                //       case NavigationTab.settings:
+                //         currentScreen = const SettingsScreen();
+                //         break;
+                //     }
 
-              return Scaffold(
-                body: currentScreen,
-                bottomNavigationBar: const CustomBottomNavigationBar(),
+                //     return Scaffold(
+                //       body: currentScreen,
+                //       bottomNavigationBar: const CustomBottomNavigationBar(),
+                //     );
+                //   },
+                // ),
               );
-            },
-          ),
-        );
+            });
       },
     );
   }

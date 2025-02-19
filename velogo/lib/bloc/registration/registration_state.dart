@@ -6,6 +6,7 @@ class RegistrationState extends Equatable {
   final DateTime? birthday;
   final String email;
   final String password;
+  final String confirmPassword;
   final String gender;
   final String country;
   final bool isSubmitting;
@@ -17,6 +18,7 @@ class RegistrationState extends Equatable {
   final String warningMessage;
   final bool isEmailValid;
   final bool isPasswordValid;
+  final bool isPasswordsMatch;
   final bool isUsernameValid;
   final bool isLastnameValid;
 
@@ -26,6 +28,7 @@ class RegistrationState extends Equatable {
     this.birthday,
     this.email = '',
     this.password = '',
+    this.confirmPassword = '',
     this.gender = '',
     this.country = '',
     this.isSubmitting = false,
@@ -37,6 +40,7 @@ class RegistrationState extends Equatable {
     this.warningMessage = '',
     this.isEmailValid = true,
     this.isPasswordValid = true,
+    this.isPasswordsMatch = true,
     this.isUsernameValid = true,
     this.isLastnameValid = true,
   });
@@ -47,6 +51,7 @@ class RegistrationState extends Equatable {
     DateTime? birthday,
     String? email,
     String? password,
+    String? confirmPassword,
     String? gender,
     String? country,
     bool? isSubmitting,
@@ -58,6 +63,7 @@ class RegistrationState extends Equatable {
     String? warningMessage,
     bool? isEmailValid,
     bool? isPasswordValid,
+    bool? isPasswordsMatch,
     bool? isUsernameValid,
     bool? isLastnameValid,
   }) {
@@ -67,6 +73,7 @@ class RegistrationState extends Equatable {
       birthday: birthday ?? this.birthday,
       email: email ?? this.email,
       password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
       gender: gender ?? this.gender,
       country: country ?? this.country,
       isSubmitting: isSubmitting ?? this.isSubmitting,
@@ -78,6 +85,7 @@ class RegistrationState extends Equatable {
       warningMessage: warningMessage ?? this.warningMessage,
       isEmailValid: isEmailValid ?? this.isEmailValid,
       isPasswordValid: isPasswordValid ?? this.isPasswordValid,
+      isPasswordsMatch: isPasswordsMatch ?? this.isPasswordsMatch,
       isUsernameValid: isUsernameValid ?? this.isUsernameValid,
       isLastnameValid: isLastnameValid ?? this.isLastnameValid,
     );
@@ -90,6 +98,7 @@ class RegistrationState extends Equatable {
         birthday,
         email,
         password,
+        confirmPassword,
         gender,
         country,
         isSubmitting,
@@ -101,6 +110,7 @@ class RegistrationState extends Equatable {
         warningMessage,
         isEmailValid,
         isPasswordValid,
+        isPasswordsMatch,
         isUsernameValid,
         isLastnameValid,
       ];
