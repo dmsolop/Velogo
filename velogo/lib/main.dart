@@ -6,12 +6,12 @@ import 'package:velogo/bloc/registration/registration_cubit.dart';
 import 'bloc/theme/theme_cubit.dart';
 import 'bloc/settings/settings_cubit.dart';
 import 'bloc/navigation/navigation_cubit.dart';
-import 'bloc/navigation/navigation_state.dart';
-import 'shared/custom_bottom_navigation_bar.dart';
-import 'screens/main_screen.dart';
-import 'screens/route_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/settings_screen.dart';
+// import 'bloc/navigation/navigation_state.dart';
+// import 'shared/custom_bottom_navigation_bar.dart';
+// import 'screens/main_screen.dart';
+// import 'screens/route_screen.dart';
+// import 'screens/profile_screen.dart';
+// import 'screens/settings_screen.dart';
 import 'navigation/app_navigation.dart';
 import 'navigation/screen_navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -40,6 +40,13 @@ void main() async {
 
   FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
 
+  // Визначення початкового маршруту
+  String initialRoute = AppNavigation.start;
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    initialRoute = AppNavigation.main;
+  }
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -48,13 +55,14 @@ void main() async {
         BlocProvider(create: (_) => NavigationCubit()),
         BlocProvider(create: (_) => RegistrationCubit()),
       ],
-      child: const MyApp(),
+      child: MyApp(initialRoute: initialRoute),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -64,48 +72,39 @@ class MyApp extends StatelessWidget {
             (themeMode == AppThemeMode.system &&
                 MediaQuery.of(context).platformBrightness == Brightness.dark);
 
-        return FutureBuilder<User?>(
-            future: FirebaseAuth.instance.authStateChanges().first,
-            builder: (context, snapshot) {
-              String initialRoute = AppNavigation.start;
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                initialRoute = AppNavigation.main;
-              }
-              return MaterialApp(
-                title: 'Velogo App',
-                navigatorKey: ScreenNavigationService.navigatorKey,
-                initialRoute: initialRoute,
-                onGenerateRoute: AppNavigation.generateRoute,
-                theme: ThemeData.light(),
-                darkTheme: ThemeData.dark(),
-                themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-                // home: BlocBuilder<NavigationCubit, NavigationState>(
-                //   builder: (context, state) {
-                //     Widget currentScreen;
-                //     switch (state.selectedTab) {
-                //       case NavigationTab.home:
-                //         currentScreen = const MainScreen();
-                //         break;
-                //       case NavigationTab.myRoutes:
-                //         currentScreen = const RouteScreen();
-                //         break;
-                //       case NavigationTab.profile:
-                //         currentScreen = const ProfileScreen();
-                //         break;
-                //       case NavigationTab.settings:
-                //         currentScreen = const SettingsScreen();
-                //         break;
-                //     }
+        return MaterialApp(
+          title: 'Velogo App',
+          navigatorKey: ScreenNavigationService.navigatorKey,
+          initialRoute: initialRoute,
+          onGenerateRoute: AppNavigation.generateRoute,
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+          // home: BlocBuilder<NavigationCubit, NavigationState>(
+          //   builder: (context, state) {
+          //     Widget currentScreen;
+          //     switch (state.selectedTab) {
+          //       case NavigationTab.home:
+          //         currentScreen = const MainScreen();
+          //         break;
+          //       case NavigationTab.myRoutes:
+          //         currentScreen = const RouteScreen();
+          //         break;
+          //       case NavigationTab.profile:
+          //         currentScreen = const ProfileScreen();
+          //         break;
+          //       case NavigationTab.settings:
+          //         currentScreen = const SettingsScreen();
+          //         break;
+          //     }
 
-                //     return Scaffold(
-                //       body: currentScreen,
-                //       bottomNavigationBar: const CustomBottomNavigationBar(),
-                //     );
-                //   },
-                // ),
-              );
-            });
+          //     return Scaffold(
+          //       body: currentScreen,
+          //       bottomNavigationBar: const CustomBottomNavigationBar(),
+          //     );
+          //   },
+          // ),
+        );
       },
     );
   }
