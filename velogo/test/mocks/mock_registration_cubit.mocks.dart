@@ -178,6 +178,15 @@ class MockRegistrationCubit extends _i1.Mock implements _i3.RegistrationCubit {
       );
 
   @override
+  void updateConfirmPassword(String? confirmPassword) => super.noSuchMethod(
+        Invocation.method(
+          #updateConfirmPassword,
+          [confirmPassword],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void updateGender(String? gender) => super.noSuchMethod(
         Invocation.method(
           #updateGender,
@@ -220,6 +229,268 @@ class MockRegistrationCubit extends _i1.Mock implements _i3.RegistrationCubit {
           [],
         ),
         returnValue: false,
+      ) as bool);
+
+  @override
+  void onChange(_i6.Change<_i2.RegistrationState>? change) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #onChange,
+          [change],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void emit(_i2.RegistrationState? state) => super.noSuchMethod(
+        Invocation.method(
+          #emit,
+          [state],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addError(
+    Object? error, [
+    StackTrace? stackTrace,
+  ]) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #addError,
+          [
+            error,
+            stackTrace,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void onError(
+    Object? error,
+    StackTrace? stackTrace,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #onError,
+          [
+            error,
+            stackTrace,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i4.Future<void> close() => (super.noSuchMethod(
+        Invocation.method(
+          #close,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+}
+
+/// A class which mocks [RegistrationCubit].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockRegistrationCubitWithStream extends _i1.Mock
+    implements _i3.RegistrationCubit {
+  @override
+  _i2.RegistrationState get state => (super.noSuchMethod(
+        Invocation.getter(#state),
+        returnValue: _FakeRegistrationState_0(
+          this,
+          Invocation.getter(#state),
+        ),
+        returnValueForMissingStub: _FakeRegistrationState_0(
+          this,
+          Invocation.getter(#state),
+        ),
+      ) as _i2.RegistrationState);
+
+  @override
+  _i4.Stream<_i2.RegistrationState> get stream => (super.noSuchMethod(
+        Invocation.getter(#stream),
+        returnValue: _i4.Stream<_i2.RegistrationState>.empty(),
+        returnValueForMissingStub: _i4.Stream<_i2.RegistrationState>.empty(),
+      ) as _i4.Stream<_i2.RegistrationState>);
+
+  @override
+  bool get isClosed => (super.noSuchMethod(
+        Invocation.getter(#isClosed),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  void navigateToRegistrationScreen() => super.noSuchMethod(
+        Invocation.method(
+          #navigateToRegistrationScreen,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void navigateToLoginScreen() => super.noSuchMethod(
+        Invocation.method(
+          #navigateToLoginScreen,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void navigateToPasswordRecoveryScreen() => super.noSuchMethod(
+        Invocation.method(
+          #navigateToPasswordRecoveryScreen,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i4.Future<void> saveUserData() => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserData,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> submitRegistration() => (super.noSuchMethod(
+        Invocation.method(
+          #submitRegistration,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> login() => (super.noSuchMethod(
+        Invocation.method(
+          #login,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> sendRecoveryLink() => (super.noSuchMethod(
+        Invocation.method(
+          #sendRecoveryLink,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> checkEmailAvailability(String? email) => (super.noSuchMethod(
+        Invocation.method(
+          #checkEmailAvailability,
+          [email],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  void showHelpDialog(_i5.BuildContext? context) => super.noSuchMethod(
+        Invocation.method(
+          #showHelpDialog,
+          [context],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateUsername(String? username) => super.noSuchMethod(
+        Invocation.method(
+          #updateUsername,
+          [username],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateEmail(String? email) => super.noSuchMethod(
+        Invocation.method(
+          #updateEmail,
+          [email],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updatePassword(String? password) => super.noSuchMethod(
+        Invocation.method(
+          #updatePassword,
+          [password],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateConfirmPassword(String? confirmPassword) => super.noSuchMethod(
+        Invocation.method(
+          #updateConfirmPassword,
+          [confirmPassword],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateGender(String? gender) => super.noSuchMethod(
+        Invocation.method(
+          #updateGender,
+          [gender],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateLastName(String? lastName) => super.noSuchMethod(
+        Invocation.method(
+          #updateLastName,
+          [lastName],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateBirthday(DateTime? birthday) => super.noSuchMethod(
+        Invocation.method(
+          #updateBirthday,
+          [birthday],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateCountry(String? country) => super.noSuchMethod(
+        Invocation.method(
+          #updateCountry,
+          [country],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool isFormValid() => (super.noSuchMethod(
+        Invocation.method(
+          #isFormValid,
+          [],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
