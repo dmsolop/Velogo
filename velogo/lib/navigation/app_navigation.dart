@@ -3,14 +3,14 @@ import '../screens/start_screen.dart';
 import '../screens/registration_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/password_recovery_screen.dart';
-import '../screens/main_screen.dart';
+import '../shared/CustomBottomNavigationController.dart';
 
 class AppNavigation {
   static const String start = '/';
   static const String registration = '/registration';
   static const String login = '/login';
   static const String passwordRecovery = '/password-recovery';
-  static const String main = '/main';
+  static const String main = '/home';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -24,7 +24,8 @@ class AppNavigation {
         return MaterialPageRoute(
             builder: (_) => const PasswordRecoveryScreen());
       case main:
-        return MaterialPageRoute(builder: (_) => const MainScreen());
+        return MaterialPageRoute(
+            builder: (_) => const CustomBottomNavigationController());
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

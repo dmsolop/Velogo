@@ -6,12 +6,6 @@ import 'package:velogo/bloc/registration/registration_cubit.dart';
 import 'bloc/theme/theme_cubit.dart';
 import 'bloc/settings/settings_cubit.dart';
 import 'bloc/navigation/navigation_cubit.dart';
-// import 'bloc/navigation/navigation_state.dart';
-// import 'shared/custom_bottom_navigation_bar.dart';
-// import 'screens/main_screen.dart';
-// import 'screens/route_screen.dart';
-// import 'screens/profile_screen.dart';
-// import 'screens/settings_screen.dart';
 import 'navigation/app_navigation.dart';
 import 'navigation/screen_navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -80,30 +74,6 @@ class MyApp extends StatelessWidget {
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-          // home: BlocBuilder<NavigationCubit, NavigationState>(
-          //   builder: (context, state) {
-          //     Widget currentScreen;
-          //     switch (state.selectedTab) {
-          //       case NavigationTab.home:
-          //         currentScreen = const MainScreen();
-          //         break;
-          //       case NavigationTab.myRoutes:
-          //         currentScreen = const RouteScreen();
-          //         break;
-          //       case NavigationTab.profile:
-          //         currentScreen = const ProfileScreen();
-          //         break;
-          //       case NavigationTab.settings:
-          //         currentScreen = const SettingsScreen();
-          //         break;
-          //     }
-
-          //     return Scaffold(
-          //       body: currentScreen,
-          //       bottomNavigationBar: const CustomBottomNavigationBar(),
-          //     );
-          //   },
-          // ),
         );
       },
     );

@@ -94,7 +94,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         emit(state.copyWith(successMessage: null, isSuccess: false));
       });
 
-      navigateToLoginScreen();
+      ScreenNavigationService.navigateTo('/main');
     } on FirebaseAuthException catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
