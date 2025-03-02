@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ void main() async {
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: HydratedStorageDirectory(directory.path),
   );
+
+  // Ініціалізація Hive
+  await Hive.initFlutter();
 
   // Ініціалізуйте Firebase
   await Firebase.initializeApp();
