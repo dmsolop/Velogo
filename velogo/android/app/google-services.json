@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1099442752347",
+    "project_id": "velogo-6e731",
+    "storage_bucket": "velogo-6e731.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1099442752347:android:22479c47d406416a67e87e",
+        "android_client_info": {
+          "package_name": "com.example.velogo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcoCBmDHFNb9NmcMxdlPD37yvzGDbe0BQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
