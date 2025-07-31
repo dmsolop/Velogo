@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,15 +29,20 @@ void main() async {
   // Ініціалізуйте Firebase
   await Firebase.initializeApp();
 
-  FirebaseFirestore.instance.settings = const Settings(
-    host: 'localhost:8080',
-    sslEnabled: false,
-    persistenceEnabled: false,
-  );
+  // Налаштування для емуляторів
+  if (kDebugMode) {
+    // Використовуємо реальний Firebase для Auth (без reCAPTCHA проблем)
+    // FirebaseAuth.instance.useAuthEmulator('127.0.0.1', 9099);
 
-  FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    // Емулятори тільки для Firestore та Functions
+    FirebaseFirestore.instance.settings = const Settings(
+      host: '127.0.0.1:8080',
+      sslEnabled: false,
+      persistenceEnabled: false,
+    );
 
-  FirebaseFunctions.instance.useFunctionsEmulator('localhost', 5001);
+    FirebaseFunctions.instance.useFunctionsEmulator('127.0.0.1', 5001);
+  }
 
   // Визначення початкового маршруту
   String initialRoute = AppNavigation.start;
@@ -66,9 +72,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, AppThemeMode>(
       builder: (context, themeMode) {
-        final isDark = themeMode == AppThemeMode.dark ||
-            (themeMode == AppThemeMode.system &&
-                MediaQuery.of(context).platformBrightness == Brightness.dark);
+        final isDark = themeMode == AppThemeMode.dark || (themeMode == AppThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
 
         return MaterialApp(
           title: 'Velogo App',

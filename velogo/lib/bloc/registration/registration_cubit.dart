@@ -11,10 +11,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
   final FirebaseFunctions _functions;
   final FirebaseFirestore _firestore;
 
-  RegistrationCubit(
-      {FirebaseAuth? firebaseAuth,
-      FirebaseFunctions? firebaseFunctions,
-      FirebaseFirestore? firestore})
+  RegistrationCubit({FirebaseAuth? firebaseAuth, FirebaseFunctions? firebaseFunctions, FirebaseFirestore? firestore})
       : _auth = firebaseAuth ?? FirebaseAuth.instance,
         _functions = firebaseFunctions ?? FirebaseFunctions.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
@@ -78,8 +75,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         email: state.email,
         password: state.password,
       );
-      await userCredential.user
-          ?.updateDisplayName('${state.username} ${state.lastName}');
+      await userCredential.user?.updateDisplayName('${state.username} ${state.lastName}');
 
       // Збереження даних у Firestore
       await saveUserData();
@@ -94,7 +90,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         emit(state.copyWith(successMessage: null, isSuccess: false));
       });
 
-      ScreenNavigationService.navigateTo('/main');
+      ScreenNavigationService.navigateTo('/home');
     } on FirebaseAuthException catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
@@ -123,7 +119,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         isSuccess: true,
         successMessage: 'Login successful!',
       ));
-      ScreenNavigationService.navigateTo('/main');
+      ScreenNavigationService.navigateTo('/home');
     } on FirebaseAuthException catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
@@ -170,9 +166,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     emit(state.copyWith(isLoading: true, isError: false, warningMessage: ''));
     try {
       // Виклик Cloud Function
-      final result = await _functions
-          .httpsCallable('checkEmailAvailability')
-          .call({'email': email});
+      final result = await _functions.httpsCallable('checkEmailAvailability').call({'email': email});
 
       final isAvailable = result.data['available'] as bool;
       final message = result.data['message'] as String;
@@ -280,13 +274,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
 
   // Перевірка форми
   bool isFormValid() {
-    return state.isEmailValid &&
-        state.isPasswordValid &&
-        state.isPasswordsMatch &&
-        state.isUsernameValid &&
-        state.isLastnameValid &&
-        state.country.isNotEmpty &&
-        state.gender.isNotEmpty;
+    return state.isEmailValid && state.isPasswordValid && state.isPasswordsMatch && state.isUsernameValid && state.isLastnameValid && state.country.isNotEmpty && state.gender.isNotEmpty;
   }
 
   // Валідація email
