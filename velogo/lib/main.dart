@@ -15,6 +15,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'constants/api_constants.dart';
+import 'services/log_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,10 @@ void main() async {
 
   // Ініціалізація Remote Config
   await ApiConstants.initialize();
+
+  // Ініціалізація LogService
+  await LogService.init();
+  await LogService.clearLog();
 
   // Налаштування для емуляторів
   if (kDebugMode) {

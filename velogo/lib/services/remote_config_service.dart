@@ -1,5 +1,6 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'dart:convert';
+import 'log_service.dart';
 
 class RemoteConfigService {
   static final RemoteConfigService _instance = RemoteConfigService._internal();
@@ -47,21 +48,27 @@ class RemoteConfigService {
   /// Ініціалізація Remote Config
   Future<void> initialize() async {
     try {
+      await LogService.log('🌐 [RemoteConfig] Початок ініціалізації');
+
       // Встановлюємо значення за замовчуванням
       await _remoteConfig.setDefaults(_defaults);
+      await LogService.log('🌐 [RemoteConfig] Встановлено значення за замовчуванням');
 
       // Налаштування для розробки
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: const Duration(hours: 1),
       ));
+      await LogService.log('🌐 [RemoteConfig] Налаштовано параметри підключення');
 
       // Отримуємо конфігурацію
       await _remoteConfig.fetchAndActivate();
+      await LogService.log('🌐 [RemoteConfig] Отримано та активовано конфігурацію');
 
       print('✅ Remote Config ініціалізовано успішно');
       _logCurrentConfig();
     } catch (e) {
+      await LogService.log('❌ [RemoteConfig] Помилка ініціалізації: $e');
       print('❌ Помилка ініціалізації Remote Config: $e');
     }
   }
@@ -123,15 +130,19 @@ class RemoteConfigService {
   /// Примусове оновлення конфігурації
   Future<bool> fetchAndActivate() async {
     try {
+      await LogService.log('🔄 [RemoteConfig] Початок оновлення конфігурації');
       final success = await _remoteConfig.fetchAndActivate();
       if (success) {
+        await LogService.log('✅ [RemoteConfig] Конфігурацію оновлено успішно');
         print('✅ Remote Config оновлено успішно');
         _logCurrentConfig();
       } else {
+        await LogService.log('⚠️ [RemoteConfig] Оновлення конфігурації не вдалося');
         print('⚠️ Remote Config оновлення не вдалося');
       }
       return success;
     } catch (e) {
+      await LogService.log('❌ [RemoteConfig] Помилка оновлення: $e');
       print('❌ Помилка оновлення Remote Config: $e');
       return false;
     }
@@ -146,6 +157,14 @@ class RemoteConfigService {
     print('  Max Cache Size: $maxCacheSize');
     print('  Primary Provider: $primaryWeatherProvider');
     print('  Weather Logging: $enableWeatherLogging');
+
+    LogService.log('📋 [RemoteConfig] Поточна конфігурація:');
+    LogService.log('  StormGlass API Key: ${stormglassApiKey.substring(0, 10)}...');
+    LogService.log('  Tomorrow API Key: ${tomorrowApiKey.substring(0, 10)}...');
+    LogService.log('  Cache Expiration: ${cacheExpirationMinutes} min');
+    LogService.log('  Max Cache Size: $maxCacheSize');
+    LogService.log('  Primary Provider: $primaryWeatherProvider');
+    LogService.log('  Weather Logging: $enableWeatherLogging');
   }
 
   /// Отримання всіх параметрів як Map
