@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'constants/api_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,9 @@ void main() async {
 
   // Ініціалізуйте Firebase
   await Firebase.initializeApp();
+
+  // Ініціалізація Remote Config
+  await ApiConstants.initialize();
 
   // Налаштування для емуляторів
   if (kDebugMode) {

@@ -55,3 +55,6 @@ app.*.map.json
 *.xcodeproj/xcuserdata/
 *.swiftpm/
 Package.resolved
+
+# Firebase Remote Config
+config/remote_config_defaults.json

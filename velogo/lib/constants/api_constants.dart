@@ -1,27 +1,46 @@
+import '../services/remote_config_service.dart';
+
 class ApiConstants {
+  static final RemoteConfigService _remoteConfig = RemoteConfigService();
+
   // StormGlass API
-  static const String stormGlassBaseUrl = 'https://api.stormglass.io/v2';
-  static const String stormGlassApiKey = 'YOUR_STORMGLASS_API_KEY'; // TODO: Add real API key
+  static String get stormGlassBaseUrl => _remoteConfig.stormglassBaseUrl;
+  static String get stormGlassApiKey => _remoteConfig.stormglassApiKey;
 
   // Tomorrow.io API
-  static const String tomorrowBaseUrl = 'https://api.tomorrow.io/v4';
-  static const String tomorrowApiKey = 'YOUR_TOMORROW_API_KEY'; // TODO: Add real API key
+  static String get tomorrowBaseUrl => _remoteConfig.tomorrowBaseUrl;
+  static String get tomorrowApiKey => _remoteConfig.tomorrowApiKey;
 
   // Open-Meteo API (fallback)
-  static const String openMeteoBaseUrl = 'https://api.open-meteo.com/v1';
+  static String get openMeteoBaseUrl => _remoteConfig.openMeteoBaseUrl;
 
   // Weather endpoints
-  static const String weatherEndpoint = '/weather';
-  static const String forecastEndpoint = '/forecast';
+  static String get weatherEndpoint => _remoteConfig.weatherEndpoint;
+  static String get forecastEndpoint => _remoteConfig.forecastEndpoint;
 
   // Cache settings
-  static const int cacheExpirationMinutes = 60;
-  static const int maxCacheSize = 1000; // Maximum cached weather points
+  static int get cacheExpirationMinutes => _remoteConfig.cacheExpirationMinutes;
+  static int get maxCacheSize => _remoteConfig.maxCacheSize;
 
   // Wind data parameters
-  static const List<String> windParameters = ['windSpeed', 'windDirection', 'windGust'];
+  static List<String> get windParameters => _remoteConfig.windParameters;
 
   // Units
-  static const String windSpeedUnit = 'm/s';
-  static const String windDirectionUnit = 'degrees';
+  static String get windSpeedUnit => _remoteConfig.windSpeedUnit;
+  static String get windDirectionUnit => _remoteConfig.windDirectionUnit;
+
+  // Additional settings
+  static int get syncIntervalMinutes => _remoteConfig.syncIntervalMinutes;
+  static bool get enableWeatherLogging => _remoteConfig.enableWeatherLogging;
+  static String get primaryWeatherProvider => _remoteConfig.primaryWeatherProvider;
+
+  /// Ініціалізація Remote Config (викликається в main.dart)
+  static Future<void> initialize() async {
+    await _remoteConfig.initialize();
+  }
+
+  /// Отримання всіх параметрів для дебагу
+  static Map<String, dynamic> getAllParameters() {
+    return _remoteConfig.getAllParameters();
+  }
 }
