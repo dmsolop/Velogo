@@ -113,6 +113,11 @@ class WeatherService {
         'wind_speed': [hourly['windSpeed']?['sg'] ?? 0.0],
         'wind_direction': [hourly['windDirection']?['sg'] ?? 0.0],
         'wind_gust': [hourly['windGust']?['sg'] ?? 0.0],
+        'precipitation': [hourly['precipitation']?['sg'] ?? 0.0],
+        'precipitation_type': [hourly['precipitationType']?['sg'] ?? 0.0],
+        'humidity': [hourly['humidity']?['sg'] ?? 50.0],
+        'temperature': [hourly['temperature']?['sg'] ?? 20.0],
+        'visibility': [hourly['visibility']?['sg'] ?? 10.0],
       }
     };
   }
@@ -126,6 +131,11 @@ class WeatherService {
         'wind_speed': [values['windSpeed'] ?? 0.0],
         'wind_direction': [values['windDirection'] ?? 0.0],
         'wind_gust': [values['windGust'] ?? 0.0],
+        'precipitation': [values['precipitation'] ?? 0.0],
+        'precipitation_type': [values['precipitationType'] ?? 0.0],
+        'humidity': [values['humidity'] ?? 50.0],
+        'temperature': [values['temperature'] ?? 20.0],
+        'visibility': [values['visibility'] ?? 10.0],
       }
     };
   }
@@ -138,6 +148,11 @@ class WeatherService {
         'wind_speed': [hourly['windspeed_10m']?[0] ?? 0.0],
         'wind_direction': [hourly['winddirection_10m']?[0] ?? 0.0],
         'wind_gust': [hourly['windgusts_10m']?[0] ?? 0.0],
+        'precipitation': [hourly['precipitation']?[0] ?? 0.0],
+        'precipitation_type': [hourly['precipitation_type']?[0] ?? 0.0],
+        'humidity': [hourly['relativehumidity_2m']?[0] ?? 50.0],
+        'temperature': [hourly['temperature_2m']?[0] ?? 20.0],
+        'visibility': [hourly['visibility']?[0] ?? 10.0],
       }
     };
   }

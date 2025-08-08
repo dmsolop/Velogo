@@ -47,6 +47,12 @@ class WeatherRepository {
         windSpeed: weatherData['hourly']['wind_speed'][0].toDouble(),
         windDirection: weatherData['hourly']['wind_direction'][0].toDouble(),
         windGust: weatherData['hourly']['wind_gust'][0].toDouble(),
+        precipitation: weatherData['hourly']['precipitation']?[0]?.toDouble() ?? 0.0,
+        precipitationType: weatherData['hourly']['precipitation_type']?[0]?.toDouble() ?? 0.0,
+        humidity: weatherData['hourly']['humidity']?[0]?.toDouble() ?? 50.0,
+        temperature: weatherData['hourly']['temperature']?[0]?.toDouble() ?? 20.0,
+        visibility: weatherData['hourly']['visibility']?[0]?.toDouble() ?? 10.0,
+        roadCondition: 0.0, // Буде розраховано пізніше
         timestamp: DateTime.now(),
         source: "API",
       );

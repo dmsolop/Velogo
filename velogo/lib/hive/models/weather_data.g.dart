@@ -22,15 +22,21 @@ class WeatherDataAdapter extends TypeAdapter<WeatherData> {
       windSpeed: fields[2] as double,
       windDirection: fields[3] as double,
       windGust: fields[4] as double,
-      timestamp: fields[5] as DateTime,
-      source: fields[6] as String,
+      precipitation: fields[5] as double,
+      precipitationType: fields[6] as double,
+      humidity: fields[7] as double,
+      temperature: fields[8] as double,
+      visibility: fields[9] as double,
+      roadCondition: fields[10] as double,
+      timestamp: fields[11] as DateTime,
+      source: fields[12] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeatherData obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.lat)
       ..writeByte(1)
@@ -42,8 +48,20 @@ class WeatherDataAdapter extends TypeAdapter<WeatherData> {
       ..writeByte(4)
       ..write(obj.windGust)
       ..writeByte(5)
-      ..write(obj.timestamp)
+      ..write(obj.precipitation)
       ..writeByte(6)
+      ..write(obj.precipitationType)
+      ..writeByte(7)
+      ..write(obj.humidity)
+      ..writeByte(8)
+      ..write(obj.temperature)
+      ..writeByte(9)
+      ..write(obj.visibility)
+      ..writeByte(10)
+      ..write(obj.roadCondition)
+      ..writeByte(11)
+      ..write(obj.timestamp)
+      ..writeByte(12)
       ..write(obj.source);
   }
 

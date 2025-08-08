@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:latlong2/latlong.dart';
 import '../hive/models/weather_data.dart';
-import '../bloc/weather/weather_cubit.dart';
+// import '../bloc/weather/weather_cubit.dart';
 
 class RouteAnalyzer {
   /// Аналізує маршрут та визначає ключові точки для погодних запитів
