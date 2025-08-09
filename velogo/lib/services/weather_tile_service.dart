@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import '../hive/models/weather_data.dart';
 import '../models/road_surface.dart';
 import 'weather_service.dart';
+import 'road_condition_service.dart';
 import 'log_service.dart';
 
 /// Тайл погоди для регіону
@@ -150,10 +151,7 @@ class WeatherTileService {
 
       final weatherData = await _weatherService.getWeather(lat, lon);
 
-      // Розраховуємо стан дороги на основі опадів та типу покриття
-      final roadCondition = _calculateRoadCondition(weatherData, surface);
-
-      return WeatherData(
+      final weather = WeatherData(
         lat: lat,
         lon: lon,
         windSpeed: weatherData['hourly']['wind_speed'][0].toDouble(),
@@ -164,18 +162,26 @@ class WeatherTileService {
         humidity: weatherData['hourly']['humidity']?[0]?.toDouble() ?? 50.0,
         temperature: weatherData['hourly']['temperature']?[0]?.toDouble() ?? 20.0,
         visibility: weatherData['hourly']['visibility']?[0]?.toDouble() ?? 10.0,
-        roadCondition: roadCondition,
+        roadCondition: 0.0, // Буде розраховано окремим сервісом
         timestamp: time,
         source: 'Precise',
       );
+
+      // Розраховуємо стан дороги через окремий сервіс
+      final roadCondition = RoadConditionService().calculateRoadCondition(weather, surface);
+
+      return weather.copyWith(roadCondition: roadCondition);
     } catch (e) {
       await LogService.log('❌ [WeatherTileService] Помилка точкового запиту: $e');
       return null;
     }
   }
 
-  /// Корекція прогнозу на основі точкових даних
+  /// Корекція прогнозу на основі точкових даних (застарілий метод)
+  @deprecated
   WeatherData correctForecast(WeatherData approximate, WeatherData? precise) {
+    LogService.log('⚠️ [WeatherTileService] Використовується застарілий метод correctForecast. Використовуйте WeatherForecastCorrectionService');
+
     if (precise == null) {
       return approximate;
     }
@@ -254,24 +260,6 @@ class WeatherTileService {
       await LogService.log('❌ [WeatherTileService] Помилка завантаження погоди для тайлу: $e');
       rethrow;
     }
-  }
-
-  /// Розрахунок стану дороги
-  double _calculateRoadCondition(Map<String, dynamic> weatherData, RoadSurface surface) {
-    final precipitation = weatherData['hourly']['precipitation']?[0]?.toDouble() ?? 0.0;
-    final precipitationType = weatherData['hourly']['precipitation_type']?[0]?.toDouble() ?? 0.0;
-
-    if (precipitation == 0.0) {
-      return 0.0; // Сухо
-    }
-
-    // Базовий стан залежно від типу опадів
-    double baseCondition = precipitationType == 1 ? 1.0 : 2.0; // 1=дощ, 2=сніг
-
-    // Корекція залежно від типу покриття
-    baseCondition *= surface.precipitationImpact;
-
-    return baseCondition;
   }
 
   /// Генерація ID тайлу
