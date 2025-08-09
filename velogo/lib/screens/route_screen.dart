@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:math';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
 import '../shared/dev_helpers.dart';
 import '../route_logic/route_section.dart';
-import '../route_logic/calculate_difficulty.dart';
+import '../services/route_difficulty_service.dart';
+import '../services/weather_service.dart';
+import '../models/road_surface.dart';
+import '../hive/models/weather_data.dart';
 import '../screens/create_route_screen.dart';
 
 class RouteScreen extends StatefulWidget {
@@ -21,6 +25,13 @@ class _RouteScreenState extends State<RouteScreen> {
   final List<String> _interestingPlaces = ["Place A", "Place B", "Place C"];
   final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
+
+  // Нові поля для системи складності
+  final RouteDifficultyService _routeDifficultyService = RouteDifficultyService();
+  final WeatherService _weatherService = WeatherService();
+  List<WeatherData> _weatherDataList = [];
+  double _totalDifficulty = 0.0;
+  bool _isLoadingDifficulty = false;
 
   @override
   void initState() {
@@ -45,9 +56,7 @@ class _RouteScreenState extends State<RouteScreen> {
                 initialZoom: 10,
                 onTap: (_, point) => _addRoutePoint(point),
                 interactionOptions: InteractionOptions(
-                  flags: InteractiveFlag.drag |
-                      InteractiveFlag
-                          .pinchZoom, // Панорамування і масштабування
+                  flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom, // Панорамування і масштабування
                   rotationThreshold: 25.0, // Менш чутливе обертання
                   pinchZoomThreshold: 1.0, // Збільшений поріг масштабування
                   scrollWheelVelocity: 0.01, // Плавне масштабування для мишки
@@ -55,8 +64,7 @@ class _RouteScreenState extends State<RouteScreen> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                   subdomains: const ['a', 'b', 'c'],
                 ),
                 PolylineLayer(
@@ -146,8 +154,7 @@ class _RouteScreenState extends State<RouteScreen> {
   Widget _buildControlButtons() {
     return Positioned(
       right: 8,
-      bottom:
-          40 + 100 + 8 + 8, // Відступ до колекції цікавих місць (8 пікселів)
+      bottom: 40 + 100 + 8 + 8, // Відступ до колекції цікавих місць (8 пікселів)
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -199,17 +206,17 @@ class _RouteScreenState extends State<RouteScreen> {
 
   Widget _buildDraggableBottomPanel() {
     return DraggableScrollableSheet(
-      initialChildSize: 0.05, // Майже невидима у згорнутому стані
+      initialChildSize: 0.05,
       minChildSize: 0.05,
-      maxChildSize: 0.6, // Висота для повністю розгорнутого стану
+      maxChildSize: 0.6,
       snap: true,
-      snapSizes: const [0.05, 0.6], // Два стани
+      snapSizes: const [0.05, 0.6],
       builder: (context, scrollController) {
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8), // Відступи
+          margin: const EdgeInsets.symmetric(horizontal: 8),
           padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            color: BaseColors.backgroundDark,
+          decoration: BoxDecoration(
+            color: BaseColors.backgroundDark.withValues(alpha: 0.9),
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: ListView(
@@ -220,10 +227,46 @@ class _RouteScreenState extends State<RouteScreen> {
                 style: const TextStyle(color: BaseColors.white, fontSize: 16),
               ),
               const SizedBox(height: 8),
-              Text(
-                "Total Difficulty: ${_calculateTotalDifficulty().toStringAsFixed(2)}",
-                style: const TextStyle(color: BaseColors.white, fontSize: 16),
-              ),
+              if (_isLoadingDifficulty)
+                const Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "Calculating difficulty...",
+                      style: TextStyle(color: BaseColors.white, fontSize: 14),
+                    ),
+                  ],
+                )
+              else ...[
+                Text(
+                  "Total Difficulty: ${_totalDifficulty.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    color: BaseColors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Level: ${_routeDifficultyService.getDifficultyLevel(_totalDifficulty)}",
+                  style: TextStyle(
+                    color: Color(_routeDifficultyService.getDifficultyColor(_totalDifficulty)),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              if (_weatherDataList.isNotEmpty)
+                Text(
+                  "Weather Points: ${_weatherDataList.length}",
+                  style: const TextStyle(color: BaseColors.white, fontSize: 12),
+                ),
             ],
           ),
         );
@@ -231,7 +274,7 @@ class _RouteScreenState extends State<RouteScreen> {
     );
   }
 
-  void _addRoutePoint(LatLng point) {
+  void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
       final newSection = RouteSection(
         coordinates: [_lastPoint!, point],
@@ -241,8 +284,10 @@ class _RouteScreenState extends State<RouteScreen> {
       );
       setState(() {
         _sections.add(newSection);
-        calculateSectionDifficulty(_sections);
       });
+
+      // Розраховуємо складність з новою системою
+      await _calculateRouteDifficulty();
     }
     _lastPoint = point;
   }
@@ -270,17 +315,160 @@ class _RouteScreenState extends State<RouteScreen> {
 
   double _calculateElevationGain(LatLng start, LatLng end) => 10;
 
-  double _calculateTotalDistance() =>
-      _sections.fold(0, (sum, section) => sum + 1.0);
+  double _calculateTotalDistance() => _sections.fold(0, (sum, section) => sum + 1.0);
 
   double _calculateWindEffect(LatLng start, LatLng end) => 0.0;
 
   Color getColorBasedOnDifficulty(double difficulty) {
-    if (difficulty < 3) return Colors.green;
-    if (difficulty < 6) return Colors.yellow;
-    return Colors.red;
+    final colorValue = _routeDifficultyService.getDifficultyColor(difficulty);
+    return Color(colorValue);
   }
 
-  double _calculateTotalDifficulty() =>
-      _sections.fold(0, (sum, section) => sum + section.difficulty);
+  /// Розрахунок складності маршруту з використанням нової системи
+  Future<void> _calculateRouteDifficulty() async {
+    if (_sections.isEmpty) return;
+
+    setState(() {
+      _isLoadingDifficulty = true;
+    });
+
+    try {
+      // Конвертуємо RouteSection в формат для RouteDifficultyService
+      final routePoints = <Map<String, double>>[];
+      final weatherDataList = <WeatherData>[];
+      final roadSurfaces = <RoadSurface>[];
+
+      for (final section in _sections) {
+        for (final coordinate in section.coordinates) {
+          routePoints.add({
+            'lat': coordinate.latitude,
+            'lon': coordinate.longitude,
+            'elevation': section.elevationGain,
+            'slope': _calculateSlope(section),
+          });
+
+          // Отримуємо погодні дані для цієї точки
+          try {
+            final weatherData = await _weatherService.getWeather(
+              coordinate.latitude,
+              coordinate.longitude,
+            );
+
+            final weather = WeatherData(
+              lat: coordinate.latitude,
+              lon: coordinate.longitude,
+              windSpeed: weatherData['hourly']['wind_speed'][0].toDouble(),
+              windDirection: weatherData['hourly']['wind_direction'][0].toDouble(),
+              windGust: weatherData['hourly']['wind_gust'][0].toDouble(),
+              precipitation: weatherData['hourly']['precipitation']?[0]?.toDouble() ?? 0.0,
+              precipitationType: weatherData['hourly']['precipitation_type']?[0]?.toDouble() ?? 0.0,
+              humidity: weatherData['hourly']['humidity']?[0]?.toDouble() ?? 50.0,
+              temperature: weatherData['hourly']['temperature']?[0]?.toDouble() ?? 20.0,
+              visibility: weatherData['hourly']['visibility']?[0]?.toDouble() ?? 10.0,
+              roadCondition: 0.0,
+              timestamp: DateTime.now(),
+              source: "API",
+            );
+
+            weatherDataList.add(weather);
+          } catch (e) {
+            // Якщо не вдалося отримати погоду, використовуємо дефолтні дані
+            weatherDataList.add(WeatherData(
+              lat: coordinate.latitude,
+              lon: coordinate.longitude,
+              windSpeed: 5.0,
+              windDirection: 0.0,
+              windGust: 7.0,
+              precipitation: 0.0,
+              precipitationType: 0.0,
+              humidity: 50.0,
+              temperature: 20.0,
+              visibility: 10.0,
+              roadCondition: 0.0,
+              timestamp: DateTime.now(),
+              source: "Default",
+            ));
+          }
+
+          // Визначаємо тип покриття
+          roadSurfaces.add(_getRoadSurfaceFromString(section.surfaceType));
+        }
+      }
+
+      // Розраховуємо загальну складність
+      final difficulty = _routeDifficultyService.calculateRouteDifficulty(
+        weatherDataList,
+        roadSurfaces,
+        routePoints,
+        DateTime.now(),
+      );
+
+      setState(() {
+        _totalDifficulty = difficulty;
+        _weatherDataList = weatherDataList;
+        _isLoadingDifficulty = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingDifficulty = false;
+      });
+      print('Error calculating route difficulty: $e');
+    }
+  }
+
+  /// Розрахунок уклону для секції
+  double _calculateSlope(RouteSection section) {
+    if (section.coordinates.length < 2) return 0.0;
+
+    // Спрощений розрахунок уклону
+    final elevationGain = section.elevationGain;
+    final distance = _calculateDistance(
+      section.coordinates.first.latitude,
+      section.coordinates.first.longitude,
+      section.coordinates.last.latitude,
+      section.coordinates.last.longitude,
+    );
+
+    if (distance == 0) return 0.0;
+
+    // Конвертуємо в градуси
+    return (elevationGain / (distance * 1000)) * 100; // Відсотки
+  }
+
+  /// Конвертація типу покриття з рядка в enum
+  RoadSurface _getRoadSurfaceFromString(String surfaceType) {
+    switch (surfaceType.toLowerCase()) {
+      case 'asphalt':
+        return RoadSurface.asphalt;
+      case 'concrete':
+        return RoadSurface.concrete;
+      case 'gravel':
+        return RoadSurface.gravel;
+      case 'dirt':
+        return RoadSurface.dirt;
+      case 'mud':
+        return RoadSurface.mud;
+      default:
+        return RoadSurface.asphalt;
+    }
+  }
+
+  /// Розрахунок відстані між двома точками
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371.0; // км
+
+    final dLat = _toRadians(lat2 - lat1);
+    final dLon = _toRadians(lon2 - lon1);
+
+    final a = sin(dLat / 2) * sin(dLat / 2) + cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  /// Конвертація градусів в радіани
+  double _toRadians(double degrees) {
+    return degrees * pi / 180.0;
+  }
 }
