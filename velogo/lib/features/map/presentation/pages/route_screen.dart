@@ -3,15 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
-import '../shared/base_widgets.dart';
-import '../shared/base_colors.dart';
-import '../shared/dev_helpers.dart';
-import '../route_logic/route_section.dart';
-import '../services/route_difficulty_service.dart';
-import '../features/weather/data/datasources/weather_service.dart';
-import '../models/road_surface.dart';
-import '../features/weather/data/models/weather_data.dart';
-import '../screens/create_route_screen.dart';
+import '../../../../shared/base_widgets.dart';
+import '../../../../shared/base_colors.dart';
+import '../../../../shared/dev_helpers.dart';
+import '../../data/models/route_logic/route_section.dart';
+import '../../data/datasources/route_difficulty_service.dart';
+import '../../../weather/data/datasources/weather_service.dart';
+import '../../data/models/road_surface.dart';
+import '../../../weather/data/models/weather_data.dart';
+import 'create_route_screen.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});

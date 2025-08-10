@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../shared/base_widgets.dart'; // Для CustomButton і OutlinedCustomButton
 import '../shared/base_colors.dart'; // Стилі кольорів
 import '../shared/base_fonts.dart'; // Стилі текстів
-import '../screens/create_route_screen.dart';
-import '../screens/route_screen.dart';
+import '../features/map/presentation/pages/create_route_screen.dart';
+import '../features/map/presentation/pages/route_screen.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});

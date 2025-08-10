@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:hive/hive.dart';
 import '../features/weather/data/models/weather_data.dart';
-import '../models/road_surface.dart';
-import 'route_difficulty_service.dart';
+import '../features/map/data/models/road_surface.dart';
+import '../features/map/data/datasources/route_difficulty_service.dart';
 import 'log_service.dart';
 
 /// Модель для збереження статистики швидкості користувача

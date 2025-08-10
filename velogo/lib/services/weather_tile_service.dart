@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:hive/hive.dart';
 import '../features/weather/data/models/weather_data.dart';
-import '../models/road_surface.dart';
+import '../features/map/data/models/road_surface.dart';
 import '../features/weather/data/datasources/weather_service.dart';
 import 'road_condition_service.dart';
 import 'log_service.dart';

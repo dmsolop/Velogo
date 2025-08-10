@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/route_difficulty_service.dart';
+import '../../datasources/route_difficulty_service.dart';
 
 /// Отримання кольору на основі складності маршруту
 Color getColorBasedOnDifficulty(double difficulty) {

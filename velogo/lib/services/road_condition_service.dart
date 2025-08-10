@@ -1,5 +1,5 @@
 import '../features/weather/data/models/weather_data.dart';
-import '../models/road_surface.dart';
+import '../features/map/data/models/road_surface.dart';
 import 'log_service.dart';
 
 /// Сервіс для розрахунку стану дороги на основі погоди та типу покриття
