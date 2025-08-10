@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../hive/models/weather_data.dart';
+import '../features/weather/data/models/weather_data.dart';
 import '../models/road_surface.dart';
 import 'road_condition_service.dart';
 import 'user_speed_service.dart';

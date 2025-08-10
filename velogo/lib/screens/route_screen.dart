@@ -8,9 +8,9 @@ import '../shared/base_colors.dart';
 import '../shared/dev_helpers.dart';
 import '../route_logic/route_section.dart';
 import '../services/route_difficulty_service.dart';
-import '../services/weather_service.dart';
+import '../features/weather/data/datasources/weather_service.dart';
 import '../models/road_surface.dart';
-import '../hive/models/weather_data.dart';
+import '../features/weather/data/models/weather_data.dart';
 import '../screens/create_route_screen.dart';
 
 class RouteScreen extends StatefulWidget {

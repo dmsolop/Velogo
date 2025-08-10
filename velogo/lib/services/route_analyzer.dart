@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:latlong2/latlong.dart';
-import '../hive/models/weather_data.dart';
+import '../features/weather/data/models/weather_data.dart';
 // import '../bloc/weather/weather_cubit.dart';
 
 class RouteAnalyzer {

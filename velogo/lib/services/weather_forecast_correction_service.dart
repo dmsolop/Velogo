@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../hive/models/weather_data.dart';
+import '../features/weather/data/models/weather_data.dart';
 import 'log_service.dart';
 
 /// Сервіс для корекції прогнозу на основі точкових даних

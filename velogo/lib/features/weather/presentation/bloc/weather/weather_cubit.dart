@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../hive/repositories/weather_repository.dart';
-import '../../hive/models/weather_data.dart';
-import '../../services/log_service.dart';
+import '../../../data/repositories/weather_repository.dart';
+import '../../../data/models/weather_data.dart';
+import '../../../../../services/log_service.dart';
 
 part 'weather_state.dart';
 

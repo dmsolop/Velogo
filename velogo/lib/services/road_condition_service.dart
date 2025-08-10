@@ -1,4 +1,4 @@
-import '../hive/models/weather_data.dart';
+import '../features/weather/data/models/weather_data.dart';
 import '../models/road_surface.dart';
 import 'log_service.dart';
 
