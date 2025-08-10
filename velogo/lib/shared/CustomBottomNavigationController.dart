@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/navigation/navigation_cubit.dart';
-import '../bloc/navigation/navigation_state.dart';
-import '../bloc/theme/theme_cubit.dart';
+import '../features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
+import '../features/navigation/presentation/bloc/navigation/navigation_state.dart';
+import '../features/navigation/presentation/bloc/theme/theme_cubit.dart';
 import '../shared/base_colors.dart';
-import '../screens/main_screen.dart';
+import '../features/navigation/presentation/pages/main_screen.dart';
 import '../features/map/presentation/pages/route_screen.dart';
-import '../screens/profile_screen.dart';
-import '../screens/settings_screen.dart';
+import '../features/profile/presentation/pages/profile_screen.dart';
+import '../features/settings/presentation/pages/settings_screen.dart';
 
 class CustomBottomNavigationController extends StatelessWidget {
   const CustomBottomNavigationController({super.key});

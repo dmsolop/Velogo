@@ -1,9 +1,9 @@
 import 'dart:math';
 import '../../../weather/data/models/weather_data.dart';
 import '../models/road_surface.dart';
-import '../../../../services/road_condition_service.dart';
-import '../../../../services/user_speed_service.dart';
-import '../../../../services/log_service.dart';
+import '../../../weather/data/datasources/road_condition_service.dart';
+import '../../../weather/data/datasources/user_speed_service.dart';
+import '../../../../core/services/log_service.dart';
 
 /// Сервіс для розрахунку загальної складності проходження маршруту
 class RouteDifficultyService {

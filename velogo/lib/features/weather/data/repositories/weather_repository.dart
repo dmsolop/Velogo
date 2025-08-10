@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 import '../models/weather_data.dart';
 import '../datasources/weather_service.dart';
 import '../../../../core/constants/api_constants.dart';
-import '../../../../services/log_service.dart';
+import '../../../../core/services/log_service.dart';
 
 class WeatherRepository {
   final String _boxName = "weather_data";

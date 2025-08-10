@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:velogo/features/auth/presentation/bloc/registration/registration_cubit.dart';
-import 'bloc/theme/theme_cubit.dart';
-import 'bloc/settings/settings_cubit.dart';
-import 'bloc/navigation/navigation_cubit.dart';
+import 'features/navigation/presentation/bloc/theme/theme_cubit.dart';
+import 'features/settings/presentation/bloc/settings/settings_cubit.dart';
+import 'features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
 import 'features/weather/data/repositories/weather_repository.dart';
 import 'features/weather/data/datasources/weather_service.dart';
@@ -19,7 +19,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'features/weather/data/models/weather_data.dart';
 import 'core/constants/api_constants.dart';
-import 'services/log_service.dart';
+import 'core/services/log_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

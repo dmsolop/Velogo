@@ -1,6 +1,6 @@
-import '../features/weather/data/models/weather_data.dart';
-import '../features/map/data/models/road_surface.dart';
-import 'log_service.dart';
+import '../models/weather_data.dart';
+import '../../../map/data/models/road_surface.dart';
+import '../../../../core/services/log_service.dart';
 
 /// Сервіс для розрахунку стану дороги на основі погоди та типу покриття
 class RoadConditionService {

@@ -1,6 +1,6 @@
 import 'dart:math';
-import '../features/weather/data/models/weather_data.dart';
-import 'log_service.dart';
+import '../models/weather_data.dart';
+import '../../../../core/services/log_service.dart';
 
 /// Сервіс для корекції прогнозу на основі точкових даних
 class WeatherForecastCorrectionService {

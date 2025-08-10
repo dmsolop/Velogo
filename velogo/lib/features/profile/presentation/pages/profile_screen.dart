@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../shared/base_colors.dart';
-import '../shared/base_fonts.dart';
-import '../shared/base_widgets.dart';
+import '../../../../shared/base_colors.dart';
+import '../../../../shared/base_fonts.dart';
+import '../../../../shared/base_widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

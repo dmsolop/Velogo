@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../shared/base_widgets.dart';
-import '../shared/base_colors.dart';
-import '../shared/base_fonts.dart';
-import '../bloc/theme/theme_cubit.dart';
+import '../../../../shared/base_widgets.dart';
+import '../../../../shared/base_colors.dart';
+import '../../../../shared/base_fonts.dart';
+import '../../../navigation/presentation/bloc/theme/theme_cubit.dart';
 import '../bloc/settings/settings_cubit.dart';
 import '../bloc/settings/settings_state.dart';
 

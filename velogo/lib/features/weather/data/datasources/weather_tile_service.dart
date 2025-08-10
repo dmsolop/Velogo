@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:hive/hive.dart';
-import '../features/weather/data/models/weather_data.dart';
-import '../features/map/data/models/road_surface.dart';
-import '../features/weather/data/datasources/weather_service.dart';
+import '../models/weather_data.dart';
+import '../../../map/data/models/road_surface.dart';
+import 'weather_service.dart';
 import 'road_condition_service.dart';
-import 'log_service.dart';
+import '../../../../core/services/log_service.dart';
 
 /// Тайл погоди для регіону
 class WeatherTile {

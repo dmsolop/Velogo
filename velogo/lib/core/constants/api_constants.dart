@@ -1,4 +1,4 @@
-import '../../services/remote_config_service.dart';
+import '../services/remote_config_service.dart';
 
 class ApiConstants {
   static final RemoteConfigService _remoteConfig = RemoteConfigService();
