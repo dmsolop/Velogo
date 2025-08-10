@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screens/start_screen.dart';
-import '../screens/registration_screen.dart';
-import '../screens/login_screen.dart';
-import '../screens/password_recovery_screen.dart';
-import '../shared/CustomBottomNavigationController.dart';
+import '../../screens/start_screen.dart';
+import '../../screens/registration_screen.dart';
+import '../../screens/login_screen.dart';
+import '../../screens/password_recovery_screen.dart';
+import '../../shared/CustomBottomNavigationController.dart';
 
 class AppNavigation {
   static const String start = '/';

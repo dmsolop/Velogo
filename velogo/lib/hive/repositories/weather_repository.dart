@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import '../models/weather_data.dart';
 import '../../services/weather_service.dart';
-import '../../constants/api_constants.dart';
+import '../../core/constants/api_constants.dart';
 import '../../services/log_service.dart';
 
 class WeatherRepository {

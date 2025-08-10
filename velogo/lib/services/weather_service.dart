@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../constants/api_constants.dart';
+import '../core/constants/api_constants.dart';
 import 'log_service.dart';
 
 enum WeatherProvider { stormGlass, tomorrow, openMeteo }

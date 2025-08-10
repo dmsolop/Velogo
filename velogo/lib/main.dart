@@ -10,15 +10,15 @@ import 'bloc/navigation/navigation_cubit.dart';
 import 'bloc/weather/weather_cubit.dart';
 import 'hive/repositories/weather_repository.dart';
 import 'services/weather_service.dart';
-import 'navigation/app_navigation.dart';
-import 'navigation/screen_navigation_service.dart';
+import 'config/routes/app_navigation.dart';
+import 'config/routes/screen_navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'hive/models/weather_data.dart';
-import 'constants/api_constants.dart';
+import 'core/constants/api_constants.dart';
 import 'services/log_service.dart';
 
 void main() async {

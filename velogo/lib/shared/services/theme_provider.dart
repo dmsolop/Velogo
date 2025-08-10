@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../shared/base_colors.dart';
+import '../base_colors.dart';
 
 enum AppThemeMode { system, light, dark }
 
