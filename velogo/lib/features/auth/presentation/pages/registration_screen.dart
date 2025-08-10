@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../shared/base_widgets.dart';
-import '../shared/base_colors.dart';
-import '../shared/status_message.dart';
-import '../services/message_service.dart';
+import '../../../../shared/base_widgets.dart';
+import '../../../../shared/base_colors.dart';
+import '../../../../shared/status_message.dart';
+import '../../../../services/message_service.dart';
 import '../bloc/registration/registration_cubit.dart';
 import '../bloc/registration/registration_state.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../shared/base_widgets.dart';
-import '../bloc/registration/registration_state.dart';
+import '../features/auth/presentation/bloc/registration/registration_state.dart';
 
 class StatusMessage extends StatelessWidget {
   final String? message;

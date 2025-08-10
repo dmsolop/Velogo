@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../shared/base_widgets.dart';
 import '../shared/base_colors.dart';
-import '../bloc/registration/registration_cubit.dart';
-import '../bloc/registration/registration_state.dart';
+import '../features/auth/presentation/bloc/registration/registration_cubit.dart';
+import '../features/auth/presentation/bloc/registration/registration_state.dart';
 import '../shared/status_message.dart';
 
 class StartScreen extends StatelessWidget {

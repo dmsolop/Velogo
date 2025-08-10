@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../config/routes/screen_navigation_service.dart';
+import '../../../../../config/routes/screen_navigation_service.dart';
 import 'registration_state.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {

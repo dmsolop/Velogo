@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:velogo/bloc/registration/registration_cubit.dart';
+import 'package:velogo/features/auth/presentation/bloc/registration/registration_cubit.dart';
 import 'bloc/theme/theme_cubit.dart';
 import 'bloc/settings/settings_cubit.dart';
 import 'bloc/navigation/navigation_cubit.dart';
