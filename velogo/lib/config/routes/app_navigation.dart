@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/start_screen.dart';
+import '../../features/auth/presentation/pages/start_screen.dart';
 import '../../features/auth/presentation/pages/registration_screen.dart';
 import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/password_recovery_screen.dart';

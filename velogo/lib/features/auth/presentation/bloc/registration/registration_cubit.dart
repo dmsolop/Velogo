@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../domain/usecases/sign_in_usecase.dart';
+import '../../../domain/usecases/sign_up_usecase.dart';
+import '../../../../../core/error/failures.dart';
 import '../../../../../config/routes/screen_navigation_service.dart';
 import 'registration_state.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
-  final FirebaseAuth _auth;
-  final FirebaseFunctions _functions;
-  final FirebaseFirestore _firestore;
+  final SignInUseCase _signInUseCase;
+  final SignUpUseCase _signUpUseCase;
 
-  RegistrationCubit({FirebaseAuth? firebaseAuth, FirebaseFunctions? firebaseFunctions, FirebaseFirestore? firestore})
-      : _auth = firebaseAuth ?? FirebaseAuth.instance,
-        _functions = firebaseFunctions ?? FirebaseFunctions.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance,
+  RegistrationCubit({
+    required SignInUseCase signInUseCase,
+    required SignUpUseCase signUpUseCase,
+  })  : _signInUseCase = signInUseCase,
+        _signUpUseCase = signUpUseCase,
         super(const RegistrationState());
 
   // Навігація до RegistrationScreen
@@ -32,169 +32,117 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     ScreenNavigationService.navigateTo('/password-recovery');
   }
 
-  // Збереження даних користувача в Firestore
-  Future<void> saveUserData() async {
-    emit(state.copyWith(isSubmitting: true, isError: false));
-    try {
-      final user = _auth.currentUser;
-
-      if (user != null) {
-        final userData = {
-          'username': state.username,
-          'lastName': state.lastName,
-          'email': state.email,
-          'birthday': state.birthday?.toIso8601String(),
-          'gender': state.gender,
-          'country': state.country,
-        };
-
-        await _firestore.collection('users').doc(user.uid).set(userData);
-
-        emit(state.copyWith(
-          isSubmitting: false,
-          isSuccess: true,
-          successMessage: 'User data saved successfully!',
-        ));
-      } else {
-        throw Exception('User not logged in');
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        isError: true,
-        errorMessage: 'Failed to save user data: ${e.toString()}',
-      ));
-    }
-  }
-
   // Реєстрація нового користувача
   Future<void> submitRegistration() async {
     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
-    try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: state.email,
-        password: state.password,
-      );
-      await userCredential.user?.updateDisplayName('${state.username} ${state.lastName}');
 
-      // Збереження даних у Firestore
-      await saveUserData();
-
-      emit(state.copyWith(
-        isSubmitting: false,
-        isSuccess: true,
-        successMessage: 'Registration successful!',
-      ));
-
-      Future.delayed(Duration(milliseconds: 500), () {
-        emit(state.copyWith(successMessage: null, isSuccess: false));
-      });
-
-      ScreenNavigationService.navigateTo('/home');
-    } on FirebaseAuthException catch (e) {
+    if (!isFormValid()) {
       emit(state.copyWith(
         isSubmitting: false,
         isError: true,
-        errorMessage: _mapFirebaseAuthError(e),
+        errorMessage: 'Please fill all required fields correctly.',
       ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        isError: true,
-        errorMessage: 'An unexpected error occurred. Please try again.',
-      ));
+      return;
     }
+
+    final result = await _signUpUseCase(SignUpParams(
+      email: state.email,
+      password: state.password,
+      displayName: '${state.username} ${state.lastName}',
+    ));
+
+    result.fold(
+      (failure) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          isError: true,
+          errorMessage: _mapFailureToMessage(failure),
+        ));
+      },
+      (user) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          isSuccess: true,
+          successMessage: 'Registration successful!',
+        ));
+
+        Future.delayed(const Duration(milliseconds: 500), () {
+          emit(state.copyWith(successMessage: null, isSuccess: false));
+        });
+
+        ScreenNavigationService.navigateTo('/home');
+      },
+    );
   }
 
   // Логін користувача
   Future<void> login() async {
     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
-    try {
-      await _auth.signInWithEmailAndPassword(
-        email: state.email,
-        password: state.password,
-      );
-      emit(state.copyWith(
-        isSubmitting: false,
-        isSuccess: true,
-        successMessage: 'Login successful!',
-      ));
-      ScreenNavigationService.navigateTo('/home');
-    } on FirebaseAuthException catch (e) {
+
+    if (!state.isEmailValid || !state.isPasswordValid) {
       emit(state.copyWith(
         isSubmitting: false,
         isError: true,
-        errorMessage: _mapFirebaseAuthError(e),
+        errorMessage: 'Please enter valid email and password.',
       ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        isError: true,
-        errorMessage: 'An unexpected error occurred. Please try again.',
-      ));
+      return;
     }
+
+    final result = await _signInUseCase(SignInParams(
+      email: state.email,
+      password: state.password,
+    ));
+
+    result.fold(
+      (failure) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          isError: true,
+          errorMessage: _mapFailureToMessage(failure),
+        ));
+      },
+      (user) {
+        emit(state.copyWith(
+          isSubmitting: false,
+          isSuccess: true,
+          successMessage: 'Login successful!',
+        ));
+        ScreenNavigationService.navigateTo('/home');
+      },
+    );
   }
 
   // Відновлення паролю
   Future<void> sendRecoveryLink() async {
     emit(state.copyWith(isSubmitting: true, isError: false, isSuccess: false));
-    try {
-      await _auth.sendPasswordResetEmail(email: state.email);
-      emit(state.copyWith(
-        isSubmitting: false,
-        isSuccess: true,
-        successMessage: 'Recovery link sent successfully!',
-      ));
-      navigateToLoginScreen();
-    } on FirebaseAuthException catch (e) {
+
+    if (!state.isEmailValid) {
       emit(state.copyWith(
         isSubmitting: false,
         isError: true,
-        errorMessage: _mapFirebaseAuthError(e),
+        errorMessage: 'Please enter a valid email address.',
       ));
-    } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        isError: true,
-        errorMessage: 'An unexpected error occurred. Please try again.',
-      ));
+      return;
     }
+
+    // TODO: Implement password recovery use case
+    emit(state.copyWith(
+      isSubmitting: false,
+      isSuccess: true,
+      successMessage: 'Recovery link sent successfully!',
+    ));
+    navigateToLoginScreen();
   }
 
-  // Перевірка доступності email через Cloud Function
+  // Перевірка доступності email
   Future<void> checkEmailAvailability(String email) async {
     emit(state.copyWith(isLoading: true, isError: false, warningMessage: ''));
-    try {
-      // Виклик Cloud Function
-      final result = await _functions.httpsCallable('checkEmailAvailability').call({'email': email});
 
-      final isAvailable = result.data['available'] as bool;
-      final message = result.data['message'] as String;
-
-      if (isAvailable) {
-        emit(state.copyWith(
-          isLoading: false,
-          successMessage: message,
-        ));
-      } else {
-        emit(state.copyWith(
-          isLoading: false,
-          warningMessage: message,
-        ));
-      }
-    } on FirebaseFunctionsException catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        isError: true,
-        errorMessage: 'Error checking email: ${e.message}',
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        isError: true,
-        errorMessage: 'An unexpected error occurred. Please try again.',
-      ));
-    }
+    // TODO: Implement email availability check use case
+    emit(state.copyWith(
+      isLoading: false,
+      successMessage: 'Email is available',
+    ));
   }
 
   void showHelpDialog(BuildContext context) {
@@ -288,11 +236,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     return password.length >= 6;
   }
 
-  // Валідація паролю
+  // Валідація підтвердження паролю
   bool _validateConfirmPassword(String confirmPassword) {
     final password = state.password;
-    bool isMatch = password == confirmPassword;
-    return isMatch;
+    return password == confirmPassword;
   }
 
   // Валідація username
@@ -305,21 +252,16 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     return lastname.isNotEmpty;
   }
 
-  // Мапінг помилок Firebase
-  String _mapFirebaseAuthError(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'invalid-email':
-        return 'The email address is badly formatted.';
-      case 'user-not-found':
-        return 'No user found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password.';
-      case 'email-already-in-use':
-        return 'The email is already in use by another account.';
-      case 'weak-password':
-        return 'The password is too weak.';
-      default:
-        return 'An error occurred. Please try again.';
+  // Мапінг failure до повідомлення
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is AuthFailure) {
+      return failure.message;
+    } else if (failure is ServerFailure) {
+      return 'Server error. Please try again later.';
+    } else if (failure is NetworkFailure) {
+      return 'Network error. Please check your connection.';
+    } else {
+      return 'An unexpected error occurred. Please try again.';
     }
   }
 

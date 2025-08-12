@@ -8,7 +8,7 @@ part of 'route_difficulty.dart';
 
 class RouteDifficultyAdapter extends TypeAdapter<RouteDifficulty> {
   @override
-  final int typeId = 2;
+  final int typeId = 4;
 
   @override
   RouteDifficulty read(BinaryReader reader) {
@@ -18,24 +18,21 @@ class RouteDifficultyAdapter extends TypeAdapter<RouteDifficulty> {
     };
     return RouteDifficulty(
       routeId: fields[0] as String,
-      averageWindResistance: fields[1] as double,
-      elevationImpact: fields[2] as double,
-      finalScore: fields[3] as double,
+      difficulty: fields[1] as double,
+      calculatedAt: fields[2] as DateTime,
     );
   }
 
   @override
   void write(BinaryWriter writer, RouteDifficulty obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.routeId)
       ..writeByte(1)
-      ..write(obj.averageWindResistance)
+      ..write(obj.difficulty)
       ..writeByte(2)
-      ..write(obj.elevationImpact)
-      ..writeByte(3)
-      ..write(obj.finalScore);
+      ..write(obj.calculatedAt);
   }
 
   @override

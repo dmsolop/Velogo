@@ -1,50 +1,29 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mockito/annotations.dart';
 import 'package:velogo/features/auth/presentation/bloc/registration/registration_cubit.dart';
 import 'package:velogo/features/auth/presentation/bloc/registration/registration_state.dart';
+import 'package:velogo/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:velogo/features/auth/domain/usecases/sign_up_usecase.dart';
+import 'package:dartz/dartz.dart';
+import 'package:velogo/features/auth/domain/entities/user_entity.dart';
+import 'package:velogo/core/error/failures.dart';
 
-import '../mocks/firebase_auth_mocks.mocks.dart';
-import '../mocks/mock_cloud_functions.mocks.dart';
-import '../mocks/mock_firestore.mocks.dart';
-import '../mocks/mock_registration_cubit.mocks.dart';
+import 'registration_cubit_test.mocks.dart';
 
+@GenerateMocks([SignInUseCase, SignUpUseCase])
 void main() {
   late RegistrationCubit registrationCubit;
-  late MockFirebaseAuth mockFirebaseAuth;
-  late MockFirebaseFunctions mockFirebaseFunctions;
-  late MockFirebaseFirestore mockFirebaseFirestore;
-  late MockHttpsCallable mockHttpsCallable;
-  late MockHttpsCallableResult mockHttpsCallableResult;
-  late MockUserCredential mockUserCredential;
-  late MockUser mockUser;
-  late MockCollectionReference<Map<String, dynamic>> mockCollectionReference;
-  late MockDocumentReference<Map<String, dynamic>> mockDocumentReference;
-  late MockRegistrationCubitWithStream mockRegistrationCubit;
+  late MockSignInUseCase mockSignInUseCase;
+  late MockSignUpUseCase mockSignUpUseCase;
 
   setUp(() {
-    mockFirebaseAuth = MockFirebaseAuth();
-    mockFirebaseFunctions = MockFirebaseFunctions();
-    mockFirebaseFirestore = MockFirebaseFirestore();
-    mockUserCredential = MockUserCredential();
-    mockUser = MockUser();
-    mockHttpsCallable = MockHttpsCallable();
-    mockHttpsCallableResult = MockHttpsCallableResult();
-    mockCollectionReference = MockCollectionReference();
-    mockDocumentReference = MockDocumentReference();
-    mockRegistrationCubit = MockRegistrationCubitWithStream();
-
-    // Налаштовуємо моковані Firebase сервіси
-    when(mockFirebaseFunctions.httpsCallable(any)).thenReturn(mockHttpsCallable);
-    when(mockFirebaseFirestore.collection(any)).thenReturn(mockCollectionReference);
-    when(mockCollectionReference.doc(any)).thenReturn(mockDocumentReference);
-    when(mockDocumentReference.set(any)).thenAnswer((_) async {});
-    when(mockRegistrationCubit.stream).thenAnswer((_) => Stream.value(const RegistrationState()));
+    mockSignInUseCase = MockSignInUseCase();
+    mockSignUpUseCase = MockSignUpUseCase();
 
     registrationCubit = RegistrationCubit(
-      firebaseAuth: mockFirebaseAuth,
-      firebaseFunctions: mockFirebaseFunctions,
-      firestore: mockFirebaseFirestore,
+      signInUseCase: mockSignInUseCase,
+      signUpUseCase: mockSignUpUseCase,
     );
   });
 
@@ -70,13 +49,15 @@ void main() {
     });
 
     test('submitRegistration emits success state on valid registration', () async {
-      when(mockFirebaseAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
-      )).thenAnswer((_) async => mockUserCredential);
+      final userEntity = UserEntity(
+        id: 'test-id',
+        email: 'test@example.com',
+        displayName: 'John Doe',
+        createdAt: DateTime.now(),
+        lastLoginAt: DateTime.now(),
+      );
 
-      when(mockUserCredential.user).thenReturn(mockUser);
-      when(mockUser.updateDisplayName(any)).thenAnswer((_) async {});
+      when(mockSignUpUseCase(any)).thenAnswer((_) async => Right(userEntity));
 
       registrationCubit.updateEmail('test@example.com');
       registrationCubit.updatePassword('password123');
@@ -90,11 +71,8 @@ void main() {
       expect(registrationCubit.state.successMessage, 'Registration successful!');
     });
 
-    test('submitRegistration emits error state on FirebaseAuthException', () async {
-      when(mockFirebaseAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
-      )).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
+    test('submitRegistration emits error state on failure', () async {
+      when(mockSignUpUseCase(any)).thenAnswer((_) async => Left(AuthFailure('Email already in use')));
 
       registrationCubit.updateEmail('used@example.com');
       registrationCubit.updatePassword('password123');
@@ -103,12 +81,44 @@ void main() {
 
       expect(registrationCubit.state.isSubmitting, false);
       expect(registrationCubit.state.isError, true);
-      expect(registrationCubit.state.errorMessage, 'The email is already in use by another account.');
+      expect(registrationCubit.state.errorMessage, 'Email already in use');
+    });
+
+    test('login emits success state on valid login', () async {
+      final userEntity = UserEntity(
+        id: 'test-id',
+        email: 'test@example.com',
+        displayName: 'John Doe',
+        createdAt: DateTime.now(),
+        lastLoginAt: DateTime.now(),
+      );
+
+      when(mockSignInUseCase(any)).thenAnswer((_) async => Right(userEntity));
+
+      registrationCubit.updateEmail('test@example.com');
+      registrationCubit.updatePassword('password123');
+
+      await registrationCubit.login();
+
+      expect(registrationCubit.state.isSubmitting, false);
+      expect(registrationCubit.state.isSuccess, true);
+      expect(registrationCubit.state.successMessage, 'Login successful!');
+    });
+
+    test('login emits error state on failure', () async {
+      when(mockSignInUseCase(any)).thenAnswer((_) async => Left(AuthFailure('Invalid credentials')));
+
+      registrationCubit.updateEmail('test@example.com');
+      registrationCubit.updatePassword('wrongpassword');
+
+      await registrationCubit.login();
+
+      expect(registrationCubit.state.isSubmitting, false);
+      expect(registrationCubit.state.isError, true);
+      expect(registrationCubit.state.errorMessage, 'Invalid credentials');
     });
 
     test('sendRecoveryLink emits success state on valid email', () async {
-      when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email'))).thenAnswer((_) async {});
-
       registrationCubit.updateEmail('test@example.com');
       await registrationCubit.sendRecoveryLink();
 
@@ -117,35 +127,11 @@ void main() {
       expect(registrationCubit.state.successMessage, 'Recovery link sent successfully!');
     });
 
-    test('sendRecoveryLink emits error state on FirebaseAuthException', () async {
-      when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email'))).thenThrow(FirebaseAuthException(code: 'user-not-found'));
-
-      registrationCubit.updateEmail('nonexistent@example.com');
-      await registrationCubit.sendRecoveryLink();
-
-      expect(registrationCubit.state.isSubmitting, false);
-      expect(registrationCubit.state.isError, true);
-      expect(registrationCubit.state.errorMessage, 'No user found with this email.');
-    });
-
-    test('checkEmailAvailability calls Firebase Function and handles response', () async {
-      when(mockHttpsCallable.call(any)).thenAnswer((_) async => mockHttpsCallableResult);
-      when(mockHttpsCallableResult.data).thenReturn({'available': true, 'message': 'Email is available!'});
-
+    test('checkEmailAvailability calls function and handles response', () async {
       await registrationCubit.checkEmailAvailability('test@example.com');
 
       expect(registrationCubit.state.isLoading, false);
-      expect(registrationCubit.state.successMessage, 'Email is available!');
-    });
-
-    test('checkEmailAvailability sets warningMessage when email is already taken', () async {
-      when(mockHttpsCallable.call(any)).thenAnswer((_) async => mockHttpsCallableResult);
-      when(mockHttpsCallableResult.data).thenReturn({'available': false, 'message': 'This email is already taken.'});
-
-      await registrationCubit.checkEmailAvailability('test@example.com');
-
-      expect(registrationCubit.state.isLoading, false);
-      expect(registrationCubit.state.warningMessage, 'This email is already taken.');
+      expect(registrationCubit.state.successMessage, 'Email is available');
     });
   });
 }

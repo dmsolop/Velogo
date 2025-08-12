@@ -34,6 +34,13 @@ class BaseFonts {
     color: BaseColors.textSecondary,
   );
 
+  static const TextStyle bodyText = TextStyle(
+    fontFamily: primaryFont,
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+    color: BaseColors.textPrimary,
+  );
+
   static const TextStyle bodyTextBold = TextStyle(
     fontFamily: primaryFont,
     fontSize: 14,

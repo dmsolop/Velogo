@@ -94,16 +94,6 @@ class MockRegistrationCubit extends _i1.Mock implements _i3.RegistrationCubit {
       );
 
   @override
-  _i4.Future<void> saveUserData() => (super.noSuchMethod(
-        Invocation.method(
-          #saveUserData,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
   _i4.Future<void> submitRegistration() => (super.noSuchMethod(
         Invocation.method(
           #submitRegistration,
@@ -353,16 +343,6 @@ class MockRegistrationCubitWithStream extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
-
-  @override
-  _i4.Future<void> saveUserData() => (super.noSuchMethod(
-        Invocation.method(
-          #saveUserData,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
 
   @override
   _i4.Future<void> submitRegistration() => (super.noSuchMethod(

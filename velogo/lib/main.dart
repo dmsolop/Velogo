@@ -3,13 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:velogo/features/auth/presentation/bloc/registration/registration_cubit.dart';
-import 'features/navigation/presentation/bloc/theme/theme_cubit.dart';
-import 'features/settings/presentation/bloc/settings/settings_cubit.dart';
-import 'features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
-import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
-import 'features/weather/data/repositories/weather_repository.dart';
-import 'features/weather/data/datasources/weather_service.dart';
+import 'package:velogo/core/di/injection_container.dart' as di;
 import 'config/routes/app_navigation.dart';
 import 'config/routes/screen_navigation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,8 +12,11 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'features/weather/data/models/weather_data.dart';
-import 'core/constants/api_constants.dart';
-import 'core/services/log_service.dart';
+import 'features/navigation/presentation/bloc/theme/theme_cubit.dart';
+import 'features/settings/presentation/bloc/settings/settings_cubit.dart';
+import 'features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
+import 'features/auth/presentation/bloc/registration/registration_cubit.dart';
+import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,12 +35,8 @@ void main() async {
   // Ініціалізуйте Firebase
   await Firebase.initializeApp();
 
-  // Ініціалізація Remote Config
-  await ApiConstants.initialize();
-
-  // Ініціалізація LogService
-  await LogService.init();
-  await LogService.clearLog();
+  // Ініціалізація Dependency Injection
+  await di.init();
 
   // Налаштування для емуляторів
   if (kDebugMode) {
@@ -70,11 +63,11 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ThemeCubit()),
-        BlocProvider(create: (_) => SettingsCubit()),
-        BlocProvider(create: (_) => NavigationCubit()),
-        BlocProvider(create: (_) => RegistrationCubit()),
-        BlocProvider(create: (_) => WeatherCubit(WeatherRepository(WeatherService()))),
+        BlocProvider(create: (_) => di.sl<ThemeCubit>()),
+        BlocProvider(create: (_) => di.sl<SettingsCubit>()),
+        BlocProvider(create: (_) => di.sl<NavigationCubit>()),
+        BlocProvider(create: (_) => di.sl<RegistrationCubit>()),
+        BlocProvider(create: (_) => di.sl<WeatherCubit>()),
       ],
       child: MyApp(initialRoute: initialRoute),
     ),

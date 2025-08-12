@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../shared/base_widgets.dart'; // Для CustomButton
-import '../shared/base_colors.dart'; // Для кольорів
-import '../shared/base_fonts.dart'; // Для шрифтів
+import '../../../../shared/base_widgets.dart'; // Для CustomButton
+import '../../../../shared/base_colors.dart'; // Для кольорів
+import '../../../../shared/base_fonts.dart'; // Для шрифтів
 
 class MyRoutesScreen extends StatelessWidget {
   const MyRoutesScreen({super.key});
@@ -9,18 +9,9 @@ class MyRoutesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> routes = [
-      {
-        "title": "Mountain Adventure",
-        "description": "Explore the breathtaking mountain views."
-      },
-      {
-        "title": "City Cycling Tour",
-        "description": "Discover hidden gems in the city."
-      },
-      {
-        "title": "Coastal Route",
-        "description": "Enjoy a scenic ride along the coast."
-      },
+      {"title": "Mountain Adventure", "description": "Explore the breathtaking mountain views."},
+      {"title": "City Cycling Tour", "description": "Discover hidden gems in the city."},
+      {"title": "Coastal Route", "description": "Enjoy a scenic ride along the coast."},
     ];
 
     return Scaffold(
@@ -118,14 +109,17 @@ class RouteDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16.0),
             Text(
               description,
-              style: BaseFonts.bodyTextLight,
+              style: BaseFonts.bodyText,
             ),
             const SizedBox(height: 24.0),
             CustomButton(
               label: "Start Route",
               onPressed: () {
-                // Логіка для запуску маршруту
+                // TODO: Implement route start functionality
+                Navigator.pop(context);
               },
+              width: double.infinity,
+              height: 56,
             ),
           ],
         ),
