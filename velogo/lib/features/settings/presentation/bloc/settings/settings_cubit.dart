@@ -1,145 +1,168 @@
-import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:velogo/core/usecases/usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/get_settings_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/save_settings_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_voice_instructions_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_units_of_measurement_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_map_style_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_notifications_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_alerts_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_weather_alerts_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_general_notifications_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
 import 'settings_state.dart';
 
-class SettingsCubit extends HydratedCubit<SettingsState> {
-  SettingsCubit() : super(const SettingsState());
+class SettingsCubit extends Cubit<SettingsState> {
+  final GetSettingsUseCase getSettingsUseCase;
+  final SaveSettingsUseCase saveSettingsUseCase;
+  final UpdateVoiceInstructionsUseCase updateVoiceInstructionsUseCase;
+  final UpdateUnitsOfMeasurementUseCase updateUnitsOfMeasurementUseCase;
+  final UpdateMapStyleUseCase updateMapStyleUseCase;
+  final UpdateNotificationsUseCase updateNotificationsUseCase;
+  final UpdateRouteAlertsUseCase updateRouteAlertsUseCase;
+  final UpdateWeatherAlertsUseCase updateWeatherAlertsUseCase;
+  final UpdateGeneralNotificationsUseCase updateGeneralNotificationsUseCase;
+  final UpdateHealthDataIntegrationUseCase updateHealthDataIntegrationUseCase;
 
-  // Navigation Settings
-  void toggleVoiceInstructions(bool value) {
-    emit(state.copyWith(voiceInstructions: value));
+  SettingsCubit({
+    required this.getSettingsUseCase,
+    required this.saveSettingsUseCase,
+    required this.updateVoiceInstructionsUseCase,
+    required this.updateUnitsOfMeasurementUseCase,
+    required this.updateMapStyleUseCase,
+    required this.updateNotificationsUseCase,
+    required this.updateRouteAlertsUseCase,
+    required this.updateWeatherAlertsUseCase,
+    required this.updateGeneralNotificationsUseCase,
+    required this.updateHealthDataIntegrationUseCase,
+  }) : super(const SettingsState.initial());
+
+  Future<void> loadSettings() async {
+    emit(const SettingsState.loading());
+    final result = await getSettingsUseCase(NoParams());
+    result.fold(
+      (failure) => emit(SettingsState.error(failure)),
+      (settings) => emit(SettingsState.loaded(settings)),
+    );
   }
 
-  void changeUnitsOfMeasurement(String value) {
-    emit(state.copyWith(unitsOfMeasurement: value));
+  Future<void> toggleVoiceInstructions(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateVoiceInstructionsUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(voiceInstructions: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  void changeMapStyle(String value) {
-    emit(state.copyWith(mapStyle: value));
+  Future<void> changeUnitsOfMeasurement(String value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateUnitsOfMeasurementUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(unitsOfMeasurement: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  // App Preferences
-  void toggleNotifications(bool value) {
-    emit(state.copyWith(notifications: value));
+  Future<void> changeMapStyle(String value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateMapStyleUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(mapStyle: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  // Notification Preferences
-  void toggleRouteAlerts(bool value) {
-    emit(state.copyWith(routeAlerts: value));
+  Future<void> toggleNotifications(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateNotificationsUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(notifications: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  void toggleWeatherAlerts(bool value) {
-    emit(state.copyWith(weatherAlerts: value));
+  Future<void> toggleRouteAlerts(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateRouteAlertsUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(routeAlerts: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  void toggleGeneralNotifications(bool value) {
-    emit(state.copyWith(generalNotifications: value));
+  Future<void> toggleWeatherAlerts(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateWeatherAlertsUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(weatherAlerts: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  // Energy Expenditure Settings
-  void toggleHealthDataIntegration(bool value) {
-    emit(state.copyWith(healthDataIntegration: value));
+  Future<void> toggleGeneralNotifications(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateGeneralNotificationsUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(generalNotifications: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 
-  // --- HydratedMixin Methods ---
-  @override
-  SettingsState? fromJson(Map<String, dynamic> json) {
-    try {
-      return SettingsState(
-        voiceInstructions: json['voiceInstructions'] as bool? ?? true,
-        unitsOfMeasurement: json['unitsOfMeasurement'] as String? ?? "Metric",
-        mapStyle: json['mapStyle'] as String? ?? "Terrain",
-        notifications: json['notifications'] as bool? ?? true,
-        routeAlerts: json['routeAlerts'] as bool? ?? false,
-        weatherAlerts: json['weatherAlerts'] as bool? ?? false,
-        generalNotifications: json['generalNotifications'] as bool? ?? false,
-        healthDataIntegration: json['healthDataIntegration'] as bool? ?? false,
-      );
-    } catch (e) {
-      return const SettingsState(); // Повертаємо дефолтний стан у разі помилки
-    }
-  }
-
-  @override
-  Map<String, dynamic>? toJson(SettingsState state) {
-    return {
-      'voiceInstructions': state.voiceInstructions,
-      'unitsOfMeasurement': state.unitsOfMeasurement,
-      'mapStyle': state.mapStyle,
-      'notifications': state.notifications,
-      'routeAlerts': state.routeAlerts,
-      'weatherAlerts': state.weatherAlerts,
-      'generalNotifications': state.generalNotifications,
-      'healthDataIntegration': state.healthDataIntegration,
-    };
+  Future<void> toggleHealthDataIntegration(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateHealthDataIntegrationUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(healthDataIntegration: value))),
+        );
+      },
+      error: (failure) {},
+    );
   }
 }
-
-
-
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'settings_state.dart';
-
-// class SettingsCubit extends Cubit<SettingsState> {
-//   SettingsCubit() : super(const SettingsState());
-
-//   // Navigation Settings
-//   void toggleVoiceInstructions(bool value) {
-//     emit(state.copyWith(voiceInstructions: value));
-//   }
-
-//   void changeUnitsOfMeasurement(String value) {
-//     emit(state.copyWith(unitsOfMeasurement: value));
-//   }
-
-//   void changeMapStyle(String value) {
-//     emit(state.copyWith(mapStyle: value));
-//   }
-
-//   // App Preferences
-//   void toggleNotifications(bool value) {
-//     emit(state.copyWith(notifications: value));
-//   }
-
-//   // Notification Preferences
-//   void toggleRouteAlerts(bool value) {
-//     emit(state.copyWith(routeAlerts: value));
-//   }
-
-//   void toggleWeatherAlerts(bool value) {
-//     emit(state.copyWith(weatherAlerts: value));
-//   }
-
-//   void toggleGeneralNotifications(bool value) {
-//     emit(state.copyWith(generalNotifications: value));
-//   }
-
-//   // Energy Expenditure Settings
-//   void toggleHealthDataIntegration(bool value) {
-//     emit(state.copyWith(healthDataIntegration: value));
-//   }
-// }
-
-
-
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'settings_state.dart';
-
-// class SettingsCubit extends Cubit<SettingsState> {
-//   SettingsCubit() : super(const SettingsState());
-
-//   void toggleVoiceInstructions(bool value) {
-//     emit(state.copyWith(voiceInstructions: value));
-//   }
-
-//   void changeUnitsOfMeasurement(String value) {
-//     emit(state.copyWith(unitsOfMeasurement: value));
-//   }
-
-//   void changeMapStyle(String value) {
-//     emit(state.copyWith(mapStyle: value));
-//   }
-
-//   void toggleNotifications(bool value) {
-//     emit(state.copyWith(notifications: value));
-//   }
-// }

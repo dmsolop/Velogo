@@ -1,51 +1,16 @@
-class SettingsState {
-  final bool voiceInstructions;
-  final String unitsOfMeasurement;
-  final String mapStyle;
-  final bool notifications;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:velogo/core/error/failures.dart';
+import 'package:velogo/features/settings/domain/entities/settings_entity.dart';
 
-  // Додаткові параметри
-  final bool routeAlerts;
-  final bool weatherAlerts;
-  final bool generalNotifications;
-  final bool healthDataIntegration;
+part 'settings_state.freezed.dart';
 
-  const SettingsState({
-    this.voiceInstructions = true,
-    this.unitsOfMeasurement = "Metric",
-    this.mapStyle = "Terrain",
-    this.notifications = true,
-    this.routeAlerts = false,
-    this.weatherAlerts = false,
-    this.generalNotifications = false,
-    this.healthDataIntegration = false,
-  });
-
-  SettingsState copyWith({
-    bool? voiceInstructions,
-    String? unitsOfMeasurement,
-    String? mapStyle,
-    bool? notifications,
-    bool? routeAlerts,
-    bool? weatherAlerts,
-    bool? generalNotifications,
-    bool? healthDataIntegration,
-  }) {
-    return SettingsState(
-      voiceInstructions: voiceInstructions ?? this.voiceInstructions,
-      unitsOfMeasurement: unitsOfMeasurement ?? this.unitsOfMeasurement,
-      mapStyle: mapStyle ?? this.mapStyle,
-      notifications: notifications ?? this.notifications,
-      routeAlerts: routeAlerts ?? this.routeAlerts,
-      weatherAlerts: weatherAlerts ?? this.weatherAlerts,
-      generalNotifications: generalNotifications ?? this.generalNotifications,
-      healthDataIntegration:
-          healthDataIntegration ?? this.healthDataIntegration,
-    );
-  }
+@freezed
+class SettingsState with _$SettingsState {
+  const factory SettingsState.initial() = _Initial;
+  const factory SettingsState.loading() = _Loading;
+  const factory SettingsState.loaded(SettingsEntity settings) = _Loaded;
+  const factory SettingsState.error(Failure failure) = _Error;
 }
-
-
 
 // class SettingsState {
 //   final bool voiceInstructions;

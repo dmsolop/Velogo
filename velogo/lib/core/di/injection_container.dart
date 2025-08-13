@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:velogo/core/services/log_service.dart';
 import 'package:velogo/core/services/remote_config_service.dart';
 import 'package:velogo/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -24,6 +25,19 @@ import 'package:velogo/features/navigation/data/repositories/theme_repository_im
 import 'package:velogo/features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:velogo/features/navigation/presentation/bloc/theme/theme_cubit.dart';
 import 'package:velogo/features/settings/presentation/bloc/settings/settings_cubit.dart';
+import 'package:velogo/features/settings/domain/repositories/settings_repository.dart';
+import 'package:velogo/features/settings/domain/usecases/get_settings_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/save_settings_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_voice_instructions_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_units_of_measurement_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_map_style_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_notifications_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_alerts_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_weather_alerts_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_general_notifications_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
+import 'package:velogo/features/settings/data/datasources/settings_local_data_source.dart';
+import 'package:velogo/features/settings/data/repositories/settings_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -41,6 +55,10 @@ Future<void> init() async {
 
 /// Ініціалізація core залежностей
 Future<void> _initCore() async {
+  // External dependencies
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
+
   // Services
   sl.registerLazySingleton<LogService>(() => LogService());
   sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
@@ -99,26 +117,59 @@ Future<void> _initNavigation() async {
   // Repositories
   sl.registerLazySingleton<NavigationRepository>(() => NavigationRepositoryImpl());
   sl.registerLazySingleton<ThemeRepository>(() => ThemeRepositoryImpl());
-  
+
   // Use cases
   sl.registerLazySingleton(() => GetNavigationStateUseCase(sl()));
   sl.registerLazySingleton(() => SaveNavigationStateUseCase(sl()));
   sl.registerLazySingleton(() => GetThemeUseCase(sl()));
   sl.registerLazySingleton(() => SaveThemeUseCase(sl()));
-  
+
   // BLoCs
   sl.registerFactory(() => NavigationCubit(
-    getNavigationStateUseCase: sl(),
-    saveNavigationStateUseCase: sl(),
-  ));
+        getNavigationStateUseCase: sl(),
+        saveNavigationStateUseCase: sl(),
+      ));
   sl.registerFactory(() => ThemeCubit(
-    getThemeUseCase: sl(),
-    saveThemeUseCase: sl(),
-  ));
+        getThemeUseCase: sl(),
+        saveThemeUseCase: sl(),
+      ));
 }
 
 /// Ініціалізація settings feature
 Future<void> _initSettings() async {
+  // Data sources
+  sl.registerLazySingleton<SettingsLocalDataSource>(
+    () => SettingsLocalDataSourceImpl(sharedPreferences: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepositoryImpl(localDataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => SaveSettingsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateVoiceInstructionsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateUnitsOfMeasurementUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateMapStyleUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateRouteAlertsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateWeatherAlertsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateGeneralNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateHealthDataIntegrationUseCase(sl()));
+
   // BLoCs
-  sl.registerFactory(() => SettingsCubit());
+  sl.registerFactory(() => SettingsCubit(
+        getSettingsUseCase: sl(),
+        saveSettingsUseCase: sl(),
+        updateVoiceInstructionsUseCase: sl(),
+        updateUnitsOfMeasurementUseCase: sl(),
+        updateMapStyleUseCase: sl(),
+        updateNotificationsUseCase: sl(),
+        updateRouteAlertsUseCase: sl(),
+        updateWeatherAlertsUseCase: sl(),
+        updateGeneralNotificationsUseCase: sl(),
+        updateHealthDataIntegrationUseCase: sl(),
+      ));
 }
