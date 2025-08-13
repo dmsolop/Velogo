@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import '../features/navigation/presentation/bloc/navigation/navigation_state.dart';
 import '../features/navigation/presentation/bloc/theme/theme_cubit.dart';
+import '../features/navigation/domain/entities/navigation_entity.dart';
+import '../features/navigation/domain/entities/theme_entity.dart';
 import '../shared/base_colors.dart';
 import '../features/navigation/presentation/pages/main_screen.dart';
 import '../features/map/presentation/pages/route_screen.dart';

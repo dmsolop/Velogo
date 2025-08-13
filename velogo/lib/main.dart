@@ -17,6 +17,10 @@ import 'features/settings/presentation/bloc/settings/settings_cubit.dart';
 import 'features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'features/auth/presentation/bloc/registration/registration_cubit.dart';
 import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
+import 'features/navigation/domain/entities/theme_entity.dart';
+import 'features/navigation/domain/entities/navigation_entity.dart';
+import 'features/map/presentation/bloc/route/route_cubit.dart'; // New import
+import 'features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +72,8 @@ void main() async {
         BlocProvider(create: (_) => di.sl<NavigationCubit>()),
         BlocProvider(create: (_) => di.sl<RegistrationCubit>()),
         BlocProvider(create: (_) => di.sl<WeatherCubit>()),
+        BlocProvider(create: (_) => di.sl<RouteCubit>()), // New BlocProvider
+        BlocProvider(create: (_) => di.sl<RouteDifficultyCubit>()), // New BlocProvider
       ],
       child: MyApp(initialRoute: initialRoute),
     ),

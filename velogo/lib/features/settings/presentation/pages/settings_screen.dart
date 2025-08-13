@@ -4,6 +4,7 @@ import '../../../../shared/base_widgets.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/base_fonts.dart';
 import '../../../navigation/presentation/bloc/theme/theme_cubit.dart';
+import '../../../navigation/domain/entities/theme_entity.dart';
 import '../bloc/settings/settings_cubit.dart';
 import '../bloc/settings/settings_state.dart';
 

@@ -13,6 +13,14 @@ import 'package:velogo/features/weather/domain/repositories/weather_repository.d
 import 'package:velogo/features/weather/domain/usecases/get_weather_data_usecase.dart';
 import 'package:velogo/features/weather/domain/usecases/get_weather_forecast_usecase.dart';
 import 'package:velogo/features/weather/presentation/bloc/weather/weather_cubit.dart';
+import 'package:velogo/features/navigation/domain/repositories/navigation_repository.dart';
+import 'package:velogo/features/navigation/domain/repositories/theme_repository.dart';
+import 'package:velogo/features/navigation/domain/usecases/get_navigation_state_usecase.dart';
+import 'package:velogo/features/navigation/domain/usecases/save_navigation_state_usecase.dart';
+import 'package:velogo/features/navigation/domain/usecases/get_theme_usecase.dart';
+import 'package:velogo/features/navigation/domain/usecases/save_theme_usecase.dart';
+import 'package:velogo/features/navigation/data/repositories/navigation_repository_impl.dart';
+import 'package:velogo/features/navigation/data/repositories/theme_repository_impl.dart';
 import 'package:velogo/features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:velogo/features/navigation/presentation/bloc/theme/theme_cubit.dart';
 import 'package:velogo/features/settings/presentation/bloc/settings/settings_cubit.dart';
@@ -88,9 +96,25 @@ Future<void> _initWeather() async {
 
 /// Ініціалізація navigation feature
 Future<void> _initNavigation() async {
+  // Repositories
+  sl.registerLazySingleton<NavigationRepository>(() => NavigationRepositoryImpl());
+  sl.registerLazySingleton<ThemeRepository>(() => ThemeRepositoryImpl());
+  
+  // Use cases
+  sl.registerLazySingleton(() => GetNavigationStateUseCase(sl()));
+  sl.registerLazySingleton(() => SaveNavigationStateUseCase(sl()));
+  sl.registerLazySingleton(() => GetThemeUseCase(sl()));
+  sl.registerLazySingleton(() => SaveThemeUseCase(sl()));
+  
   // BLoCs
-  sl.registerFactory(() => NavigationCubit());
-  sl.registerFactory(() => ThemeCubit());
+  sl.registerFactory(() => NavigationCubit(
+    getNavigationStateUseCase: sl(),
+    saveNavigationStateUseCase: sl(),
+  ));
+  sl.registerFactory(() => ThemeCubit(
+    getThemeUseCase: sl(),
+    saveThemeUseCase: sl(),
+  ));
 }
 
 /// Ініціалізація settings feature

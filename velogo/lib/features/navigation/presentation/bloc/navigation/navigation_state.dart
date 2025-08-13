@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-enum NavigationTab { home, myRoutes, profile, settings }
+import '../../../domain/entities/navigation_entity.dart';
 
 class NavigationState extends Equatable {
   final NavigationTab selectedTab;
