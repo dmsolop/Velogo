@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../../domain/entities/weather_entity.dart';
 
 part 'weather_data.g.dart';
 
@@ -116,5 +117,25 @@ class WeatherData extends HiveObject {
   @override
   String toString() {
     return 'WeatherData(lat: $lat, lon: $lon, windSpeed: ${windSpeed}m/s, windDirection: ${windDirection}°, precipitation: ${precipitation}mm/h, humidity: ${humidity}%, temperature: ${temperature}°C)';
+  }
+}
+
+extension WeatherDataExtension on WeatherData {
+  WeatherEntity toEntity() {
+    return WeatherEntity(
+      lat: lat,
+      lon: lon,
+      windSpeed: windSpeed,
+      windDirection: windDirection,
+      windGust: windGust,
+      precipitation: precipitation,
+      precipitationType: precipitationType,
+      humidity: humidity,
+      temperature: temperature,
+      visibility: visibility,
+      roadCondition: roadCondition,
+      timestamp: timestamp,
+      source: source,
+    );
   }
 }

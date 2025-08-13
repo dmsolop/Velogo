@@ -1,28 +1,41 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../data/repositories/weather_repository.dart';
-import '../../../data/models/weather_data.dart';
+import 'package:dartz/dartz.dart';
+import '../../../domain/usecases/get_weather_data_usecase.dart';
+import '../../../domain/usecases/get_weather_forecast_usecase.dart';
+import '../../../domain/entities/weather_entity.dart';
+import '../../../../../core/error/failures.dart';
 import '../../../../../core/services/log_service.dart';
 
 part 'weather_state.dart';
 
 class WeatherCubit extends Cubit<WeatherState> {
-  final WeatherRepository _repository;
+  final GetWeatherDataUseCase _getWeatherDataUseCase;
+  final GetWeatherForecastUseCase _getWeatherForecastUseCase;
 
-  WeatherCubit(this._repository) : super(WeatherInitial());
+  WeatherCubit({
+    required GetWeatherDataUseCase getWeatherDataUseCase,
+    required GetWeatherForecastUseCase getWeatherForecastUseCase,
+  })  : _getWeatherDataUseCase = getWeatherDataUseCase,
+        _getWeatherForecastUseCase = getWeatherForecastUseCase,
+        super(WeatherInitial());
 
   /// Завантажуємо погоду для однієї точки
   Future<void> loadWeather(double lat, double lon) async {
     await LogService.log('🌤️ [WeatherCubit] Завантаження погоди: lat=$lat, lon=$lon');
     emit(WeatherLoading());
 
-    try {
-      final weatherData = await _repository.getWeather(lat, lon);
-      await LogService.log('✅ [WeatherCubit] Погоду завантажено успішно: windSpeed=${weatherData.windSpeed}, windDirection=${weatherData.windDirection}');
-      emit(WeatherLoaded(weatherData));
-    } catch (e) {
-      await LogService.log('❌ [WeatherCubit] Помилка завантаження погоди: $e');
-      emit(WeatherError("Failed to fetch weather data: ${e.toString()}"));
-    }
+    final result = await _getWeatherDataUseCase(GetWeatherDataParams(lat: lat, lon: lon));
+
+    result.fold(
+      (failure) {
+        LogService.log('❌ [WeatherCubit] Помилка завантаження погоди: ${failure.message}');
+        emit(WeatherError(_mapFailureToMessage(failure)));
+      },
+      (weatherEntity) {
+        LogService.log('✅ [WeatherCubit] Погоду завантажено успішно: windSpeed=${weatherEntity.windSpeed}, windDirection=${weatherEntity.windDirection}');
+        emit(WeatherLoaded(weatherEntity));
+      },
+    );
   }
 
   /// Завантажуємо погоду для кількох точок маршруту
@@ -30,45 +43,36 @@ class WeatherCubit extends Cubit<WeatherState> {
     await LogService.log('🗺️ [WeatherCubit] Завантаження погоди для маршруту: ${routePoints.length} точок');
     emit(WeatherLoading());
 
-    try {
-      final weatherDataList = await _repository.getWeatherForRoute(routePoints);
-      await LogService.log('✅ [WeatherCubit] Погоду для маршруту завантажено успішно: ${weatherDataList.length} точок');
-      emit(WeatherLoadedForRoute(weatherDataList));
-    } catch (e) {
-      await LogService.log('❌ [WeatherCubit] Помилка завантаження погоди для маршруту: $e');
-      emit(WeatherError("Failed to fetch weather data for route: ${e.toString()}"));
-    }
-  }
+    final result = await _getWeatherForecastUseCase(GetWeatherForecastParams(routePoints: routePoints));
 
-  /// Очищуємо кеш
-  Future<void> clearCache() async {
-    await LogService.log('🧹 [WeatherCubit] Очищення кешу погоди');
-    try {
-      await _repository.clearOldData();
-      await LogService.log('✅ [WeatherCubit] Кеш очищено успішно');
-      emit(WeatherCacheCleared());
-    } catch (e) {
-      await LogService.log('❌ [WeatherCubit] Помилка очищення кешу: $e');
-      emit(WeatherError("Failed to clear cache: ${e.toString()}"));
-    }
-  }
-
-  /// Отримуємо статистику кешу
-  Future<void> getCacheStats() async {
-    await LogService.log('📊 [WeatherCubit] Отримання статистики кешу');
-    try {
-      final stats = await _repository.getCacheStats();
-      await LogService.log('✅ [WeatherCubit] Статистику кешу отримано: $stats');
-      emit(WeatherCacheStats(stats));
-    } catch (e) {
-      await LogService.log('❌ [WeatherCubit] Помилка отримання статистики кешу: $e');
-      emit(WeatherError("Failed to get cache stats: ${e.toString()}"));
-    }
+    result.fold(
+      (failure) {
+        LogService.log('❌ [WeatherCubit] Помилка завантаження погоди для маршруту: ${failure.message}');
+        emit(WeatherError(_mapFailureToMessage(failure)));
+      },
+      (weatherEntities) {
+        LogService.log('✅ [WeatherCubit] Погоду для маршруту завантажено успішно: ${weatherEntities.length} точок');
+        emit(WeatherLoadedForRoute(weatherEntities));
+      },
+    );
   }
 
   /// Скидаємо стан до початкового
   void reset() {
     LogService.log('🔄 [WeatherCubit] Скидання стану до початкового');
     emit(WeatherInitial());
+  }
+
+  /// Мапінг failure до повідомлення
+  String _mapFailureToMessage(Failure failure) {
+    if (failure is ServerFailure) {
+      return 'Server error. Please try again later.';
+    } else if (failure is NetworkFailure) {
+      return 'Network error. Please check your connection.';
+    } else if (failure is CacheFailure) {
+      return 'Cache error. Please try again.';
+    } else {
+      return 'An unexpected error occurred. Please try again.';
+    }
   }
 }

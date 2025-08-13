@@ -7,20 +7,13 @@ class WeatherInitial extends WeatherState {}
 class WeatherLoading extends WeatherState {}
 
 class WeatherLoaded extends WeatherState {
-  final WeatherData weatherData;
-  WeatherLoaded(this.weatherData);
+  final WeatherEntity weatherEntity;
+  WeatherLoaded(this.weatherEntity);
 }
 
 class WeatherLoadedForRoute extends WeatherState {
-  final List<WeatherData> weatherDataList;
-  WeatherLoadedForRoute(this.weatherDataList);
-}
-
-class WeatherCacheCleared extends WeatherState {}
-
-class WeatherCacheStats extends WeatherState {
-  final Map<String, dynamic> stats;
-  WeatherCacheStats(this.stats);
+  final List<WeatherEntity> weatherEntities;
+  WeatherLoadedForRoute(this.weatherEntities);
 }
 
 class WeatherError extends WeatherState {

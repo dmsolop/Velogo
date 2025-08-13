@@ -8,7 +8,10 @@ import 'package:velogo/features/auth/domain/usecases/sign_in_usecase.dart';
 import 'package:velogo/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:velogo/features/auth/presentation/bloc/registration/registration_cubit.dart';
 import 'package:velogo/features/weather/data/datasources/weather_service.dart';
-import 'package:velogo/features/weather/data/repositories/weather_repository.dart';
+import 'package:velogo/features/weather/data/repositories/weather_repository_impl.dart';
+import 'package:velogo/features/weather/domain/repositories/weather_repository.dart';
+import 'package:velogo/features/weather/domain/usecases/get_weather_data_usecase.dart';
+import 'package:velogo/features/weather/domain/usecases/get_weather_forecast_usecase.dart';
 import 'package:velogo/features/weather/presentation/bloc/weather/weather_cubit.dart';
 import 'package:velogo/features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'package:velogo/features/navigation/presentation/bloc/theme/theme_cubit.dart';
@@ -35,7 +38,7 @@ Future<void> _initCore() async {
   sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
 
   // Ініціалізація сервісів
-  await LogService.init();
+  await LogService.init(); // Fixed: Direct static call
   await sl<RemoteConfigService>().initialize();
 }
 
@@ -69,11 +72,18 @@ Future<void> _initWeather() async {
 
   // Repositories
   sl.registerLazySingleton<WeatherRepository>(
-    () => WeatherRepository(sl()),
+    () => WeatherRepositoryImpl(sl()),
   );
 
+  // Use cases
+  sl.registerLazySingleton(() => GetWeatherDataUseCase(sl()));
+  sl.registerLazySingleton(() => GetWeatherForecastUseCase(sl()));
+
   // BLoCs
-  sl.registerFactory(() => WeatherCubit(sl()));
+  sl.registerFactory(() => WeatherCubit(
+        getWeatherDataUseCase: sl(),
+        getWeatherForecastUseCase: sl(),
+      ));
 }
 
 /// Ініціалізація navigation feature
