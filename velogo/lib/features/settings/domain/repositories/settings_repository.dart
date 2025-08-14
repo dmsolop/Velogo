@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import 'package:velogo/core/error/failures.dart';
-import 'package:velogo/core/usecases/usecase.dart';
 import 'package:velogo/features/settings/domain/entities/settings_entity.dart';
 
 abstract class SettingsRepository {

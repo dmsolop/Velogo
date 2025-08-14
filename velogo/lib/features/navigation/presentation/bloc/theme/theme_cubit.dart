@@ -1,9 +1,7 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:dartz/dartz.dart';
 import '../../../domain/usecases/get_theme_usecase.dart';
 import '../../../domain/usecases/save_theme_usecase.dart';
 import '../../../domain/entities/theme_entity.dart';
-import '../../../../../core/error/failures.dart';
 import '../../../../../core/services/log_service.dart';
 import '../../../../../core/usecases/usecase.dart';
 
@@ -21,9 +19,9 @@ class ThemeCubit extends HydratedCubit<AppThemeMode> {
   /// Завантаження теми
   Future<void> loadTheme() async {
     LogService.log('🎨 [ThemeCubit] Завантаження теми');
-    
+
     final result = await _getThemeUseCase(NoParams());
-    
+
     result.fold(
       (failure) {
         LogService.log('❌ [ThemeCubit] Помилка завантаження: ${failure.message}');
@@ -39,18 +37,18 @@ class ThemeCubit extends HydratedCubit<AppThemeMode> {
   /// Встановлення теми
   Future<void> setTheme(AppThemeMode mode) async {
     LogService.log('🎨 [ThemeCubit] Встановлення теми: $mode');
-    
+
     emit(mode);
-    
+
     // Зберігаємо тему
     final themeEntity = ThemeEntity(
       themeMode: mode,
       lastThemeChange: DateTime.now(),
       isSystemTheme: mode == AppThemeMode.system,
     );
-    
+
     final result = await _saveThemeUseCase(SaveThemeParams(theme: themeEntity));
-    
+
     result.fold(
       (failure) {
         LogService.log('❌ [ThemeCubit] Помилка збереження: ${failure.message}');

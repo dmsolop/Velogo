@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dartz/dartz.dart';
 import '../../../domain/usecases/get_weather_data_usecase.dart';
 import '../../../domain/usecases/get_weather_forecast_usecase.dart';
 import '../../../domain/entities/weather_entity.dart';

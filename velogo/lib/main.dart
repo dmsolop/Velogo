@@ -18,7 +18,6 @@ import 'features/navigation/presentation/bloc/navigation/navigation_cubit.dart';
 import 'features/auth/presentation/bloc/registration/registration_cubit.dart';
 import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
 import 'features/navigation/domain/entities/theme_entity.dart';
-import 'features/navigation/domain/entities/navigation_entity.dart';
 import 'features/map/presentation/bloc/route/route_cubit.dart'; // New import
 import 'features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart'; // New import
 

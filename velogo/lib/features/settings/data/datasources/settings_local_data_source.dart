@@ -18,14 +18,14 @@ abstract class SettingsLocalDataSource {
 
 class SettingsLocalDataSourceImpl implements SettingsLocalDataSource {
   final SharedPreferences sharedPreferences;
-  static const String SETTINGS_KEY = 'settings';
+  static const String settingsKey = 'settings';
 
   SettingsLocalDataSourceImpl({required this.sharedPreferences});
 
   @override
   Future<SettingsModel> getSettings() async {
     try {
-      final jsonString = sharedPreferences.getString(SETTINGS_KEY);
+      final jsonString = sharedPreferences.getString(settingsKey);
       if (jsonString != null) {
         final jsonMap = json.decode(jsonString) as Map<String, dynamic>;
         return SettingsModel.fromJson(jsonMap);
@@ -41,7 +41,7 @@ class SettingsLocalDataSourceImpl implements SettingsLocalDataSource {
   Future<void> saveSettings(SettingsModel settings) async {
     try {
       final jsonString = json.encode(settings.toJson());
-      await sharedPreferences.setString(SETTINGS_KEY, jsonString);
+      await sharedPreferences.setString(settingsKey, jsonString);
     } catch (e) {
       throw CacheException();
     }

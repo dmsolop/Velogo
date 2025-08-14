@@ -81,7 +81,7 @@ class WeatherRepositoryImpl implements WeatherRepository {
   @override
   Future<Either<Failure, void>> saveWeatherData(WeatherEntity weatherData) async {
     try {
-      final box = await _openBox();
+      await _openBox();
 
       // Конвертуємо entity в model (потрібно створити fromEntity метод)
       final data = WeatherData(
