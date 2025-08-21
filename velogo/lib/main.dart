@@ -46,14 +46,14 @@ void main() async {
     // Використовуємо реальний Firebase для Auth (без reCAPTCHA проблем)
     // FirebaseAuth.instance.useAuthEmulator('127.0.0.1', 9099);
 
-    // Емулятори тільки для Firestore та Functions
-    FirebaseFirestore.instance.settings = const Settings(
-      host: '127.0.0.1:8080',
-      sslEnabled: false,
-      persistenceEnabled: false,
-    );
+    // Тимчасово відключаємо емулятори для тестування Profile Feature
+    // FirebaseFirestore.instance.settings = const Settings(
+    //   host: '192.168.0.130:8080', // IP хост-машини для реального пристрою
+    //   sslEnabled: false,
+    //   persistenceEnabled: false,
+    // );
 
-    FirebaseFunctions.instance.useFunctionsEmulator('127.0.0.1', 5001);
+    // FirebaseFunctions.instance.useFunctionsEmulator('192.168.0.130', 5001);
   }
 
   // Визначення початкового маршруту

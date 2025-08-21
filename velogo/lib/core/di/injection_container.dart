@@ -38,6 +38,19 @@ import 'package:velogo/features/settings/domain/usecases/update_general_notifica
 import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
 import 'package:velogo/features/settings/data/datasources/settings_local_data_source.dart';
 import 'package:velogo/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:velogo/features/profile/data/datasources/profile_remote_data_source.dart';
+import 'package:velogo/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:velogo/features/profile/domain/repositories/profile_repository.dart';
+import 'package:velogo/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:velogo/features/profile/domain/usecases/save_profile_usecase.dart';
+import 'package:velogo/features/profile/domain/usecases/update_name_usecase.dart';
+import 'package:velogo/features/profile/domain/usecases/update_gender_usecase.dart';
+import 'package:velogo/features/profile/domain/usecases/update_age_usecase.dart';
+import 'package:velogo/features/profile/domain/usecases/update_health_data_integration_usecase.dart' as profile;
+import 'package:velogo/features/profile/domain/usecases/clear_profile_cache_usecase.dart';
+import 'package:velogo/features/profile/presentation/bloc/profile/profile_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -51,6 +64,7 @@ Future<void> init() async {
   await _initWeather();
   await _initNavigation();
   await _initSettings();
+  await _initProfile();
 }
 
 /// Ініціалізація core залежностей
@@ -171,5 +185,45 @@ Future<void> _initSettings() async {
         updateWeatherAlertsUseCase: sl(),
         updateGeneralNotificationsUseCase: sl(),
         updateHealthDataIntegrationUseCase: sl(),
+      ));
+}
+
+/// Ініціалізація profile feature
+Future<void> _initProfile() async {
+  // Firebase dependencies
+  sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+
+  // Data sources
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+    ),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => SaveProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateNameUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateGenderUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAgeUseCase(sl()));
+  sl.registerLazySingleton(() => profile.UpdateHealthDataIntegrationUseCase(sl()));
+  sl.registerLazySingleton(() => ClearProfileCacheUseCase(sl()));
+
+  // BLoCs
+  sl.registerFactory(() => ProfileCubit(
+        getProfile: sl(),
+        saveProfile: sl(),
+        updateNameUseCase: sl(),
+        updateGenderUseCase: sl(),
+        updateAgeUseCase: sl(),
+        updateHealthDataIntegrationUseCase: sl(),
+        clearProfileCacheUseCase: sl(),
       ));
 }
