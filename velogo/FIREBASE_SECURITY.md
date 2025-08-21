@@ -60,11 +60,7 @@ service cloud.firestore {
 firebase deploy --only firestore:rules
 ```
 
-### Тестування правил локально
 
-```bash
-firebase emulators:start --only firestore
-```
 
 ## Колекції в проекті
 

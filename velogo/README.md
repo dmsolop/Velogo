@@ -54,6 +54,8 @@ See [FIREBASE_SECURITY.md](FIREBASE_SECURITY.md) for detailed security configura
 4. Deploy security rules: `firebase deploy --only firestore:rules`
 5. Run the app: `flutter run`
 
+**Note:** This project uses production Firebase services. No local emulators are required.
+
 ### Development
 
 - **Code Generation**: `flutter packages pub run build_runner build`

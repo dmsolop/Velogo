@@ -41,20 +41,7 @@ void main() async {
   // Ініціалізація Dependency Injection
   await di.init();
 
-  // Налаштування для емуляторів
-  if (kDebugMode) {
-    // Використовуємо реальний Firebase для Auth (без reCAPTCHA проблем)
-    // FirebaseAuth.instance.useAuthEmulator('127.0.0.1', 9099);
 
-    // Тимчасово відключаємо емулятори для тестування правил безпеки
-    // FirebaseFirestore.instance.settings = const Settings(
-    //   host: '127.0.0.1:8080',
-    //   sslEnabled: false,
-    //   persistenceEnabled: false,
-    // );
-
-    // FirebaseFunctions.instance.useFunctionsEmulator('127.0.0.1', 5001);
-  }
 
   // Визначення початкового маршруту
   String initialRoute = AppNavigation.start;
