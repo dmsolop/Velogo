@@ -12,11 +12,33 @@ class SignUpUseCase implements UseCase<UserEntity, SignUpParams> {
 
   @override
   Future<Either<Failure, UserEntity>> call(SignUpParams params) async {
-    return await repository.signUp(
-      params.email,
-      params.password,
-      params.displayName,
-    );
+    // Validation
+    if (params.email.isEmpty) {
+      return Left(ValidationFailure('Email cannot be empty'));
+    }
+    
+    if (params.password.isEmpty) {
+      return Left(ValidationFailure('Password cannot be empty'));
+    }
+    
+    if (params.displayName.isEmpty) {
+      return Left(ValidationFailure('Display name cannot be empty'));
+    }
+    
+    if (params.password.length < 6) {
+      return Left(ValidationFailure('Password must be at least 6 characters'));
+    }
+    
+    if (!_isValidEmail(params.email)) {
+      return Left(ValidationFailure('Invalid email format'));
+    }
+
+    return await repository.signUp(params.email, params.password, params.displayName);
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
   }
 }
 

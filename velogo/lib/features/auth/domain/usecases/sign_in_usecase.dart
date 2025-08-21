@@ -12,7 +12,25 @@ class SignInUseCase implements UseCase<UserEntity, SignInParams> {
 
   @override
   Future<Either<Failure, UserEntity>> call(SignInParams params) async {
+    // Validation
+    if (params.email.isEmpty) {
+      return Left(ValidationFailure('Email cannot be empty'));
+    }
+    
+    if (params.password.isEmpty) {
+      return Left(ValidationFailure('Password cannot be empty'));
+    }
+    
+    if (!_isValidEmail(params.email)) {
+      return Left(ValidationFailure('Invalid email format'));
+    }
+
     return await repository.signIn(params.email, params.password);
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
   }
 }
 
