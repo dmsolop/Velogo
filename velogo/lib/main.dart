@@ -41,8 +41,6 @@ void main() async {
   // Ініціалізація Dependency Injection
   await di.init();
 
-
-
   // Визначення початкового маршруту
   String initialRoute = AppNavigation.start;
   final user = FirebaseAuth.instance.currentUser;
