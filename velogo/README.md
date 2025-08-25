@@ -22,7 +22,7 @@ This project follows **Clean Architecture** principles with **Feature-first** or
 
 ### **Completed Features:**
 - ✅ **Auth Feature** - User authentication and registration with validation
-- ✅ **Map Feature** - Route planning and tracking with Hive local storage
+- 🔄 **Map Feature** - Route planning and tracking (Clean Architecture migration in progress)
 - ✅ **Weather Feature** - Weather information for routes
 - ✅ **Navigation Feature** - App navigation and theme management
 - ✅ **Profile Feature** - User profile management with Firebase integration
