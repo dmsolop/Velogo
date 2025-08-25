@@ -16,11 +16,11 @@ class SignInUseCase implements UseCase<UserEntity, SignInParams> {
     if (params.email.isEmpty) {
       return Left(ValidationFailure('Email cannot be empty'));
     }
-    
+
     if (params.password.isEmpty) {
       return Left(ValidationFailure('Password cannot be empty'));
     }
-    
+
     if (!_isValidEmail(params.email)) {
       return Left(ValidationFailure('Invalid email format'));
     }
