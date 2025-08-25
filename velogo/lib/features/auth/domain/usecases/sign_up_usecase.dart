@@ -16,19 +16,19 @@ class SignUpUseCase implements UseCase<UserEntity, SignUpParams> {
     if (params.email.isEmpty) {
       return Left(ValidationFailure('Email cannot be empty'));
     }
-    
+
     if (params.password.isEmpty) {
       return Left(ValidationFailure('Password cannot be empty'));
     }
-    
+
     if (params.displayName.isEmpty) {
       return Left(ValidationFailure('Display name cannot be empty'));
     }
-    
+
     if (params.password.length < 6) {
       return Left(ValidationFailure('Password must be at least 6 characters'));
     }
-    
+
     if (!_isValidEmail(params.email)) {
       return Left(ValidationFailure('Invalid email format'));
     }
