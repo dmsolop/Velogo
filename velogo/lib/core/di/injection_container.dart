@@ -51,6 +51,18 @@ import 'package:velogo/features/profile/domain/usecases/update_age_usecase.dart'
 import 'package:velogo/features/profile/domain/usecases/update_health_data_integration_usecase.dart' as profile;
 import 'package:velogo/features/profile/domain/usecases/clear_profile_cache_usecase.dart';
 import 'package:velogo/features/profile/presentation/bloc/profile/profile_cubit.dart';
+import 'package:velogo/features/map/data/datasources/route_remote_data_source.dart';
+import 'package:velogo/features/map/data/datasources/map_remote_data_source.dart';
+import 'package:velogo/features/map/data/repositories/route_repository_impl.dart';
+import 'package:velogo/features/map/data/repositories/map_repository_impl.dart';
+import 'package:velogo/features/map/domain/repositories/route_repository.dart';
+import 'package:velogo/features/map/domain/repositories/map_repository.dart';
+import 'package:velogo/features/map/domain/usecases/get_all_routes_usecase.dart';
+import 'package:velogo/features/map/domain/usecases/create_route_usecase.dart';
+import 'package:velogo/features/map/domain/usecases/create_automatic_route_usecase.dart';
+import 'package:velogo/features/map/domain/usecases/search_markers_usecase.dart';
+import 'package:velogo/features/map/domain/usecases/get_wind_layer_usecase.dart';
+import 'package:velogo/features/map/presentation/bloc/route/route_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -64,6 +76,7 @@ Future<void> init() async {
   await _initWeather();
   await _initNavigation();
   await _initSettings();
+  await _initMap();
   await _initProfile();
 }
 
@@ -226,4 +239,33 @@ Future<void> _initProfile() async {
         updateHealthDataIntegrationUseCase: sl(),
         clearProfileCacheUseCase: sl(),
       ));
+}
+
+/// Ініціалізація map feature
+Future<void> _initMap() async {
+  // Data sources
+  sl.registerLazySingleton<RouteRemoteDataSource>(
+    () => RouteRemoteDataSourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<MapRemoteDataSource>(
+    () => MapRemoteDataSourceImpl(firestore: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<RouteRepository>(
+    () => RouteRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<MapRepository>(
+    () => MapRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAllRoutesUseCase(sl()));
+  sl.registerLazySingleton(() => CreateRouteUseCase(sl()));
+  sl.registerLazySingleton(() => CreateAutomaticRouteUseCase(sl()));
+  sl.registerLazySingleton(() => SearchMarkersUseCase(sl()));
+  sl.registerLazySingleton(() => GetWindLayerUseCase(sl()));
+
+  // BLoCs - TODO: Update when RouteCubit is refactored to use use cases
+  sl.registerFactory(() => RouteCubit());
 }
