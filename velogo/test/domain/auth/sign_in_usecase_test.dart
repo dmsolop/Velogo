@@ -37,8 +37,7 @@ void main() {
   group('SignInUseCase', () {
     test('should return User when repository call is successful', () async {
       // arrange
-      when(mockAuthRepository.signIn(tEmail, tPassword))
-          .thenAnswer((_) async => Right(tUserEntity));
+      when(mockAuthRepository.signIn(tEmail, tPassword)).thenAnswer((_) async => Right(tUserEntity));
 
       // act
       final result = await useCase(tParams);
@@ -51,8 +50,7 @@ void main() {
 
     test('should return ServerFailure when repository call is unsuccessful', () async {
       // arrange
-      when(mockAuthRepository.signIn(tEmail, tPassword))
-          .thenAnswer((_) async => Left(ServerFailure('Invalid credentials')));
+      when(mockAuthRepository.signIn(tEmail, tPassword)).thenAnswer((_) async => Left(ServerFailure('Invalid credentials')));
 
       // act
       final result = await useCase(tParams);

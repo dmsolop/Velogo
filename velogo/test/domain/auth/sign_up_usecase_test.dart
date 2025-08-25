@@ -42,8 +42,7 @@ void main() {
   group('SignUpUseCase', () {
     test('should return User when repository call is successful', () async {
       // arrange
-      when(mockAuthRepository.signUp(tEmail, tPassword, tDisplayName))
-          .thenAnswer((_) async => Right(tUserEntity));
+      when(mockAuthRepository.signUp(tEmail, tPassword, tDisplayName)).thenAnswer((_) async => Right(tUserEntity));
 
       // act
       final result = await useCase(tParams);
@@ -56,8 +55,7 @@ void main() {
 
     test('should return ServerFailure when repository call is unsuccessful', () async {
       // arrange
-      when(mockAuthRepository.signUp(tEmail, tPassword, tDisplayName))
-          .thenAnswer((_) async => Left(ServerFailure('Email already in use')));
+      when(mockAuthRepository.signUp(tEmail, tPassword, tDisplayName)).thenAnswer((_) async => Left(ServerFailure('Email already in use')));
 
       // act
       final result = await useCase(tParams);
