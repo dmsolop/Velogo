@@ -63,6 +63,7 @@ import 'package:velogo/features/map/domain/usecases/create_automatic_route_useca
 import 'package:velogo/features/map/domain/usecases/search_markers_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/get_wind_layer_usecase.dart';
 import 'package:velogo/features/map/presentation/bloc/route/route_cubit.dart';
+import 'package:velogo/features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -266,6 +267,7 @@ Future<void> _initMap() async {
   sl.registerLazySingleton(() => SearchMarkersUseCase(sl()));
   sl.registerLazySingleton(() => GetWindLayerUseCase(sl()));
 
-  // BLoCs - TODO: Update when RouteCubit is refactored to use use cases
+  // BLoCs
   sl.registerFactory(() => RouteCubit());
+  sl.registerFactory(() => RouteDifficultyCubit());
 }

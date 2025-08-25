@@ -1,16 +1,19 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class RouteDifficultyState extends Equatable {
-  final double difficulty;
+part 'route_difficulty_state.freezed.dart';
 
-  const RouteDifficultyState({this.difficulty = 0.0});
+enum RouteDifficulty {
+  easy,
+  moderate,
+  hard,
+  expert,
+}
 
-  RouteDifficultyState copyWith({double? difficulty}) {
-    return RouteDifficultyState(
-      difficulty: difficulty ?? this.difficulty,
-    );
-  }
-
-  @override
-  List<Object> get props => [difficulty];
+@freezed
+class RouteDifficultyState with _$RouteDifficultyState {
+  const factory RouteDifficultyState({
+    @Default(RouteDifficulty.moderate) RouteDifficulty difficulty,
+    @Default(false) bool isLoading,
+    String? errorMessage,
+  }) = _RouteDifficultyState;
 }
