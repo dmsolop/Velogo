@@ -14,3 +14,4 @@ class SaveProfileUseCase implements UseCase<Unit, ProfileEntity> {
     return await repository.saveProfile(profile);
   }
 }
+

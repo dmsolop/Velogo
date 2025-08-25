@@ -14,3 +14,4 @@ class GetProfileUseCase implements UseCase<ProfileEntity, String> {
     return await repository.getProfile(userId);
   }
 }
+

@@ -15,3 +15,4 @@ abstract class ProfileRepository {
   Future<Either<Failure, Unit>> addRecentActivity(String userId, String activity);
   Future<Either<Failure, Unit>> clearProfileCache();
 }
+

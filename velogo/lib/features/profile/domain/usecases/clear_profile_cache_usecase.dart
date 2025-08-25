@@ -13,3 +13,4 @@ class ClearProfileCacheUseCase implements UseCase<Unit, NoParams> {
     return await repository.clearProfileCache();
   }
 }
+

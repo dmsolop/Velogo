@@ -23,3 +23,4 @@ class ProfileEntity with _$ProfileEntity {
     DateTime? updatedAt,
   }) = _ProfileEntity;
 }
+

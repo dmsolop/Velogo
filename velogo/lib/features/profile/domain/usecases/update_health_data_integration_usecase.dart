@@ -15,3 +15,4 @@ class UpdateHealthDataIntegrationUseCase implements UseCase<Unit, Map<String, dy
     return await repository.updateHealthDataIntegration(userId, enabled);
   }
 }
+

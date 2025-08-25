@@ -15,3 +15,4 @@ class UpdateAgeUseCase implements UseCase<Unit, Map<String, dynamic>> {
     return await repository.updateAge(userId, age);
   }
 }
+

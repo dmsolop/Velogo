@@ -11,3 +11,4 @@ class ProfileState with _$ProfileState {
   const factory ProfileState.loaded(ProfileEntity profile) = _Loaded;
   const factory ProfileState.error(Failure failure) = _Error;
 }
+

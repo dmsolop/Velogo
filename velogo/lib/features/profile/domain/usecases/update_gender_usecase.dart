@@ -15,3 +15,4 @@ class UpdateGenderUseCase implements UseCase<Unit, Map<String, dynamic>> {
     return await repository.updateGender(userId, gender);
   }
 }
+

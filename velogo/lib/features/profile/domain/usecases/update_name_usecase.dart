@@ -15,3 +15,4 @@ class UpdateNameUseCase implements UseCase<Unit, Map<String, dynamic>> {
     return await repository.updateName(userId, name);
   }
 }
+
