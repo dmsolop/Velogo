@@ -16,16 +16,11 @@ Either<Failure, Unit> _successUnit() => Right(unit);
 class MapRepositoryImpl implements MapRepository {
   final MapRemoteDataSource remoteDataSource;
   final String _markersBoxName = "markers_cache";
-  final String _layersBoxName = "layers_cache";
 
   MapRepositoryImpl({required this.remoteDataSource});
 
   Future<Box<MarkerModel>> _openMarkersBox() async {
     return await Hive.openBox<MarkerModel>(_markersBoxName);
-  }
-
-  Future<Box<MapLayerModel>> _openLayersBox() async {
-    return await Hive.openBox<MapLayerModel>(_layersBoxName);
   }
 
   @override
