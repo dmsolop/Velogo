@@ -67,7 +67,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
         ));
 
         Future.delayed(const Duration(milliseconds: 500), () {
-          emit(state.copyWith(successMessage: null, isSuccess: false));
+          emit(state.copyWith(successMessage: '', isSuccess: false));
         });
 
         ScreenNavigationService.navigateTo('/home');
@@ -254,15 +254,14 @@ class RegistrationCubit extends Cubit<RegistrationState> {
 
   // Мапінг failure до повідомлення
   String _mapFailureToMessage(Failure failure) {
-    if (failure is AuthFailure) {
-      return failure.message;
-    } else if (failure is ServerFailure) {
-      return 'Server error. Please try again later.';
-    } else if (failure is NetworkFailure) {
-      return 'Network error. Please check your connection.';
-    } else {
-      return 'An unexpected error occurred. Please try again.';
-    }
+    return failure.when(
+      server: (message) => message ?? 'Server error. Please try again later.',
+      cache: (message) => message ?? 'Cache error. Please try again later.',
+      network: (message) => message ?? 'Network error. Please check your connection.',
+      auth: (message) => message ?? 'Authentication failed. Please try again.',
+      validation: (message) => message ?? 'Validation failed. Please check your input.',
+      permission: (message) => message ?? 'Permission denied. Please try again.',
+    );
   }
 
   // Логування станів

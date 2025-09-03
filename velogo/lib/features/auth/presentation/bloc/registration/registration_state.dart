@@ -1,117 +1,29 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class RegistrationState extends Equatable {
-  final String username;
-  final String lastName;
-  final DateTime? birthday;
-  final String email;
-  final String password;
-  final String confirmPassword;
-  final String gender;
-  final String country;
-  final bool isSubmitting;
-  final bool isLoading;
-  final bool isSuccess;
-  final bool isError;
-  final String errorMessage;
-  final String successMessage;
-  final String warningMessage;
-  final bool isEmailValid;
-  final bool isPasswordValid;
-  final bool isPasswordsMatch;
-  final bool isUsernameValid;
-  final bool isLastnameValid;
+part 'registration_state.freezed.dart';
 
-  const RegistrationState({
-    this.username = '',
-    this.lastName = '',
-    this.birthday,
-    this.email = '',
-    this.password = '',
-    this.confirmPassword = '',
-    this.gender = '',
-    this.country = '',
-    this.isSubmitting = false,
-    this.isLoading = false,
-    this.isSuccess = false,
-    this.isError = false,
-    this.errorMessage = '',
-    this.successMessage = '',
-    this.warningMessage = '',
-    this.isEmailValid = true,
-    this.isPasswordValid = true,
-    this.isPasswordsMatch = true,
-    this.isUsernameValid = true,
-    this.isLastnameValid = true,
-  });
-
-  RegistrationState copyWith({
-    String? username,
-    String? lastName,
+@freezed
+class RegistrationState with _$RegistrationState {
+  const factory RegistrationState({
+    @Default('') String username,
+    @Default('') String lastName,
     DateTime? birthday,
-    String? email,
-    String? password,
-    String? confirmPassword,
-    String? gender,
-    String? country,
-    bool? isSubmitting,
-    bool? isLoading,
-    bool? isSuccess,
-    bool? isError,
-    String? errorMessage,
-    String? successMessage,
-    String? warningMessage,
-    bool? isEmailValid,
-    bool? isPasswordValid,
-    bool? isPasswordsMatch,
-    bool? isUsernameValid,
-    bool? isLastnameValid,
-  }) {
-    return RegistrationState(
-      username: username ?? this.username,
-      lastName: lastName ?? this.lastName,
-      birthday: birthday ?? this.birthday,
-      email: email ?? this.email,
-      password: password ?? this.password,
-      confirmPassword: confirmPassword ?? this.confirmPassword,
-      gender: gender ?? this.gender,
-      country: country ?? this.country,
-      isSubmitting: isSubmitting ?? this.isSubmitting,
-      isLoading: isLoading ?? this.isLoading,
-      isSuccess: isSuccess ?? this.isSuccess,
-      isError: isError ?? this.isError,
-      errorMessage: errorMessage ?? this.errorMessage,
-      successMessage: successMessage ?? this.successMessage,
-      warningMessage: warningMessage ?? this.warningMessage,
-      isEmailValid: isEmailValid ?? this.isEmailValid,
-      isPasswordValid: isPasswordValid ?? this.isPasswordValid,
-      isPasswordsMatch: isPasswordsMatch ?? this.isPasswordsMatch,
-      isUsernameValid: isUsernameValid ?? this.isUsernameValid,
-      isLastnameValid: isLastnameValid ?? this.isLastnameValid,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-        username,
-        lastName,
-        birthday,
-        email,
-        password,
-        confirmPassword,
-        gender,
-        country,
-        isSubmitting,
-        isLoading,
-        isSuccess,
-        isError,
-        errorMessage,
-        successMessage,
-        warningMessage,
-        isEmailValid,
-        isPasswordValid,
-        isPasswordsMatch,
-        isUsernameValid,
-        isLastnameValid,
-      ];
+    @Default('') String email,
+    @Default('') String password,
+    @Default('') String confirmPassword,
+    @Default('') String gender,
+    @Default('') String country,
+    @Default(false) bool isSubmitting,
+    @Default(false) bool isLoading,
+    @Default(false) bool isSuccess,
+    @Default(false) bool isError,
+    @Default('') String errorMessage,
+    @Default('') String successMessage,
+    @Default('') String warningMessage,
+    @Default(true) bool isEmailValid,
+    @Default(true) bool isPasswordValid,
+    @Default(true) bool isPasswordsMatch,
+    @Default(true) bool isUsernameValid,
+    @Default(true) bool isLastnameValid,
+  }) = _RegistrationState;
 }

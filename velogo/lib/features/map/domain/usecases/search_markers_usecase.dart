@@ -1,10 +1,12 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/marker_entity.dart';
 import '../repositories/map_repository.dart';
+
+part 'search_markers_usecase.freezed.dart';
 
 class SearchMarkersUseCase implements UseCase<MarkerSearchResultEntity, SearchMarkersParams> {
   final MapRepository repository;
@@ -24,23 +26,14 @@ class SearchMarkersUseCase implements UseCase<MarkerSearchResultEntity, SearchMa
   }
 }
 
-class SearchMarkersParams extends Equatable {
-  final String query;
-  final MarkerType? type;
-  final String? categoryId;
-  final LatLng? center;
-  final double? radius;
-  final MarkerSearchType searchType;
-
-  const SearchMarkersParams({
-    required this.query,
-    this.type,
-    this.categoryId,
-    this.center,
-    this.radius,
-    this.searchType = MarkerSearchType.byName,
-  });
-
-  @override
-  List<Object?> get props => [query, type, categoryId, center, radius, searchType];
+@freezed
+class SearchMarkersParams with _$SearchMarkersParams {
+  const factory SearchMarkersParams({
+    required String query,
+    MarkerType? type,
+    String? categoryId,
+    LatLng? center,
+    double? radius,
+    @Default(MarkerSearchType.byName) MarkerSearchType searchType,
+  }) = _SearchMarkersParams;
 }

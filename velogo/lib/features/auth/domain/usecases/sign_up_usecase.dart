@@ -1,9 +1,11 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
+
+part 'sign_up_usecase.freezed.dart';
 
 class SignUpUseCase implements UseCase<UserEntity, SignUpParams> {
   final AuthRepository repository;
@@ -14,23 +16,23 @@ class SignUpUseCase implements UseCase<UserEntity, SignUpParams> {
   Future<Either<Failure, UserEntity>> call(SignUpParams params) async {
     // Validation
     if (params.email.isEmpty) {
-      return Left(ValidationFailure('Email cannot be empty'));
+      return Left(Failure.validation('Email cannot be empty'));
     }
 
     if (params.password.isEmpty) {
-      return Left(ValidationFailure('Password cannot be empty'));
+      return Left(Failure.validation('Password cannot be empty'));
     }
 
     if (params.displayName.isEmpty) {
-      return Left(ValidationFailure('Display name cannot be empty'));
+      return Left(Failure.validation('Display name cannot be empty'));
     }
 
     if (params.password.length < 6) {
-      return Left(ValidationFailure('Password must be at least 6 characters'));
+      return Left(Failure.validation('Password must be at least 6 characters'));
     }
 
     if (!_isValidEmail(params.email)) {
-      return Left(ValidationFailure('Invalid email format'));
+      return Left(Failure.validation('Invalid email format'));
     }
 
     return await repository.signUp(params.email, params.password, params.displayName);
@@ -42,17 +44,11 @@ class SignUpUseCase implements UseCase<UserEntity, SignUpParams> {
   }
 }
 
-class SignUpParams extends Equatable {
-  final String email;
-  final String password;
-  final String displayName;
-
-  const SignUpParams({
-    required this.email,
-    required this.password,
-    required this.displayName,
-  });
-
-  @override
-  List<Object> get props => [email, password, displayName];
+@freezed
+class SignUpParams with _$SignUpParams {
+  const factory SignUpParams({
+    required String email,
+    required String password,
+    required String displayName,
+  }) = _SignUpParams;
 }

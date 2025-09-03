@@ -1,17 +1,11 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/navigation_entity.dart';
 
-class NavigationState extends Equatable {
-  final NavigationTab selectedTab;
+part 'navigation_state.freezed.dart';
 
-  const NavigationState({this.selectedTab = NavigationTab.home});
-
-  NavigationState copyWith({NavigationTab? selectedTab}) {
-    return NavigationState(
-      selectedTab: selectedTab ?? this.selectedTab,
-    );
-  }
-
-  @override
-  List<Object> get props => [selectedTab];
+@freezed
+class NavigationState with _$NavigationState {
+  const factory NavigationState({
+    @Default(NavigationTab.home) NavigationTab selectedTab,
+  }) = _NavigationState;
 }

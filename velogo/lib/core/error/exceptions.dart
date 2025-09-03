@@ -1,34 +1,13 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-abstract class Exception extends Equatable {
-  final String message;
+part 'exceptions.freezed.dart';
 
-  const Exception(this.message);
-
-  @override
-  List<Object> get props => [message];
-}
-
-class ServerException extends Exception {
-  const ServerException([String message = 'Server error occurred']) : super(message);
-}
-
-class CacheException extends Exception {
-  const CacheException([String message = 'Cache error occurred']) : super(message);
-}
-
-class NetworkException extends Exception {
-  const NetworkException([String message = 'Network error occurred']) : super(message);
-}
-
-class AuthException extends Exception {
-  const AuthException([String message = 'Authentication failed']) : super(message);
-}
-
-class ValidationException extends Exception {
-  const ValidationException([String message = 'Validation failed']) : super(message);
-}
-
-class PermissionException extends Exception {
-  const PermissionException([String message = 'Permission denied']) : super(message);
+@freezed
+class AppException with _$AppException {
+  const factory AppException.server([String? message]) = ServerException;
+  const factory AppException.cache([String? message]) = CacheException;
+  const factory AppException.network([String? message]) = NetworkException;
+  const factory AppException.auth([String? message]) = AuthException;
+  const factory AppException.validation([String? message]) = ValidationException;
+  const factory AppException.permission([String? message]) = PermissionException;
 }

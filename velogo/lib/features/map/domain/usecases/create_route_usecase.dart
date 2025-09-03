@@ -1,9 +1,11 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/route_entity.dart';
 import '../repositories/route_repository.dart';
+
+part 'create_route_usecase.freezed.dart';
 
 class CreateRouteUseCase implements UseCase<RouteEntity, CreateRouteParams> {
   final RouteRepository repository;
@@ -16,11 +18,9 @@ class CreateRouteUseCase implements UseCase<RouteEntity, CreateRouteParams> {
   }
 }
 
-class CreateRouteParams extends Equatable {
-  final RouteEntity route;
-
-  const CreateRouteParams({required this.route});
-
-  @override
-  List<Object> get props => [route];
+@freezed
+class CreateRouteParams with _$CreateRouteParams {
+  const factory CreateRouteParams({
+    required RouteEntity route,
+  }) = _CreateRouteParams;
 }

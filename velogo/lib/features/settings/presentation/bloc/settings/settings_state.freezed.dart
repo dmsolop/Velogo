@@ -495,6 +495,8 @@ abstract class _$$ErrorImplCopyWith<$Res> {
       __$$ErrorImplCopyWithImpl<$Res>;
   @useResult
   $Res call({Failure failure});
+
+  $FailureCopyWith<$Res> get failure;
 }
 
 /// @nodoc
@@ -518,6 +520,16 @@ class __$$ErrorImplCopyWithImpl<$Res>
           : failure // ignore: cast_nullable_to_non_nullable
               as Failure,
     ));
+  }
+
+  /// Create a copy of SettingsState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $FailureCopyWith<$Res> get failure {
+    return $FailureCopyWith<$Res>(_value.failure, (value) {
+      return _then(_value.copyWith(failure: value));
+    });
   }
 }
 

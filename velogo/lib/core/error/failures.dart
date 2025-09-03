@@ -1,34 +1,13 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-abstract class Failure extends Equatable {
-  final String message;
+part 'failures.freezed.dart';
 
-  const Failure(this.message);
-
-  @override
-  List<Object> get props => [message];
-}
-
-class ServerFailure extends Failure {
-  const ServerFailure([String message = 'Server error occurred']) : super(message);
-}
-
-class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Cache error occurred']) : super(message);
-}
-
-class NetworkFailure extends Failure {
-  const NetworkFailure([String message = 'Network error occurred']) : super(message);
-}
-
-class AuthFailure extends Failure {
-  const AuthFailure([String message = 'Authentication failed']) : super(message);
-}
-
-class ValidationFailure extends Failure {
-  const ValidationFailure([String message = 'Validation failed']) : super(message);
-}
-
-class PermissionFailure extends Failure {
-  const PermissionFailure([String message = 'Permission denied']) : super(message);
+@freezed
+class Failure with _$Failure {
+  const factory Failure.server([String? message]) = ServerFailure;
+  const factory Failure.cache([String? message]) = CacheFailure;
+  const factory Failure.network([String? message]) = NetworkFailure;
+  const factory Failure.auth([String? message]) = AuthFailure;
+  const factory Failure.validation([String? message]) = ValidationFailure;
+  const factory Failure.permission([String? message]) = PermissionFailure;
 }
