@@ -1,11 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/usecases/get_weather_data_usecase.dart';
 import '../../../domain/usecases/get_weather_forecast_usecase.dart';
-import '../../../domain/entities/weather_entity.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/services/log_service.dart';
-
-part 'weather_state.dart';
+import 'weather_state.dart';
 
 class WeatherCubit extends Cubit<WeatherState> {
   final GetWeatherDataUseCase _getWeatherDataUseCase;
@@ -16,23 +14,23 @@ class WeatherCubit extends Cubit<WeatherState> {
     required GetWeatherForecastUseCase getWeatherForecastUseCase,
   })  : _getWeatherDataUseCase = getWeatherDataUseCase,
         _getWeatherForecastUseCase = getWeatherForecastUseCase,
-        super(WeatherInitial());
+        super(const WeatherState.initial());
 
   /// Завантажуємо погоду для однієї точки
   Future<void> loadWeather(double lat, double lon) async {
     await LogService.log('🌤️ [WeatherCubit] Завантаження погоди: lat=$lat, lon=$lon');
-    emit(WeatherLoading());
+    emit(const WeatherState.loading());
 
     final result = await _getWeatherDataUseCase(GetWeatherDataParams(lat: lat, lon: lon));
 
     result.fold(
       (failure) {
         LogService.log('❌ [WeatherCubit] Помилка завантаження погоди: ${failure.message}');
-        emit(WeatherError(_mapFailureToMessage(failure)));
+        emit(WeatherState.error(_mapFailureToMessage(failure)));
       },
       (weatherEntity) {
         LogService.log('✅ [WeatherCubit] Погоду завантажено успішно: windSpeed=${weatherEntity.windSpeed}, windDirection=${weatherEntity.windDirection}');
-        emit(WeatherLoaded(weatherEntity));
+        emit(WeatherState.loaded(weatherEntity));
       },
     );
   }
@@ -40,18 +38,18 @@ class WeatherCubit extends Cubit<WeatherState> {
   /// Завантажуємо погоду для кількох точок маршруту
   Future<void> loadWeatherForRoute(List<Map<String, double>> routePoints) async {
     await LogService.log('🗺️ [WeatherCubit] Завантаження погоди для маршруту: ${routePoints.length} точок');
-    emit(WeatherLoading());
+    emit(const WeatherState.loading());
 
     final result = await _getWeatherForecastUseCase(GetWeatherForecastParams(routePoints: routePoints));
 
     result.fold(
       (failure) {
         LogService.log('❌ [WeatherCubit] Помилка завантаження погоди для маршруту: ${failure.message}');
-        emit(WeatherError(_mapFailureToMessage(failure)));
+        emit(WeatherState.error(_mapFailureToMessage(failure)));
       },
       (weatherEntities) {
         LogService.log('✅ [WeatherCubit] Погоду для маршруту завантажено успішно: ${weatherEntities.length} точок');
-        emit(WeatherLoadedForRoute(weatherEntities));
+        emit(WeatherState.loadedForRoute(weatherEntities));
       },
     );
   }
@@ -59,7 +57,7 @@ class WeatherCubit extends Cubit<WeatherState> {
   /// Скидаємо стан до початкового
   void reset() {
     LogService.log('🔄 [WeatherCubit] Скидання стану до початкового');
-    emit(WeatherInitial());
+    emit(const WeatherState.initial());
   }
 
   /// Мапінг failure до повідомлення

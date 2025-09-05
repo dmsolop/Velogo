@@ -1,22 +1,13 @@
-part of 'weather_cubit.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../domain/entities/weather_entity.dart';
 
-abstract class WeatherState {}
+part 'weather_state.freezed.dart';
 
-class WeatherInitial extends WeatherState {}
-
-class WeatherLoading extends WeatherState {}
-
-class WeatherLoaded extends WeatherState {
-  final WeatherEntity weatherEntity;
-  WeatherLoaded(this.weatherEntity);
-}
-
-class WeatherLoadedForRoute extends WeatherState {
-  final List<WeatherEntity> weatherEntities;
-  WeatherLoadedForRoute(this.weatherEntities);
-}
-
-class WeatherError extends WeatherState {
-  final String message;
-  WeatherError(this.message);
+@freezed
+class WeatherState with _$WeatherState {
+  const factory WeatherState.initial() = WeatherInitial;
+  const factory WeatherState.loading() = WeatherLoading;
+  const factory WeatherState.loaded(WeatherEntity weatherEntity) = WeatherLoaded;
+  const factory WeatherState.loadedForRoute(List<WeatherEntity> weatherEntities) = WeatherLoadedForRoute;
+  const factory WeatherState.error(String message) = WeatherError;
 }
