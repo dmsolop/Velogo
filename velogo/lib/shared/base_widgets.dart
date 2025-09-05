@@ -10,8 +10,7 @@ class CustomLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double width = size ?? MediaQuery.of(context).size.width * 0.7;
-    final double height =
-        size != null ? size! * 0.6 : MediaQuery.of(context).size.width * 0.4;
+    final double height = size != null ? size! * 0.6 : MediaQuery.of(context).size.width * 0.4;
 
     return Center(
       child: Container(
@@ -104,8 +103,7 @@ class CustomPasswordTextField extends StatelessWidget {
           style: BaseFonts.body.copyWith(color: BaseColors.cardBackgroundDark),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle:
-                BaseFonts.body.copyWith(color: BaseColors.cardBackground),
+            hintStyle: BaseFonts.body.copyWith(color: BaseColors.cardBackground),
             errorText: errorText,
             filled: true,
             fillColor: BaseColors.white,
@@ -168,14 +166,10 @@ class CustomTextFieldWithLabel extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hintText, // Підказка
             hintStyle: BaseFonts.bodyTextLight.copyWith(
-              color: isDark
-                  ? BaseColors.textSecondary.withOpacity(0.7)
-                  : BaseColors.textPrimary.withOpacity(0.7),
+              color: isDark ? BaseColors.textSecondary.withOpacity(0.7) : BaseColors.textPrimary.withOpacity(0.7),
             ),
             filled: true,
-            fillColor: isDark
-                ? BaseColors.inputBackground
-                : BaseColors.backgroundLight,
+            fillColor: isDark ? BaseColors.inputBackground : BaseColors.backgroundLight,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
@@ -205,8 +199,7 @@ class CompactLabelRow extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceBetween, // Розташування по краях
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Розташування по краях
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Лейбл
@@ -218,13 +211,12 @@ class CompactLabelRow extends StatelessWidget {
         ),
         // Значення з декорацією
         SizedBox(
-          width: 120.0,
+          width: 130.0,
           height: 40.0,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: backgroundColor ??
-                  (isDark ? BaseColors.headerDark : BaseColors.cardBackground),
+              color: backgroundColor ?? (isDark ? BaseColors.headerDark : BaseColors.cardBackground),
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 if (!isDark)
@@ -239,9 +231,7 @@ class CompactLabelRow extends StatelessWidget {
               child: Text(
                 value,
                 style: BaseFonts.bodyTextBold.copyWith(
-                  color: isDark
-                      ? BaseColors.textPrimary
-                      : BaseColors.textSecondary,
+                  color: isDark ? BaseColors.textPrimary : BaseColors.textSecondary,
                 ),
               ),
             ),
@@ -263,8 +253,7 @@ class CustomSegmentedButton<T> extends StatelessWidget {
     required this.segments,
     required this.selected,
     required this.onSelectionChanged,
-    this.padding =
-        const EdgeInsets.symmetric(horizontal: 0), // Дефолтний педдінг
+    this.padding = const EdgeInsets.symmetric(horizontal: 0), // Дефолтний педдінг
   });
 
   @override
@@ -355,8 +344,7 @@ class OutlinedCustomButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(
-            color: BaseColors.grey), // Використовуємо вже існуючий колір
+        side: const BorderSide(color: BaseColors.grey), // Використовуємо вже існуючий колір
         minimumSize: Size(width, height),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
@@ -441,11 +429,8 @@ class ProportionalButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double width = constraints.maxWidth > 0
-            ? constraints.maxWidth
-            : MediaQuery.of(context).size.width / 4;
-        final double height =
-            (width / aspectRatio).clamp(minHeight, double.infinity);
+        final double width = constraints.maxWidth > 0 ? constraints.maxWidth : MediaQuery.of(context).size.width / 4;
+        final double height = (width / aspectRatio).clamp(minHeight, double.infinity);
 
         return SizedBox(
           width: width,
@@ -562,13 +547,12 @@ class CompactOutlinedButtonRow extends StatelessWidget {
         // Лейбл
         Text(
           label,
-          style:
-              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+          style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
         ),
         // OutlinedButton з можливістю налаштування
         SizedBox(
           height: 40, // Фіксована висота кнопки
-          width: 120, // Фіксована ширина кнопки
+          width: 130, // Збільшена ширина кнопки
           child: OutlinedButton(
             onPressed: onPressed,
             style: OutlinedButton.styleFrom(
@@ -576,8 +560,7 @@ class CompactOutlinedButtonRow extends StatelessWidget {
                 color: borderColor ?? BaseColors.primary, // Колір обводки
                 width: borderWidth, // Товщина обводки
               ),
-              backgroundColor:
-                  backgroundColor ?? Colors.transparent, // Колір фону
+              backgroundColor: backgroundColor ?? Colors.transparent, // Колір фону
               foregroundColor: textColor ?? BaseColors.primary, // Колір тексту
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8), // Закруглені кути
@@ -623,20 +606,17 @@ class CompactElevatedButtonRow extends StatelessWidget {
         // Лейбл
         Text(
           label,
-          style:
-              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+          style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
         ),
         // ElevatedButton з можливістю налаштування
         SizedBox(
           height: 40, // Фіксована висота кнопки
-          width: 120, // Фіксована ширина кнопки
+          width: 130, // Збільшена ширина кнопки
           child: ElevatedButton(
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  backgroundColor ?? BaseColors.primary, // Колір фону кнопки
-              foregroundColor:
-                  textColor ?? BaseColors.white, // Колір тексту кнопки
+              backgroundColor: backgroundColor ?? BaseColors.primary, // Колір фону кнопки
+              foregroundColor: textColor ?? BaseColors.white, // Колір тексту кнопки
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8), // Закруглені кути
                 side: BorderSide(
@@ -852,8 +832,7 @@ class CustomToggleTile extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style:
-                BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+            style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
           ),
         ),
         // Кастомний Switch
@@ -864,8 +843,7 @@ class CustomToggleTile extends StatelessWidget {
             onChanged: onChanged,
             activeColor: BaseColors.primary, // Колір активного thumb
             activeTrackColor: BaseColors.headerDark, // Колір активного треку
-            inactiveThumbColor:
-                BaseColors.primary, // Колір thumb у неактивному стані
+            inactiveThumbColor: BaseColors.primary, // Колір thumb у неактивному стані
             inactiveTrackColor: BaseColors.headerDark, // Фон треку
             trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
               (states) => states.contains(WidgetState.disabled)
@@ -905,8 +883,7 @@ class CustomRadioGroup<T> extends StatelessWidget {
           return RadioListTile<T>(
             title: Text(
               labelBuilder(option),
-              style: BaseFonts.bodyTextLight
-                  .copyWith(color: BaseColors.textPrimary),
+              style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
             ),
             value: option,
             groupValue: selectedValue,
@@ -948,8 +925,7 @@ class CustomDropdown<T> extends StatelessWidget {
       children: [
         Text(
           label,
-          style:
-              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+          style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
@@ -1005,13 +981,12 @@ class CompactDropdown<T> extends StatelessWidget {
         // Лейбл
         Text(
           label,
-          style:
-              BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
+          style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textPrimary),
         ),
         // const SizedBox(width: 12), // Проміжок між лейблом і дропдауном
         // Невеликий фіксований дропдаун
         SizedBox(
-          width: 120, // Фіксована ширина дропдауну
+          width: 130, // Збільшена ширина дропдауну
           height: 40, // Фіксована висота дропдауну
           child: DropdownButtonFormField<T>(
             value: selectedValue,
@@ -1023,8 +998,7 @@ class CompactDropdown<T> extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 8, horizontal: 8), // Внутрішні відступи
+              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8), // Внутрішні відступи
             ),
             items: items
                 .map(
@@ -1038,8 +1012,7 @@ class CompactDropdown<T> extends StatelessWidget {
                 )
                 .toList(),
             onChanged: onChanged,
-            icon:
-                const Icon(Icons.arrow_drop_down, size: 20), // Зменшена іконка
+            icon: const Icon(Icons.arrow_drop_down, size: 20), // Зменшена іконка
           ),
         ),
       ],
@@ -1091,13 +1064,11 @@ class CustomKeyValue extends StatelessWidget {
         children: [
           Text(
             keyText,
-            style: BaseFonts.bodyTextLight
-                .copyWith(color: BaseColors.textSecondary),
+            style: BaseFonts.bodyTextLight.copyWith(color: BaseColors.textSecondary),
           ),
           Text(
             valueText,
-            style:
-                BaseFonts.bodyTextBold.copyWith(color: BaseColors.textPrimary),
+            style: BaseFonts.bodyTextBold.copyWith(color: BaseColors.textPrimary),
           ),
         ],
       ),
