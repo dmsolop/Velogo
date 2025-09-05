@@ -7,7 +7,6 @@ import '../../../../shared/base_widgets.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/dev_helpers.dart';
 import '../../data/models/route_logic/route_section.dart';
-import '../../data/datasources/route_difficulty_service.dart';
 import '../../../weather/data/datasources/weather_service.dart';
 import '../../data/models/road_surface.dart';
 import '../../../weather/data/models/weather_data.dart';
@@ -27,7 +26,6 @@ class _RouteScreenState extends State<RouteScreen> {
   LatLng? _lastPoint;
 
   // Нові поля для системи складності
-  final RouteDifficultyService _routeDifficultyService = RouteDifficultyService();
   final WeatherService _weatherService = WeatherService();
   List<WeatherData> _weatherDataList = [];
   double _totalDifficulty = 0.0;
@@ -252,9 +250,9 @@ class _RouteScreenState extends State<RouteScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Level: ${_routeDifficultyService.getDifficultyLevel(_totalDifficulty)}",
+                  "Level: ${_getDifficultyLevel(_totalDifficulty)}",
                   style: TextStyle(
-                    color: Color(_routeDifficultyService.getDifficultyColor(_totalDifficulty)),
+                    color: Color(_getDifficultyColor(_totalDifficulty)),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -276,10 +274,13 @@ class _RouteScreenState extends State<RouteScreen> {
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
       final newSection = RouteSection(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         coordinates: [_lastPoint!, point],
+        distance: _calculateDistance(_lastPoint!.latitude, _lastPoint!.longitude, point.latitude, point.longitude),
         elevationGain: _calculateElevationGain(_lastPoint!, point),
         surfaceType: "asphalt",
         windEffect: _calculateWindEffect(_lastPoint!, point),
+        averageSpeed: 15.0,
       );
       setState(() {
         _sections.add(newSection);
@@ -319,8 +320,38 @@ class _RouteScreenState extends State<RouteScreen> {
   double _calculateWindEffect(LatLng start, LatLng end) => 0.0;
 
   Color getColorBasedOnDifficulty(double difficulty) {
-    final colorValue = _routeDifficultyService.getDifficultyColor(difficulty);
+    final colorValue = _getDifficultyColor(difficulty);
     return Color(colorValue);
+  }
+
+  /// Отримання рівня складності (текстовий опис)
+  String _getDifficultyLevel(double difficulty) {
+    if (difficulty < 2.0) {
+      return 'Легкий';
+    } else if (difficulty < 4.0) {
+      return 'Помірний';
+    } else if (difficulty < 6.0) {
+      return 'Складний';
+    } else if (difficulty < 8.0) {
+      return 'Дуже складний';
+    } else {
+      return 'Екстремальний';
+    }
+  }
+
+  /// Отримання кольору складності
+  int _getDifficultyColor(double difficulty) {
+    if (difficulty < 2.0) {
+      return 0xFF4CAF50; // Зелений
+    } else if (difficulty < 4.0) {
+      return 0xFFFF9800; // Помаранчевий
+    } else if (difficulty < 6.0) {
+      return 0xFFFF5722; // Червоний
+    } else if (difficulty < 8.0) {
+      return 0xFF9C27B0; // Фіолетовий
+    } else {
+      return 0xFF000000; // Чорний
+    }
   }
 
   /// Розрахунок складності маршруту з використанням нової системи
@@ -395,12 +426,8 @@ class _RouteScreenState extends State<RouteScreen> {
       }
 
       // Розраховуємо загальну складність
-      final difficulty = _routeDifficultyService.calculateRouteDifficulty(
-        weatherDataList,
-        roadSurfaces,
-        routePoints,
-        DateTime.now(),
-      );
+      // TODO: Використовувати новий RouteComplexityService
+      final difficulty = 0.0;
 
       setState(() {
         _totalDifficulty = difficulty;

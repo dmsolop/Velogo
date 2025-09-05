@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 import '../../data/models/route_logic/route_section.dart';
-import '../../data/datasources/route_difficulty_service.dart';
 import '../../../weather/data/datasources/weather_service.dart';
 import '../../data/models/road_surface.dart';
 import '../../../weather/data/models/weather_data.dart';
+import '../../domain/entities/route_entity.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
+import '../../../../core/services/route_complexity_service.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/base_widgets.dart';
 import '../../../../shared/dev_helpers.dart';
@@ -24,11 +27,16 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   LatLng? _lastPoint;
   bool _isDrawingMode = false;
 
-  // Нові поля для системи складності
-  final RouteDifficultyService _routeDifficultyService = RouteDifficultyService();
+  // Поля для системи складності
   final WeatherService _weatherService = WeatherService();
-  double _totalDifficulty = 0.0;
+  double _routeDifficulty = 0.0;
+  String _difficultyLevel = 'Помірний';
+  Color _difficultyColor = Colors.orange;
   bool _isLoadingDifficulty = false;
+
+  // Контролери для форми
+  final TextEditingController _routeNameController = TextEditingController();
+  final TextEditingController _routeDescriptionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +88,13 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
       final newSection = RouteSection(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         coordinates: [_lastPoint!, point],
+        distance: _calculateDistance(_lastPoint!.latitude, _lastPoint!.longitude, point.latitude, point.longitude),
         elevationGain: _calculateElevationGain(_lastPoint!, point),
         surfaceType: "asphalt",
         windEffect: _calculateWindEffect(_lastPoint!, point),
+        averageSpeed: 15.0,
       );
       setState(() {
         _sections.add(newSection);
@@ -217,16 +228,16 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
               )
             else ...[
               CustomText(
-                text: "Difficulty: ${_totalDifficulty.toStringAsFixed(2)}",
+                text: "Difficulty: ${_routeDifficulty.toStringAsFixed(2)}",
                 fontSize: 14,
                 color: BaseColors.white,
                 fontWeight: FontWeight.bold,
               ),
               const SizedBox(height: 2),
               CustomText(
-                text: "Level: ${_routeDifficultyService.getDifficultyLevel(_totalDifficulty)}",
+                text: "Level: $_difficultyLevel",
                 fontSize: 12,
-                color: Color(_routeDifficultyService.getDifficultyColor(_totalDifficulty)),
+                color: _difficultyColor,
                 fontWeight: FontWeight.w500,
               ),
             ],
@@ -242,7 +253,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
 
   double _calculateTotalDistance() => _sections.fold(0, (sum, section) => sum + 1.0);
 
-  /// Розрахунок складності маршруту з використанням нової системи
+  /// Розрахунок складності маршруту з використанням нового RouteComplexityService
   Future<void> _calculateRouteDifficulty() async {
     if (_sections.isEmpty) return;
 
@@ -251,86 +262,179 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
     });
 
     try {
-      // Конвертуємо RouteSection в формат для RouteDifficultyService
-      final routePoints = <Map<String, double>>[];
-      final weatherDataList = <WeatherData>[];
-      final roadSurfaces = <RoadSurface>[];
+      // Створюємо RouteEntity з поточних секцій
+      final routeEntity = _createRouteEntityFromSections();
 
-      for (final section in _sections) {
-        for (final coordinate in section.coordinates) {
-          routePoints.add({
-            'lat': coordinate.latitude,
-            'lon': coordinate.longitude,
-            'elevation': section.elevationGain,
-            'slope': _calculateSlope(section),
-          });
-
-          // Отримуємо погодні дані для цієї точки
-          try {
-            final weatherData = await _weatherService.getWeather(
-              coordinate.latitude,
-              coordinate.longitude,
-            );
-
-            final weather = WeatherData(
-              lat: coordinate.latitude,
-              lon: coordinate.longitude,
-              windSpeed: weatherData['hourly']['wind_speed'][0].toDouble(),
-              windDirection: weatherData['hourly']['wind_direction'][0].toDouble(),
-              windGust: weatherData['hourly']['wind_gust'][0].toDouble(),
-              precipitation: weatherData['hourly']['precipitation']?[0]?.toDouble() ?? 0.0,
-              precipitationType: weatherData['hourly']['precipitation_type']?[0]?.toDouble() ?? 0.0,
-              humidity: weatherData['hourly']['humidity']?[0]?.toDouble() ?? 50.0,
-              temperature: weatherData['hourly']['temperature']?[0]?.toDouble() ?? 20.0,
-              visibility: weatherData['hourly']['visibility']?[0]?.toDouble() ?? 10.0,
-              roadCondition: 0.0,
-              timestamp: DateTime.now(),
-              source: "API",
-            );
-
-            weatherDataList.add(weather);
-          } catch (e) {
-            // Якщо не вдалося отримати погоду, використовуємо дефолтні дані
-            weatherDataList.add(WeatherData(
-              lat: coordinate.latitude,
-              lon: coordinate.longitude,
-              windSpeed: 5.0,
-              windDirection: 0.0,
-              windGust: 7.0,
-              precipitation: 0.0,
-              precipitationType: 0.0,
-              humidity: 50.0,
-              temperature: 20.0,
-              visibility: 10.0,
-              roadCondition: 0.0,
-              timestamp: DateTime.now(),
-              source: "Default",
-            ));
-          }
-
-          // Визначаємо тип покриття
-          roadSurfaces.add(_getRoadSurfaceFromString(section.surfaceType));
-        }
+      // Отримуємо профіль користувача
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        setState(() {
+          _isLoadingDifficulty = false;
+        });
+        return;
       }
 
-      // Розраховуємо загальну складність
-      final difficulty = _routeDifficultyService.calculateRouteDifficulty(
-        weatherDataList,
-        roadSurfaces,
-        routePoints,
-        DateTime.now(),
+      // TODO: Отримати профіль користувача через ProfileRepository
+      // Поки що створюємо базовий профіль
+      final profile = ProfileEntity(
+        id: user.uid,
+        name: user.displayName ?? '',
+        email: user.email ?? '',
+        fitnessLevel: 'intermediate', // TODO: Отримати з профілю
+        age: 30, // TODO: Отримати з профілю
       );
 
-      setState(() {
-        _totalDifficulty = difficulty;
-        _isLoadingDifficulty = false;
-      });
+      // Використовуємо новий RouteComplexityService
+      final complexityService = RouteComplexityService();
+      final result = await complexityService.calculateRouteComplexity(
+        route: routeEntity,
+        userProfile: profile,
+        startTime: DateTime.now(),
+        useHealthData: true,
+      );
+
+      result.fold(
+        (failure) {
+          // Обробка помилки
+          setState(() {
+            _isLoadingDifficulty = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Помилка розрахунку складності: ${failure.message}')),
+          );
+        },
+        (complexityResult) {
+          // Оновлюємо UI з результатами
+          setState(() {
+            _isLoadingDifficulty = false;
+            _routeDifficulty = complexityResult.personalizedDifficulty;
+            _difficultyLevel = complexityResult.difficultyLevel;
+            _difficultyColor = Color(complexityResult.difficultyColor);
+          });
+
+          // Показуємо рекомендації
+          final recommendations = complexityService.getRecommendations(complexityResult);
+          if (recommendations.isNotEmpty) {
+            _showRecommendationsDialog(recommendations);
+          }
+        },
+      );
     } catch (e) {
       setState(() {
         _isLoadingDifficulty = false;
       });
-      print('Error calculating route difficulty: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Помилка: $e')),
+      );
     }
+  }
+
+  /// Створення RouteEntity з поточних секцій
+  RouteEntity _createRouteEntityFromSections() {
+    final coordinates = <LatLng>[];
+    final sections = <RouteSectionEntity>[];
+    double totalDistance = 0.0;
+    double totalElevationGain = 0.0;
+
+    for (final section in _sections) {
+      coordinates.addAll(section.coordinates);
+      totalDistance += section.distance;
+      totalElevationGain += section.elevationGain;
+
+      // Створюємо RouteSectionEntity
+      final routeSection = RouteSectionEntity(
+        id: section.id,
+        coordinates: section.coordinates,
+        distance: section.distance,
+        elevationGain: section.elevationGain,
+        surfaceType: _mapToRoadSurfaceType(section.surfaceType),
+        windEffect: section.windEffect,
+        difficulty: section.difficulty,
+        averageSpeed: section.averageSpeed,
+        notes: section.notes,
+      );
+      sections.add(routeSection);
+    }
+
+    return RouteEntity(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _routeNameController.text.isNotEmpty ? _routeNameController.text : 'Новий маршрут',
+      description: _routeDescriptionController.text,
+      coordinates: coordinates,
+      totalDistance: totalDistance,
+      totalElevationGain: totalElevationGain,
+      averageDifficulty: _routeDifficulty,
+      difficulty: _mapToRouteDifficulty(_difficultyLevel),
+      sections: sections,
+      pointsOfInterest: [],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Мапінг типу покриття
+  RoadSurfaceType _mapToRoadSurfaceType(String surfaceType) {
+    switch (surfaceType.toLowerCase()) {
+      case 'asphalt':
+        return RoadSurfaceType.asphalt;
+      case 'concrete':
+        return RoadSurfaceType.concrete;
+      case 'gravel':
+        return RoadSurfaceType.gravel;
+      case 'dirt':
+        return RoadSurfaceType.dirt;
+      case 'cobblestone':
+        return RoadSurfaceType.cobblestone;
+      case 'grass':
+        return RoadSurfaceType.grass;
+      case 'sand':
+        return RoadSurfaceType.sand;
+      default:
+        return RoadSurfaceType.asphalt;
+    }
+  }
+
+  /// Мапінг рівня складності
+  RouteDifficulty _mapToRouteDifficulty(String difficultyLevel) {
+    switch (difficultyLevel) {
+      case 'Легкий':
+        return RouteDifficulty.easy;
+      case 'Помірний':
+        return RouteDifficulty.moderate;
+      case 'Складний':
+        return RouteDifficulty.hard;
+      case 'Дуже складний':
+      case 'Екстремальний':
+        return RouteDifficulty.expert;
+      default:
+        return RouteDifficulty.moderate;
+    }
+  }
+
+  /// Показ діалогу з рекомендаціями
+  void _showRecommendationsDialog(List<String> recommendations) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Рекомендації'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: recommendations
+              .map((rec) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Text('• $rec'),
+                  ))
+              .toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Зрозуміло'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Розрахунок уклону для секції
@@ -390,7 +494,16 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   }
 
   Color getColorBasedOnDifficulty(double difficulty) {
-    final colorValue = _routeDifficultyService.getDifficultyColor(difficulty);
-    return Color(colorValue);
+    if (difficulty < 2.0) {
+      return const Color(0xFF4CAF50); // Зелений
+    } else if (difficulty < 4.0) {
+      return const Color(0xFFFF9800); // Помаранчевий
+    } else if (difficulty < 6.0) {
+      return const Color(0xFFFF5722); // Червоний
+    } else if (difficulty < 8.0) {
+      return const Color(0xFF9C27B0); // Фіолетовий
+    } else {
+      return const Color(0xFF000000); // Чорний
+    }
   }
 }

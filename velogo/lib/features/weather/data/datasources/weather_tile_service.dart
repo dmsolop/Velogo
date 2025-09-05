@@ -3,7 +3,6 @@ import 'package:hive/hive.dart';
 import '../models/weather_data.dart';
 import '../../../map/data/models/road_surface.dart';
 import 'weather_service.dart';
-import 'road_condition_service.dart';
 import '../../../../core/services/log_service.dart';
 
 /// Тайл погоди для регіону
@@ -167,13 +166,47 @@ class WeatherTileService {
         source: 'Precise',
       );
 
-      // Розраховуємо стан дороги через окремий сервіс
-      final roadCondition = RoadConditionService().calculateRoadCondition(weather, surface);
+      // Розраховуємо стан дороги через новий сервіс
+      final roadCondition = _calculateRoadCondition(weather, surface);
 
       return weather.copyWith(roadCondition: roadCondition);
     } catch (e) {
       await LogService.log('❌ [WeatherTileService] Помилка точкового запиту: $e');
       return null;
+    }
+  }
+
+  /// Розрахунок стану дороги на основі погоди та типу покриття
+  double _calculateRoadCondition(WeatherData weather, RoadSurface surface) {
+    try {
+      if (weather.precipitation == 0.0) {
+        return 0.0; // Сухо
+      }
+
+      // Базовий стан залежно від типу опадів
+      double baseCondition = weather.precipitationType == 1 ? 1.0 : 2.0; // 1=дощ, 2=сніг
+
+      // Корекція залежно від типу покриття
+      baseCondition *= surface.precipitationImpact;
+
+      // Додатковий вплив інтенсивності опадів
+      if (weather.precipitation > 10.0) {
+        baseCondition *= 1.2; // Сильні опади
+      }
+
+      // Вплив вологості
+      if (weather.humidity > 80.0) {
+        baseCondition += 0.3;
+      }
+
+      // Вплив температури (для снігу)
+      if (weather.precipitationType == 2.0 && weather.temperature > 0.0) {
+        baseCondition *= 1.5; // Танець сніг
+      }
+
+      return baseCondition;
+    } catch (e) {
+      return 0.0;
     }
   }
 

@@ -64,6 +64,9 @@ import 'package:velogo/features/map/domain/usecases/search_markers_usecase.dart'
 import 'package:velogo/features/map/domain/usecases/get_wind_layer_usecase.dart';
 import 'package:velogo/features/map/presentation/bloc/route/route_cubit.dart';
 import 'package:velogo/features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart';
+import 'package:velogo/core/services/route_complexity_service.dart';
+import 'package:velogo/core/services/health_integration_service.dart';
+import 'package:velogo/core/services/personalization_engine.dart';
 
 final sl = GetIt.instance;
 
@@ -90,6 +93,11 @@ Future<void> _initCore() async {
   // Services
   sl.registerLazySingleton<LogService>(() => LogService());
   sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
+
+  // Core services for route complexity
+  sl.registerLazySingleton<RouteComplexityService>(() => RouteComplexityService());
+  sl.registerLazySingleton<HealthIntegrationService>(() => HealthIntegrationServiceFactory.create());
+  sl.registerLazySingleton<PersonalizationEngine>(() => PersonalizationEngine());
 
   // Ініціалізація сервісів
   await LogService.init(); // Fixed: Direct static call
