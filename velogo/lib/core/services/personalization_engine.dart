@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'health_metrics.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
-import '../../features/weather/data/models/weather_data.dart';
-import '../../features/map/data/models/road_surface.dart';
 import '../services/log_service.dart';
 
 /// Двигун персоналізації для розрахунку індивідуальної складності маршруту
@@ -16,8 +14,6 @@ class PersonalizationEngine {
     required double baseDifficulty,
     required ProfileEntity profile,
     HealthMetrics? healthMetrics,
-    WeatherData? currentWeather,
-    RoadSurface? currentSurface,
   }) {
     try {
       LogService.log('🎯 [PersonalizationEngine] Розрахунок персоналізованої складності');
@@ -37,20 +33,6 @@ class PersonalizationEngine {
         final healthFactors = _calculateHealthFactors(healthMetrics);
         factors.addAll(healthFactors);
         personalizationFactor *= _getHealthMultiplier(healthFactors);
-      }
-
-      // 3. Фактори поточної погоди
-      if (currentWeather != null) {
-        final weatherFactors = _calculateWeatherFactors(currentWeather);
-        factors.addAll(weatherFactors);
-        personalizationFactor *= _getWeatherMultiplier(weatherFactors);
-      }
-
-      // 4. Фактори покриття дороги
-      if (currentSurface != null) {
-        final surfaceFactors = _calculateSurfaceFactors(currentSurface);
-        factors.addAll(surfaceFactors);
-        personalizationFactor *= _getSurfaceMultiplier(surfaceFactors);
       }
 
       final personalizedDifficulty = baseDifficulty * personalizationFactor;
@@ -253,84 +235,6 @@ class PersonalizationEngine {
     return factors;
   }
 
-  /// Розрахунок факторів погоди
-  List<DifficultyFactor> _calculateWeatherFactors(WeatherData weather) {
-    final factors = <DifficultyFactor>[];
-
-    // Температура
-    if (weather.temperature < 5.0) {
-      factors.add(DifficultyFactor(
-        name: 'Температура',
-        description: 'Холодна погода - знижена продуктивність',
-        impact: 0.1,
-        category: 'weather',
-        isPositive: false,
-      ));
-    } else if (weather.temperature > 30.0) {
-      factors.add(DifficultyFactor(
-        name: 'Температура',
-        description: 'Спекотна погода - знижена витривалість',
-        impact: 0.15,
-        category: 'weather',
-        isPositive: false,
-      ));
-    }
-
-    // Видимість
-    if (weather.visibility < 5.0) {
-      factors.add(DifficultyFactor(
-        name: 'Видимість',
-        description: 'Погана видимість - знижена безпека',
-        impact: 0.1,
-        category: 'weather',
-        isPositive: false,
-      ));
-    }
-
-    return factors;
-  }
-
-  /// Розрахунок факторів покриття дороги
-  List<DifficultyFactor> _calculateSurfaceFactors(RoadSurface surface) {
-    final factors = <DifficultyFactor>[];
-
-    // Різні типи покриття мають різний вплив
-    switch (surface) {
-      case RoadSurface.gravel:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Гравій - знижена швидкість',
-          impact: 0.1,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      case RoadSurface.dirt:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Ґрунт - значно знижена швидкість',
-          impact: 0.2,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      case RoadSurface.mud:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Багно - критична складність',
-          impact: 0.3,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      default:
-        // Асфальт, бетон - без додаткового впливу
-        break;
-    }
-
-    return factors;
-  }
-
   /// Отримання множника профілю
   double _getProfileMultiplier(List<DifficultyFactor> factors) {
     double multiplier = 1.0;
@@ -347,28 +251,6 @@ class PersonalizationEngine {
     double multiplier = 1.0;
     for (final factor in factors) {
       if (factor.category == 'health') {
-        multiplier += factor.impact;
-      }
-    }
-    return max(0.5, min(2.0, multiplier)); // Обмежуємо діапазон
-  }
-
-  /// Отримання множника погоди
-  double _getWeatherMultiplier(List<DifficultyFactor> factors) {
-    double multiplier = 1.0;
-    for (final factor in factors) {
-      if (factor.category == 'weather') {
-        multiplier += factor.impact;
-      }
-    }
-    return max(0.5, min(2.0, multiplier)); // Обмежуємо діапазон
-  }
-
-  /// Отримання множника покриття
-  double _getSurfaceMultiplier(List<DifficultyFactor> factors) {
-    double multiplier = 1.0;
-    for (final factor in factors) {
-      if (factor.category == 'surface') {
         multiplier += factor.impact;
       }
     }

@@ -5,8 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 import '../../data/models/route_logic/route_section.dart';
 import '../../../weather/data/datasources/weather_service.dart';
-import '../../data/models/road_surface.dart';
-import '../../../weather/data/models/weather_data.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../../core/services/route_complexity_service.dart';
@@ -435,43 +433,6 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
         ],
       ),
     );
-  }
-
-  /// Розрахунок уклону для секції
-  double _calculateSlope(RouteSection section) {
-    if (section.coordinates.length < 2) return 0.0;
-
-    // Спрощений розрахунок уклону
-    final elevationGain = section.elevationGain;
-    final distance = _calculateDistance(
-      section.coordinates.first.latitude,
-      section.coordinates.first.longitude,
-      section.coordinates.last.latitude,
-      section.coordinates.last.longitude,
-    );
-
-    if (distance == 0) return 0.0;
-
-    // Конвертуємо в градуси
-    return (elevationGain / (distance * 1000)) * 100; // Відсотки
-  }
-
-  /// Конвертація типу покриття з рядка в enum
-  RoadSurface _getRoadSurfaceFromString(String surfaceType) {
-    switch (surfaceType.toLowerCase()) {
-      case 'asphalt':
-        return RoadSurface.asphalt;
-      case 'concrete':
-        return RoadSurface.concrete;
-      case 'gravel':
-        return RoadSurface.gravel;
-      case 'dirt':
-        return RoadSurface.dirt;
-      case 'mud':
-        return RoadSurface.mud;
-      default:
-        return RoadSurface.asphalt;
-    }
   }
 
   /// Розрахунок відстані між двома точками

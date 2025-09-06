@@ -5,7 +5,6 @@ import 'personalization_engine.dart';
 import 'health_integration_service.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/weather/data/models/weather_data.dart';
-import '../../features/map/data/models/road_surface.dart';
 import '../../features/map/domain/entities/route_entity.dart';
 import '../services/log_service.dart';
 
@@ -76,8 +75,6 @@ class RouteComplexityService {
         baseDifficulty: baseDifficulty,
         profile: userProfile,
         healthMetrics: healthMetrics,
-        currentWeather: weatherData,
-        currentSurface: _mapToRoadSurface(section.surfaceType),
       );
 
       return Right(personalizedResult);
@@ -152,6 +149,139 @@ class RouteComplexityService {
     return difficulty;
   }
 
+  /// Розрахунок факторів погоди для детального аналізу
+  List<DifficultyFactor> _calculateWeatherFactors(WeatherData weather) {
+    final factors = <DifficultyFactor>[];
+
+    // Температура
+    if (weather.temperature < 5.0) {
+      factors.add(DifficultyFactor(
+        name: 'Температура',
+        description: 'Холодна погода - знижена продуктивність',
+        impact: 0.1,
+        category: 'weather',
+        isPositive: false,
+      ));
+    } else if (weather.temperature > 30.0) {
+      factors.add(DifficultyFactor(
+        name: 'Температура',
+        description: 'Спекотна погода - знижена витривалість',
+        impact: 0.15,
+        category: 'weather',
+        isPositive: false,
+      ));
+    }
+
+    // Вітер
+    if (weather.windSpeed > 15) {
+      factors.add(DifficultyFactor(
+        name: 'Вітер',
+        description: 'Сильний вітер - знижена швидкість',
+        impact: 0.2,
+        category: 'weather',
+        isPositive: false,
+      ));
+    } else if (weather.windSpeed > 10) {
+      factors.add(DifficultyFactor(
+        name: 'Вітер',
+        description: 'Помірний вітер - незначний вплив',
+        impact: 0.1,
+        category: 'weather',
+        isPositive: false,
+      ));
+    }
+
+    // Опади
+    if (weather.precipitation > 5) {
+      factors.add(DifficultyFactor(
+        name: 'Опади',
+        description: 'Дощ - знижена безпека та швидкість',
+        impact: 0.3,
+        category: 'weather',
+        isPositive: false,
+      ));
+    } else if (weather.precipitation > 0) {
+      factors.add(DifficultyFactor(
+        name: 'Опади',
+        description: 'Легкі опади - незначний вплив',
+        impact: 0.1,
+        category: 'weather',
+        isPositive: false,
+      ));
+    }
+
+    // Видимість
+    if (weather.visibility < 5.0) {
+      factors.add(DifficultyFactor(
+        name: 'Видимість',
+        description: 'Погана видимість - знижена безпека',
+        impact: 0.1,
+        category: 'weather',
+        isPositive: false,
+      ));
+    }
+
+    return factors;
+  }
+
+  /// Розрахунок факторів покриття дороги для детального аналізу
+  List<DifficultyFactor> _calculateSurfaceFactors(RoadSurfaceType surfaceType) {
+    final factors = <DifficultyFactor>[];
+
+    switch (surfaceType) {
+      case RoadSurfaceType.gravel:
+        factors.add(DifficultyFactor(
+          name: 'Покриття',
+          description: 'Гравій - знижена швидкість',
+          impact: 0.2,
+          category: 'surface',
+          isPositive: false,
+        ));
+        break;
+      case RoadSurfaceType.dirt:
+        factors.add(DifficultyFactor(
+          name: 'Покриття',
+          description: 'Ґрунт - значно знижена швидкість',
+          impact: 0.4,
+          category: 'surface',
+          isPositive: false,
+        ));
+        break;
+      case RoadSurfaceType.cobblestone:
+        factors.add(DifficultyFactor(
+          name: 'Покриття',
+          description: 'Бруківка - висока вібрація',
+          impact: 0.3,
+          category: 'surface',
+          isPositive: false,
+        ));
+        break;
+      case RoadSurfaceType.grass:
+        factors.add(DifficultyFactor(
+          name: 'Покриття',
+          description: 'Трава - дуже важко',
+          impact: 0.5,
+          category: 'surface',
+          isPositive: false,
+        ));
+        break;
+      case RoadSurfaceType.sand:
+        factors.add(DifficultyFactor(
+          name: 'Покриття',
+          description: 'Пісок - екстремально важко',
+          impact: 0.8,
+          category: 'surface',
+          isPositive: false,
+        ));
+        break;
+      default:
+        // Асфальт, бетон - без додаткового впливу
+        break;
+    }
+
+    return factors;
+  }
+
   /// Фактор відстані
   double _calculateDistanceFactor(double distance) {
     if (distance < 10) return 1.0; // Короткі маршрути
@@ -215,26 +345,6 @@ class RouteComplexityService {
     }
   }
 
-  /// Мапінг типу покриття
-  RoadSurface _mapToRoadSurface(RoadSurfaceType surfaceType) {
-    switch (surfaceType) {
-      case RoadSurfaceType.asphalt:
-        return RoadSurface.asphalt;
-      case RoadSurfaceType.concrete:
-        return RoadSurface.concrete;
-      case RoadSurfaceType.gravel:
-        return RoadSurface.gravel;
-      case RoadSurfaceType.dirt:
-        return RoadSurface.dirt;
-      case RoadSurfaceType.cobblestone:
-        return RoadSurface.asphalt; // Найближчий аналог
-      case RoadSurfaceType.grass:
-        return RoadSurface.dirt; // Найближчий аналог
-      case RoadSurfaceType.sand:
-        return RoadSurface.mud; // Найближчий аналог
-    }
-  }
-
   /// Отримання рекомендацій на основі складності
   List<String> getRecommendations(PersonalizedDifficultyResult result) {
     final recommendations = <String>[];
@@ -283,6 +393,35 @@ class RouteComplexityService {
     }
 
     return recommendations;
+  }
+
+  /// Отримання детальних факторів складності для секції
+  List<DifficultyFactor> getDetailedComplexityFactors({
+    required RouteSectionEntity section,
+    WeatherData? weatherData,
+  }) {
+    final factors = <DifficultyFactor>[];
+
+    // Фактори погоди
+    if (weatherData != null) {
+      factors.addAll(_calculateWeatherFactors(weatherData));
+    }
+
+    // Фактори покриття
+    factors.addAll(_calculateSurfaceFactors(section.surfaceType));
+
+    // Фактори підйому
+    if (section.elevationGain > 50) {
+      factors.add(DifficultyFactor(
+        name: 'Підйом',
+        description: 'Підйом ${section.elevationGain.toStringAsFixed(0)}м - збільшена складність',
+        impact: (section.elevationGain / 100) * 0.1,
+        category: 'elevation',
+        isPositive: false,
+      ));
+    }
+
+    return factors;
   }
 
   /// Отримання статистики складності
