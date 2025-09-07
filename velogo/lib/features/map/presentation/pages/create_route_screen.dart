@@ -4,7 +4,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 import '../../data/models/route_logic/route_section.dart';
-import '../../../weather/data/datasources/weather_service.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../../core/services/route_complexity_service.dart';
@@ -26,7 +25,6 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   bool _isDrawingMode = false;
 
   // Поля для системи складності
-  final WeatherService _weatherService = WeatherService();
   double _routeDifficulty = 0.0;
   String _difficultyLevel = 'Помірний';
   Color _difficultyColor = Colors.orange;
