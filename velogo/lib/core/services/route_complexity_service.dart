@@ -1,8 +1,11 @@
+import 'dart:math';
 import 'package:dartz/dartz.dart';
+import 'package:latlong2/latlong.dart';
 import '../error/failures.dart';
 import 'health_metrics.dart';
 import 'personalization_engine.dart';
 import 'health_integration_service.dart';
+import 'local_storage_service.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/weather/data/models/weather_data.dart';
 import '../../features/map/domain/entities/route_entity.dart';
@@ -16,6 +19,7 @@ class RouteComplexityService {
 
   final PersonalizationEngine _personalizationEngine = PersonalizationEngine();
   final HealthIntegrationService _healthIntegrationService = HealthIntegrationServiceFactory.create();
+  final LocalStorageService _localStorage = LocalStorageService();
 
   /// Розрахунок загальної складності маршруту з персоналізацією
   Future<Either<Failure, PersonalizedDifficultyResult>> calculateRouteComplexity({
@@ -23,15 +27,25 @@ class RouteComplexityService {
     required ProfileEntity userProfile,
     DateTime? startTime,
     bool useHealthData = true,
+    bool useCache = true,
   }) async {
     try {
       LogService.log('🎯 [RouteComplexityService] Розрахунок складності маршруту: ${route.name}');
       LogService.log('👤 [RouteComplexityService] Користувач: ${userProfile.name} (${userProfile.fitnessLevel})');
 
-      // 1. Розраховуємо базову складність маршруту
+      // 1. Перевірка кешу (якщо увімкнено)
+      if (useCache) {
+        final cachedResult = _getCachedComplexityResult(route.id);
+        if (cachedResult != null && _isCacheValid(route.id)) {
+          LogService.log('💾 [RouteComplexityService] Використовуємо кешований результат для маршруту: ${route.id}');
+          return Right(cachedResult);
+        }
+      }
+
+      // 2. Розраховуємо базову складність маршруту
       final baseDifficulty = _calculateBaseRouteDifficulty(route);
 
-      // 2. Отримуємо health-метрики (якщо дозволено)
+      // 3. Отримуємо health-метрики (якщо дозволено)
       HealthMetrics? healthMetrics;
       if (useHealthData && userProfile.healthDataIntegration) {
         final healthResult = await _healthIntegrationService.getCurrentHealthMetrics();
@@ -41,12 +55,17 @@ class RouteComplexityService {
         );
       }
 
-      // 3. Розраховуємо персоналізовану складність
+      // 4. Розраховуємо персоналізовану складність
       final personalizedResult = _personalizationEngine.calculatePersonalizedDifficulty(
         baseDifficulty: baseDifficulty,
         profile: userProfile,
         healthMetrics: healthMetrics,
       );
+
+      // 5. Збереження в кеш
+      if (useCache) {
+        await _cacheComplexityResult(route.id, personalizedResult);
+      }
 
       LogService.log('✅ [RouteComplexityService] Розрахунок завершено: ${personalizedResult.personalizedDifficulty}');
 
@@ -138,19 +157,24 @@ class RouteComplexityService {
   double _calculateBaseSectionDifficulty(RouteSectionEntity section, WeatherData? weather) {
     double difficulty = section.difficulty;
 
-    // Корекція на погоду
+    // 1. Розрахунок впливу вітру (векторний)
     if (weather != null) {
-      difficulty *= _calculateWeatherFactor(weather);
+      final routeBearing = _calculateRouteBearing(section.coordinates);
+      final windImpact = _calculateWindEffect(weather, routeBearing);
+      difficulty += windImpact;
     }
 
-    // Корекція на покриття
-    difficulty *= _calculateSurfaceFactor(section.surfaceType);
+    // 2. Розрахунок впливу покриття + дощу
+    difficulty *= _calculateSurfaceWeatherEffect(section.surfaceType, weather);
+
+    // 3. Розрахунок впливу підйому
+    difficulty *= _calculateElevationFactor(section.elevationGain);
 
     return difficulty;
   }
 
   /// Розрахунок факторів погоди для детального аналізу
-  List<DifficultyFactor> _calculateWeatherFactors(WeatherData weather) {
+  List<DifficultyFactor> _calculateWeatherFactors(WeatherData weather, double routeBearing) {
     final factors = <DifficultyFactor>[];
 
     // Температура
@@ -172,39 +196,26 @@ class RouteComplexityService {
       ));
     }
 
-    // Вітер
-    if (weather.windSpeed > 15) {
+    // Вітер (векторний розрахунок)
+    if (weather.windSpeed > 0) {
+      final windImpact = _calculateWindEffect(weather, routeBearing);
+      final windDirection = _getWindDirectionDescription(weather.windDirection, routeBearing);
+
       factors.add(DifficultyFactor(
         name: 'Вітер',
-        description: 'Сильний вітер - знижена швидкість',
-        impact: 0.2,
+        description: '$windDirection - ${windImpact > 0 ? 'збільшує' : 'зменшує'} складність',
+        impact: windImpact.abs(),
         category: 'weather',
-        isPositive: false,
-      ));
-    } else if (weather.windSpeed > 10) {
-      factors.add(DifficultyFactor(
-        name: 'Вітер',
-        description: 'Помірний вітер - незначний вплив',
-        impact: 0.1,
-        category: 'weather',
-        isPositive: false,
+        isPositive: windImpact < 0, // Негативний вплив = позитивний фактор
       ));
     }
 
-    // Опади
-    if (weather.precipitation > 5) {
+    // Опади (тепер враховуються в покритті)
+    if (weather.precipitation > 0) {
       factors.add(DifficultyFactor(
         name: 'Опади',
-        description: 'Дощ - знижена безпека та швидкість',
-        impact: 0.3,
-        category: 'weather',
-        isPositive: false,
-      ));
-    } else if (weather.precipitation > 0) {
-      factors.add(DifficultyFactor(
-        name: 'Опади',
-        description: 'Легкі опади - незначний вплив',
-        impact: 0.1,
+        description: 'Дощ впливає на покриття дороги',
+        impact: weather.precipitation * 0.02,
         category: 'weather',
         isPositive: false,
       ));
@@ -224,62 +235,77 @@ class RouteComplexityService {
     return factors;
   }
 
+  /// Отримання опису напрямку вітру відносно маршруту
+  String _getWindDirectionDescription(double windDirection, double routeBearing) {
+    double angleDifference = (routeBearing - windDirection).abs();
+    if (angleDifference > 180) {
+      angleDifference = 360 - angleDifference;
+    }
+
+    if (angleDifference <= 45) {
+      return 'Попутний вітер';
+    } else if (angleDifference <= 135) {
+      return 'Боковий вітер';
+    } else {
+      return 'Зустрічний вітер';
+    }
+  }
+
   /// Розрахунок факторів покриття дороги для детального аналізу
-  List<DifficultyFactor> _calculateSurfaceFactors(RoadSurfaceType surfaceType) {
+  List<DifficultyFactor> _calculateSurfaceFactors(RoadSurfaceType surfaceType, WeatherData? weather) {
     final factors = <DifficultyFactor>[];
 
-    switch (surfaceType) {
-      case RoadSurfaceType.gravel:
+    // Базовий фактор покриття
+    final baseFactor = _getBaseSurfaceFactor(surfaceType);
+    final surfaceName = _getSurfaceName(surfaceType);
+
+    if (baseFactor > 1.0) {
+      factors.add(DifficultyFactor(
+        name: 'Покриття',
+        description: '$surfaceName - знижена швидкість',
+        impact: baseFactor - 1.0,
+        category: 'surface',
+        isPositive: false,
+      ));
+    }
+
+    // Вплив дощу на покриття
+    if (weather != null && weather.precipitation > 0) {
+      final rainEffect = _calculateSurfaceWeatherEffect(surfaceType, weather);
+      final rainImpact = rainEffect - baseFactor;
+
+      if (rainImpact.abs() > 0.01) {
         factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Гравій - знижена швидкість',
-          impact: 0.2,
+          name: 'Дощ + Покриття',
+          description: 'Дощ ${rainImpact > 0 ? 'погіршує' : 'покращує'} $surfaceName',
+          impact: rainImpact.abs(),
           category: 'surface',
-          isPositive: false,
+          isPositive: rainImpact < 0,
         ));
-        break;
-      case RoadSurfaceType.dirt:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Ґрунт - значно знижена швидкість',
-          impact: 0.4,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      case RoadSurfaceType.cobblestone:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Бруківка - висока вібрація',
-          impact: 0.3,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      case RoadSurfaceType.grass:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Трава - дуже важко',
-          impact: 0.5,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      case RoadSurfaceType.sand:
-        factors.add(DifficultyFactor(
-          name: 'Покриття',
-          description: 'Пісок - екстремально важко',
-          impact: 0.8,
-          category: 'surface',
-          isPositive: false,
-        ));
-        break;
-      default:
-        // Асфальт, бетон - без додаткового впливу
-        break;
+      }
     }
 
     return factors;
+  }
+
+  /// Отримання назви покриття
+  String _getSurfaceName(RoadSurfaceType surfaceType) {
+    switch (surfaceType) {
+      case RoadSurfaceType.asphalt:
+        return 'Асфальт';
+      case RoadSurfaceType.concrete:
+        return 'Бетон';
+      case RoadSurfaceType.gravel:
+        return 'Гравій';
+      case RoadSurfaceType.dirt:
+        return 'Ґрунт';
+      case RoadSurfaceType.cobblestone:
+        return 'Бруківка';
+      case RoadSurfaceType.grass:
+        return 'Трава';
+      case RoadSurfaceType.sand:
+        return 'Пісок';
+    }
   }
 
   /// Фактор відстані
@@ -299,34 +325,86 @@ class RouteComplexityService {
     return 1.4; // Екстремальний підйом
   }
 
-  /// Фактор погоди
-  double _calculateWeatherFactor(WeatherData weather) {
-    double factor = 1.0;
+  /// Розрахунок впливу вітру з урахуванням бокового впливу
+  double _calculateWindEffect(WeatherData weather, double routeBearing) {
+    final windBearing = weather.windDirection;
+    final windSpeed = weather.windSpeed;
 
-    // Вплив вітру
-    if (weather.windSpeed > 15) {
-      factor += 0.2; // Сильний вітер
-    } else if (weather.windSpeed > 10) {
-      factor += 0.1; // Помірний вітер
+    if (windSpeed == 0) return 0.0;
+
+    // Розрахунок кута між напрямком вітру та напрямком руху
+    double angleDifference = (routeBearing - windBearing).abs();
+    if (angleDifference > 180) {
+      angleDifference = 360 - angleDifference;
     }
 
-    // Вплив опадів
-    if (weather.precipitation > 5) {
-      factor += 0.3; // Дощ
-    } else if (weather.precipitation > 0) {
-      factor += 0.1; // Легкі опади
-    }
+    // Конвертуємо в радіани
+    double angleRadians = angleDifference * (pi / 180);
 
-    // Вплив температури
-    if (weather.temperature < 0 || weather.temperature > 35) {
-      factor += 0.2; // Екстремальна температура
-    }
+    // Розрахунок ефективності вітру
+    // cos(α) - 0.2×sin(α) враховує як попутний/зустрічний, так і боковий вплив
+    double windEffectiveness = cos(angleRadians) - 0.2 * sin(angleRadians);
 
-    return factor;
+    // Розрахунок впливу на складність
+    double windImpact = windSpeed * windEffectiveness * 0.02; // 2% на м/с
+
+    return windImpact;
   }
 
-  /// Фактор покриття дороги
-  double _calculateSurfaceFactor(RoadSurfaceType surfaceType) {
+  /// Розрахунок напрямку маршруту
+  double _calculateRouteBearing(List<LatLng> coordinates) {
+    if (coordinates.length < 2) return 0.0;
+
+    final start = coordinates.first;
+    final end = coordinates.last;
+
+    final lat1 = start.latitude * (pi / 180);
+    final lat2 = end.latitude * (pi / 180);
+    final deltaLon = (end.longitude - start.longitude) * (pi / 180);
+
+    final y = sin(deltaLon) * cos(lat2);
+    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(deltaLon);
+
+    final bearing = atan2(y, x) * (180 / pi);
+    return (bearing + 360) % 360; // Нормалізуємо до 0-360°
+  }
+
+  /// Розрахунок впливу покриття з урахуванням дощу
+  double _calculateSurfaceWeatherEffect(RoadSurfaceType surface, WeatherData? weather) {
+    double baseFactor = _getBaseSurfaceFactor(surface);
+    double precipitation = weather?.precipitation ?? 0.0;
+
+    if (precipitation == 0) {
+      return baseFactor; // Без дощу - базовий фактор
+    }
+
+    switch (surface) {
+      case RoadSurfaceType.sand:
+        // Пісок під дощем стає кращим (щільнішим)
+        return baseFactor * (1.0 - precipitation * 0.05); // -5% на мм дощу
+
+      case RoadSurfaceType.dirt:
+      case RoadSurfaceType.grass:
+        // Ґрунт та трава стають гіршими (слизькими)
+        return baseFactor * (1.0 + precipitation * 0.1); // +10% на мм дощу
+
+      case RoadSurfaceType.gravel:
+        // Гравій стає трохи гіршим
+        return baseFactor * (1.0 + precipitation * 0.05); // +5% на мм дощу
+
+      case RoadSurfaceType.asphalt:
+      case RoadSurfaceType.concrete:
+        // Асфальт та бетон майже не змінюються
+        return baseFactor * (1.0 + precipitation * 0.02); // +2% на мм дощу
+
+      case RoadSurfaceType.cobblestone:
+        // Бруківка стає трохи гіршою
+        return baseFactor * (1.0 + precipitation * 0.03); // +3% на мм дощу
+    }
+  }
+
+  /// Базовий фактор покриття дороги
+  double _getBaseSurfaceFactor(RoadSurfaceType surfaceType) {
     switch (surfaceType) {
       case RoadSurfaceType.asphalt:
         return 1.0; // Оптимальне покриття
@@ -402,13 +480,16 @@ class RouteComplexityService {
   }) {
     final factors = <DifficultyFactor>[];
 
-    // Фактори погоди
+    // Розраховуємо напрямок маршруту
+    final routeBearing = _calculateRouteBearing(section.coordinates);
+
+    // Фактори погоди (з векторним розрахунком вітру)
     if (weatherData != null) {
-      factors.addAll(_calculateWeatherFactors(weatherData));
+      factors.addAll(_calculateWeatherFactors(weatherData, routeBearing));
     }
 
-    // Фактори покриття
-    factors.addAll(_calculateSurfaceFactors(section.surfaceType));
+    // Фактори покриття (з урахуванням дощу)
+    factors.addAll(_calculateSurfaceFactors(section.surfaceType, weatherData));
 
     // Фактори підйому
     if (section.elevationGain > 50) {
@@ -436,5 +517,86 @@ class RouteComplexityService {
       'negativeFactors': result.factors.where((f) => !f.isPositive).length,
       'calculatedAt': result.calculatedAt?.toIso8601String(),
     };
+  }
+
+  /// Збереження результатів розрахунку в локальному кеші
+  Future<void> _cacheComplexityResult(String routeId, PersonalizedDifficultyResult result) async {
+    try {
+      final cacheData = {
+        'routeId': routeId,
+        'result': {
+          'baseDifficulty': result.baseDifficulty,
+          'personalizedDifficulty': result.personalizedDifficulty,
+          'personalizationFactor': result.personalizationFactor,
+          'difficultyLevel': result.difficultyLevel,
+          'difficultyColor': result.difficultyColor,
+          'factors': result.factors
+              .map((f) => {
+                    'name': f.name,
+                    'description': f.description,
+                    'impact': f.impact,
+                    'category': f.category,
+                    'isPositive': f.isPositive,
+                  })
+              .toList(),
+          'calculatedAt': result.calculatedAt?.toIso8601String(),
+        },
+        'cachedAt': DateTime.now().toIso8601String(),
+      };
+
+      await _localStorage.saveComplexityData(routeId, cacheData);
+      LogService.log('RouteComplexityService: Complexity result cached for route: $routeId');
+    } catch (e) {
+      LogService.log('RouteComplexityService: Failed to cache complexity result: $e');
+    }
+  }
+
+  /// Отримання результатів з локального кешу
+  PersonalizedDifficultyResult? _getCachedComplexityResult(String routeId) {
+    try {
+      final cacheData = _localStorage.getComplexityData(routeId);
+      if (cacheData == null) return null;
+
+      final result = cacheData['result'] as Map<String, dynamic>;
+      final factors = (result['factors'] as List)
+          .map((f) => DifficultyFactor(
+                name: f['name'],
+                description: f['description'],
+                impact: f['impact'],
+                category: f['category'],
+                isPositive: f['isPositive'],
+              ))
+          .toList();
+
+      return PersonalizedDifficultyResult(
+        baseDifficulty: result['baseDifficulty'],
+        personalizedDifficulty: result['personalizedDifficulty'],
+        personalizationFactor: result['personalizationFactor'],
+        difficultyLevel: result['difficultyLevel'],
+        difficultyColor: result['difficultyColor'],
+        factors: factors,
+        calculatedAt: result['calculatedAt'] != null ? DateTime.parse(result['calculatedAt']) : null,
+      );
+    } catch (e) {
+      LogService.log('RouteComplexityService: Failed to get cached complexity result: $e');
+      return null;
+    }
+  }
+
+  /// Перевірка чи кеш актуальний (не старіший 1 години)
+  bool _isCacheValid(String routeId) {
+    try {
+      final cacheData = _localStorage.getComplexityData(routeId);
+      if (cacheData == null) return false;
+
+      final cachedAt = DateTime.parse(cacheData['cachedAt']);
+      final now = DateTime.now();
+      final difference = now.difference(cachedAt);
+
+      return difference.inHours < 1; // Кеш актуальний 1 годину
+    } catch (e) {
+      LogService.log('RouteComplexityService: Failed to check cache validity: $e');
+      return false;
+    }
   }
 }

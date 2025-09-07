@@ -67,6 +67,7 @@ import 'package:velogo/features/map/presentation/bloc/route_difficulty/route_dif
 import 'package:velogo/core/services/route_complexity_service.dart';
 import 'package:velogo/core/services/health_integration_service.dart';
 import 'package:velogo/core/services/personalization_engine.dart';
+import 'package:velogo/core/services/local_storage_service.dart';
 
 final sl = GetIt.instance;
 
@@ -95,6 +96,7 @@ Future<void> _initCore() async {
   sl.registerLazySingleton<RemoteConfigService>(() => RemoteConfigService());
 
   // Core services for route complexity
+  sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   sl.registerLazySingleton<RouteComplexityService>(() => RouteComplexityService());
   sl.registerLazySingleton<HealthIntegrationService>(() => HealthIntegrationServiceFactory.create());
   sl.registerLazySingleton<PersonalizationEngine>(() => PersonalizationEngine());
@@ -102,6 +104,7 @@ Future<void> _initCore() async {
   // Ініціалізація сервісів
   await LogService.init(); // Fixed: Direct static call
   await sl<RemoteConfigService>().initialize();
+  await sl<LocalStorageService>().init();
 }
 
 /// Ініціалізація auth feature
