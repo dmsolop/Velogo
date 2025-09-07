@@ -12,17 +12,17 @@ import '../../../../shared/base_widgets.dart';
 import '../../../../shared/dev_helpers.dart';
 
 class CreateRouteScreen extends StatefulWidget {
-  const CreateRouteScreen({Key? key}) : super(key: key);
+  const CreateRouteScreen({super.key});
 
   @override
-  _CreateRouteScreenState createState() => _CreateRouteScreenState();
+  CreateRouteScreenState createState() => CreateRouteScreenState();
 }
 
-class _CreateRouteScreenState extends State<CreateRouteScreen> {
+class CreateRouteScreenState extends State<CreateRouteScreen> {
   final List<RouteSection> _sections = [];
   final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
-  bool _isDrawingMode = false;
+  final bool _isDrawingMode = false;
 
   // Поля для системи складності
   double _routeDifficulty = 0.0;
@@ -319,9 +319,11 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
       setState(() {
         _isLoadingDifficulty = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Помилка: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Помилка: $e')),
+        );
+      }
     }
   }
 

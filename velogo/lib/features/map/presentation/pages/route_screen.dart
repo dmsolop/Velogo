@@ -16,10 +16,10 @@ class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});
 
   @override
-  _RouteScreenState createState() => _RouteScreenState();
+  RouteScreenState createState() => RouteScreenState();
 }
 
-class _RouteScreenState extends State<RouteScreen> {
+class RouteScreenState extends State<RouteScreen> {
   final List<RouteSection> _sections = [];
   final List<String> _interestingPlaces = ["Place A", "Place B", "Place C"];
   final defaultCenter = ReferenceValues.defaultMapCenter;
@@ -129,7 +129,7 @@ class _RouteScreenState extends State<RouteScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     spreadRadius: 2,
                     blurRadius: 8,
                   ),
@@ -189,9 +189,10 @@ class _RouteScreenState extends State<RouteScreen> {
                     builder: (context) => const CreateRouteScreen(),
                   ),
                 );
-              } catch (e, stackTrace) {
-                print("Navigation error: $e");
-                print(stackTrace);
+              } catch (e) {
+                // TODO: Add proper logging
+                // print("Navigation error: $e");
+                // print(stackTrace);
               }
             },
             text: "Plan Route",
@@ -438,7 +439,8 @@ class _RouteScreenState extends State<RouteScreen> {
       setState(() {
         _isLoadingDifficulty = false;
       });
-      print('Error calculating route difficulty: $e');
+      // TODO: Add proper logging
+      // print('Error calculating route difficulty: $e');
     }
   }
 
