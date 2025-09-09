@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:math';
 import '../../data/models/route_logic/route_section.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
@@ -10,6 +9,9 @@ import '../../../../core/services/route_complexity_service.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/base_widgets.dart';
 import '../../../../shared/dev_helpers.dart';
+import '../../../../core/services/adaptive_map_options.dart';
+import '../../../../core/services/map_context_service.dart';
+import '../../../../core/services/road_routing_service.dart';
 
 class CreateRouteScreen extends StatefulWidget {
   const CreateRouteScreen({super.key});
@@ -57,11 +59,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
           Stack(
         children: [
           FlutterMap(
-            options: MapOptions(
-              initialCenter: defaultCenter,
-              initialZoom: 10,
-              onTap: (_, point) => _isDrawingMode ? _addRoutePoint(point) : _addInterestPoint(point),
-            ),
+            options: _createAdaptiveMapOptionsWithTap(),
             children: [
               TileLayer(
                 urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -83,15 +81,23 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
+      // Розраховуємо маршрут по дорогах між точками
+      final routeCoordinates = await RoadRoutingService.calculateRoute(
+        startPoint: _lastPoint!,
+        endPoint: point,
+        profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
+      );
+
       final newSection = RouteSection(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        coordinates: [_lastPoint!, point],
-        distance: _calculateDistance(_lastPoint!.latitude, _lastPoint!.longitude, point.latitude, point.longitude),
+        coordinates: routeCoordinates,
+        distance: RoadRoutingService.calculateRouteDistance(routeCoordinates),
         elevationGain: _calculateElevationGain(_lastPoint!, point),
         surfaceType: "asphalt",
         windEffect: _calculateWindEffect(_lastPoint!, point),
         averageSpeed: 15.0,
       );
+      
       setState(() {
         _sections.add(newSection);
       });
@@ -435,24 +441,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     );
   }
 
-  /// Розрахунок відстані між двома точками
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371.0; // км
 
-    final dLat = _toRadians(lat2 - lat1);
-    final dLon = _toRadians(lon2 - lon1);
-
-    final a = sin(dLat / 2) * sin(dLat / 2) + cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
-    return earthRadius * c;
-  }
-
-  /// Конвертація градусів в радіани
-  double _toRadians(double degrees) {
-    return degrees * pi / 180.0;
-  }
 
   Color getColorBasedOnDifficulty(double difficulty) {
     if (difficulty < 2.0) {
@@ -466,5 +455,37 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     } else {
       return const Color(0xFF000000); // Чорний
     }
+  }
+
+  /// Створення адаптивних опцій карти для контексту створення маршруту
+  MapOptions _createAdaptiveMapOptions() {
+    final screenSize = MediaQuery.of(context).size;
+    final routePoints = _sections.isNotEmpty 
+        ? _sections.expand((section) => section.coordinates).toList()
+        : null;
+
+    final adaptiveOptions = AdaptiveMapOptions(
+      context: MapContext.routeCreation,
+      routePoints: routePoints,
+      screenSize: screenSize,
+      customCenter: defaultCenter,
+      enableAutoFit: routePoints != null && routePoints.length > 1,
+      padding: 0.15, // 15% відступ від країв
+    );
+
+    return adaptiveOptions.toMapOptions();
+  }
+
+  /// Створення адаптивних опцій карти з обробкою натискань
+  MapOptions _createAdaptiveMapOptionsWithTap() {
+    final baseOptions = _createAdaptiveMapOptions();
+    return MapOptions(
+      initialCenter: baseOptions.initialCenter,
+      initialZoom: baseOptions.initialZoom,
+      minZoom: baseOptions.minZoom,
+      maxZoom: baseOptions.maxZoom,
+      interactionOptions: baseOptions.interactionOptions,
+      onTap: (_, point) => _isDrawingMode ? _addRoutePoint(point) : _addInterestPoint(point),
+    );
   }
 }

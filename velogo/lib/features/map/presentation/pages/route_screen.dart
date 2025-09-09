@@ -11,6 +11,9 @@ import '../../../weather/data/datasources/weather_service.dart';
 import '../../data/models/road_surface.dart';
 import '../../../weather/data/models/weather_data.dart';
 import 'create_route_screen.dart';
+import '../../../../core/services/adaptive_map_options.dart';
+import '../../../../core/services/map_context_service.dart';
+import '../../../../core/services/road_routing_service.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});
@@ -49,17 +52,7 @@ class RouteScreenState extends State<RouteScreen> {
         body: Stack(
           children: [
             FlutterMap(
-              options: MapOptions(
-                initialCenter: defaultCenter,
-                initialZoom: 10,
-                onTap: (_, point) => _addRoutePoint(point),
-                interactionOptions: InteractionOptions(
-                  flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom, // Панорамування і масштабування
-                  rotationThreshold: 25.0, // Менш чутливе обертання
-                  pinchZoomThreshold: 1.0, // Збільшений поріг масштабування
-                  scrollWheelVelocity: 0.01, // Плавне масштабування для мишки
-                ),
-              ),
+              options: _createAdaptiveMapOptionsWithTap(),
               children: [
                 TileLayer(
                   urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -274,15 +267,23 @@ class RouteScreenState extends State<RouteScreen> {
 
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
+      // Розраховуємо маршрут по дорогах між точками
+      final routeCoordinates = await RoadRoutingService.calculateRoute(
+        startPoint: _lastPoint!,
+        endPoint: point,
+        profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
+      );
+
       final newSection = RouteSection(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        coordinates: [_lastPoint!, point],
-        distance: _calculateDistance(_lastPoint!.latitude, _lastPoint!.longitude, point.latitude, point.longitude),
+        coordinates: routeCoordinates,
+        distance: RoadRoutingService.calculateRouteDistance(routeCoordinates),
         elevationGain: _calculateElevationGain(_lastPoint!, point),
         surfaceType: "asphalt",
         windEffect: _calculateWindEffect(_lastPoint!, point),
         averageSpeed: 15.0,
       );
+      
       setState(() {
         _sections.add(newSection);
       });
@@ -498,5 +499,37 @@ class RouteScreenState extends State<RouteScreen> {
   /// Конвертація градусів в радіани
   double _toRadians(double degrees) {
     return degrees * pi / 180.0;
+  }
+
+  /// Створення адаптивних опцій карти для контексту перегляду маршруту
+  MapOptions _createAdaptiveMapOptions() {
+    final screenSize = MediaQuery.of(context).size;
+    final routePoints = _sections.isNotEmpty 
+        ? _sections.expand((section) => section.coordinates).toList()
+        : null;
+
+    final adaptiveOptions = AdaptiveMapOptions(
+      context: MapContext.routeViewing,
+      routePoints: routePoints,
+      screenSize: screenSize,
+      customCenter: defaultCenter,
+      enableAutoFit: routePoints != null && routePoints.length > 1,
+      padding: 0.1, // 10% відступ від країв
+    );
+
+    return adaptiveOptions.toMapOptions();
+  }
+
+  /// Створення адаптивних опцій карти з обробкою натискань
+  MapOptions _createAdaptiveMapOptionsWithTap() {
+    final baseOptions = _createAdaptiveMapOptions();
+    return MapOptions(
+      initialCenter: baseOptions.initialCenter,
+      initialZoom: baseOptions.initialZoom,
+      minZoom: baseOptions.minZoom,
+      maxZoom: baseOptions.maxZoom,
+      interactionOptions: baseOptions.interactionOptions,
+      onTap: (_, point) => _addRoutePoint(point),
+    );
   }
 }
