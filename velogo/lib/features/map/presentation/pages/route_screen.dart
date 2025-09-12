@@ -14,6 +14,7 @@ import 'create_route_screen.dart';
 import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
 import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/services/offline_tile_provider.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});
@@ -55,6 +56,7 @@ class RouteScreenState extends State<RouteScreen> {
               options: _createAdaptiveMapOptionsWithTap(),
               children: [
                 TileLayer(
+                  tileProvider: OfflineTileProvider(),
                   urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 ),
                 PolylineLayer(
@@ -274,6 +276,8 @@ class RouteScreenState extends State<RouteScreen> {
         profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
       );
 
+      // Завжди створюємо нову секцію для кожної ділянки маршруту
+      // Це забезпечує правильне відображення маршруту по дорогах
       final newSection = RouteSection(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         coordinates: routeCoordinates,
@@ -283,7 +287,7 @@ class RouteScreenState extends State<RouteScreen> {
         windEffect: _calculateWindEffect(_lastPoint!, point),
         averageSpeed: 15.0,
       );
-      
+
       setState(() {
         _sections.add(newSection);
       });
@@ -306,13 +310,49 @@ class RouteScreenState extends State<RouteScreen> {
   }
 
   List<Marker> _generateMarkers() {
-    return [
-      if (_lastPoint != null)
+    final markers = <Marker>[];
+
+    // Додаємо маркер для початкової точки (якщо є)
+    if (_sections.isNotEmpty) {
+      markers.add(
         Marker(
-          point: _lastPoint!,
-          child: const Icon(Icons.place, color: Colors.green),
+          point: _sections.first.coordinates.first,
+          child: const Icon(Icons.place, color: Colors.green, size: 32),
         ),
-    ];
+      );
+    }
+
+    // Додаємо маркери для кінцевих точок секцій
+    for (int i = 0; i < _sections.length; i++) {
+      final section = _sections[i];
+      final isLastSection = i == _sections.length - 1;
+
+      markers.add(
+        Marker(
+          point: section.coordinates.last,
+          child: Icon(
+            isLastSection ? Icons.flag : Icons.location_on,
+            color: isLastSection ? Colors.red : Colors.blue,
+            size: 28,
+          ),
+        ),
+      );
+    }
+
+    // Додаємо маркер для поточної точки (якщо є і не збігається з останньою)
+    if (_lastPoint != null && _sections.isNotEmpty) {
+      final lastSectionEnd = _sections.last.coordinates.last;
+      if (_lastPoint!.latitude != lastSectionEnd.latitude || _lastPoint!.longitude != lastSectionEnd.longitude) {
+        markers.add(
+          Marker(
+            point: _lastPoint!,
+            child: const Icon(Icons.add_location, color: Colors.orange, size: 24),
+          ),
+        );
+      }
+    }
+
+    return markers;
   }
 
   double _calculateElevationGain(LatLng start, LatLng end) => 10;
@@ -504,9 +544,7 @@ class RouteScreenState extends State<RouteScreen> {
   /// Створення адаптивних опцій карти для контексту перегляду маршруту
   MapOptions _createAdaptiveMapOptions() {
     final screenSize = MediaQuery.of(context).size;
-    final routePoints = _sections.isNotEmpty 
-        ? _sections.expand((section) => section.coordinates).toList()
-        : null;
+    final routePoints = _sections.isNotEmpty ? _sections.expand((section) => section.coordinates).toList() : null;
 
     final adaptiveOptions = AdaptiveMapOptions(
       context: MapContext.routeViewing,

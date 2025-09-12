@@ -12,6 +12,7 @@ import '../../../../shared/dev_helpers.dart';
 import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
 import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/services/offline_tile_provider.dart';
 
 class CreateRouteScreen extends StatefulWidget {
   const CreateRouteScreen({super.key});
@@ -24,7 +25,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   final List<RouteSection> _sections = [];
   final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
-  final bool _isDrawingMode = false;
+  bool _isDrawingMode = true;
 
   // Поля для системи складності
   double _routeDifficulty = 0.0;
@@ -62,6 +63,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
             options: _createAdaptiveMapOptionsWithTap(),
             children: [
               TileLayer(
+                tileProvider: OfflineTileProvider(),
                 urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
               ),
               PolylineLayer(
@@ -88,6 +90,8 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
       );
 
+      // Завжди створюємо нову секцію для кожної ділянки маршруту
+      // Це забезпечує правильне відображення маршруту по дорогах
       final newSection = RouteSection(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         coordinates: routeCoordinates,
@@ -97,7 +101,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         windEffect: _calculateWindEffect(_lastPoint!, point),
         averageSpeed: 15.0,
       );
-      
+
       setState(() {
         _sections.add(newSection);
       });
@@ -124,18 +128,49 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   }
 
   List<Marker> _generateMarkers() {
-    return [
-      if (_lastPoint != null)
+    final markers = <Marker>[];
+
+    // Додаємо маркер для початкової точки (якщо є)
+    if (_sections.isNotEmpty) {
+      markers.add(
         Marker(
-          point: _lastPoint!,
-          child: const Icon(Icons.place, color: Colors.green),
+          point: _sections.first.coordinates.first,
+          child: const Icon(Icons.place, color: Colors.green, size: 32),
         ),
-      for (var section in _sections)
+      );
+    }
+
+    // Додаємо маркери для кінцевих точок секцій
+    for (int i = 0; i < _sections.length; i++) {
+      final section = _sections[i];
+      final isLastSection = i == _sections.length - 1;
+
+      markers.add(
         Marker(
           point: section.coordinates.last,
-          child: const Icon(Icons.flag, color: Colors.red),
+          child: Icon(
+            isLastSection ? Icons.flag : Icons.location_on,
+            color: isLastSection ? Colors.red : Colors.blue,
+            size: 28,
+          ),
         ),
-    ];
+      );
+    }
+
+    // Додаємо маркер для поточної точки (якщо є і не збігається з останньою)
+    if (_lastPoint != null && _sections.isNotEmpty) {
+      final lastSectionEnd = _sections.last.coordinates.last;
+      if (_lastPoint!.latitude != lastSectionEnd.latitude || _lastPoint!.longitude != lastSectionEnd.longitude) {
+        markers.add(
+          Marker(
+            point: _lastPoint!,
+            child: const Icon(Icons.add_location, color: Colors.orange, size: 24),
+          ),
+        );
+      }
+    }
+
+    return markers;
   }
 
   Widget _buildControlPanel() {
@@ -441,8 +476,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     );
   }
 
-
-
   Color getColorBasedOnDifficulty(double difficulty) {
     if (difficulty < 2.0) {
       return const Color(0xFF4CAF50); // Зелений
@@ -460,9 +493,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   /// Створення адаптивних опцій карти для контексту створення маршруту
   MapOptions _createAdaptiveMapOptions() {
     final screenSize = MediaQuery.of(context).size;
-    final routePoints = _sections.isNotEmpty 
-        ? _sections.expand((section) => section.coordinates).toList()
-        : null;
+    final routePoints = _sections.isNotEmpty ? _sections.expand((section) => section.coordinates).toList() : null;
 
     final adaptiveOptions = AdaptiveMapOptions(
       context: MapContext.routeCreation,

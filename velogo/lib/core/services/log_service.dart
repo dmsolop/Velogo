@@ -22,7 +22,13 @@ class LogService {
       if (!await _logFile!.exists()) {
         await _logFile!.create(recursive: true);
       }
-      await _logFile!.writeAsString('[LogService] initialized path: $logPath\n', mode: FileMode.append);
+
+      // Записуємо сигнальний рядок про ініціалізацію
+      final initMessage = '[LogService] ✅ INITIALIZED at ${DateTime.now().toIso8601String()}\n';
+      final pathMessage = '[LogService] 📁 Log file path: $logPath\n';
+      final separator = '=' * 80 + '\n';
+
+      await _logFile!.writeAsString(separator + initMessage + pathMessage + separator, mode: FileMode.append);
       debugPrint('LogService initialized. Log file path: $logPath');
     } catch (e) {
       debugPrint('LogService init error: $e');

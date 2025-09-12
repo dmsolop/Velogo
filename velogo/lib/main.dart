@@ -17,6 +17,7 @@ import 'features/weather/presentation/bloc/weather/weather_cubit.dart';
 import 'features/navigation/domain/entities/theme_entity.dart';
 import 'features/map/presentation/bloc/route/route_cubit.dart'; // New import
 import 'features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart'; // New import
+import 'core/services/log_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,10 @@ void main() async {
 
   // Ініціалізація Dependency Injection
   await di.init();
+
+  // Ініціалізація LogService
+  await LogService.init();
+  await LogService.log('🚀 [MAIN] Velogo app starting...');
 
   // Визначення початкового маршруту
   String initialRoute = AppNavigation.start;

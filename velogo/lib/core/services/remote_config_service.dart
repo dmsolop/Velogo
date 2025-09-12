@@ -12,9 +12,11 @@ class RemoteConfigService {
   // Ключі параметрів
   static const String _stormglassApiKey = 'stormglass_api_key';
   static const String _tomorrowApiKey = 'tomorrow_api_key';
+  static const String _openRouteServiceApiKey = 'openrouteservice_api_key';
   static const String _stormglassBaseUrl = 'stormglass_base_url';
   static const String _tomorrowBaseUrl = 'tomorrow_base_url';
   static const String _openMeteoBaseUrl = 'open_meteo_base_url';
+  static const String _openRouteServiceBaseUrl = 'openrouteservice_base_url';
   static const String _cacheExpirationMinutes = 'cache_expiration_minutes';
   static const String _maxCacheSize = 'max_cache_size';
   static const String _windParameters = 'wind_parameters';
@@ -30,9 +32,11 @@ class RemoteConfigService {
   static const Map<String, dynamic> _defaults = {
     'stormglass_api_key': '0071dc8e-7200-11f0-b2b2-0242ac130006-0071dd38-7200-11f0-b2b2-0242ac130006',
     'tomorrow_api_key': 'WMYu7OiXcenM6ToxOMwNAAqWLAec4FVR',
+    'openrouteservice_api_key': 'YOUR_OPENROUTESERVICE_API_KEY_HERE',
     'stormglass_base_url': 'https://api.stormglass.io/v2',
     'tomorrow_base_url': 'https://api.tomorrow.io/v4',
     'open_meteo_base_url': 'https://api.open-meteo.com/v1',
+    'openrouteservice_base_url': 'https://api.openrouteservice.org/v2',
     'cache_expiration_minutes': '60',
     'max_cache_size': '1000',
     'wind_parameters': '["windSpeed", "windDirection", "windGust"]',
@@ -65,6 +69,10 @@ class RemoteConfigService {
       await _remoteConfig.fetchAndActivate();
       await LogService.log('🌐 [RemoteConfig] Отримано та активовано конфігурацію');
 
+      // Логуємо API ключі для діагностики
+      await LogService.log('🔑 [RemoteConfig] OpenRouteService API Key: ${openRouteServiceApiKey.substring(0, 10)}...');
+      await LogService.log('🌐 [RemoteConfig] OpenRouteService Base URL: $openRouteServiceBaseUrl');
+
       print('✅ Remote Config ініціалізовано успішно');
       _logCurrentConfig();
     } catch (e) {
@@ -79,6 +87,9 @@ class RemoteConfigService {
   /// Отримання API ключа Tomorrow.io
   String get tomorrowApiKey => _remoteConfig.getString(_tomorrowApiKey);
 
+  /// Отримання API ключа OpenRouteService
+  String get openRouteServiceApiKey => _remoteConfig.getString(_openRouteServiceApiKey);
+
   /// Отримання базового URL StormGlass
   String get stormglassBaseUrl => _remoteConfig.getString(_stormglassBaseUrl);
 
@@ -87,6 +98,9 @@ class RemoteConfigService {
 
   /// Отримання базового URL Open-Meteo
   String get openMeteoBaseUrl => _remoteConfig.getString(_openMeteoBaseUrl);
+
+  /// Отримання базового URL OpenRouteService
+  String get openRouteServiceBaseUrl => _remoteConfig.getString(_openRouteServiceBaseUrl);
 
   /// Отримання часу життя кешу в хвилинах
   int get cacheExpirationMinutes => int.tryParse(_remoteConfig.getString(_cacheExpirationMinutes)) ?? 60;
@@ -153,6 +167,7 @@ class RemoteConfigService {
     print('📋 Поточна конфігурація Remote Config:');
     print('  StormGlass API Key: ${stormglassApiKey.substring(0, 10)}...');
     print('  Tomorrow API Key: ${tomorrowApiKey.substring(0, 10)}...');
+    print('  OpenRouteService API Key: ${openRouteServiceApiKey.substring(0, 10)}...');
     print('  Cache Expiration: ${cacheExpirationMinutes} min');
     print('  Max Cache Size: $maxCacheSize');
     print('  Primary Provider: $primaryWeatherProvider');
@@ -161,6 +176,7 @@ class RemoteConfigService {
     LogService.log('📋 [RemoteConfig] Поточна конфігурація:');
     LogService.log('  StormGlass API Key: ${stormglassApiKey.substring(0, 10)}...');
     LogService.log('  Tomorrow API Key: ${tomorrowApiKey.substring(0, 10)}...');
+    LogService.log('  OpenRouteService API Key: ${openRouteServiceApiKey.substring(0, 10)}...');
     LogService.log('  Cache Expiration: ${cacheExpirationMinutes} min');
     LogService.log('  Max Cache Size: $maxCacheSize');
     LogService.log('  Primary Provider: $primaryWeatherProvider');
@@ -172,9 +188,11 @@ class RemoteConfigService {
     return {
       'stormglass_api_key': stormglassApiKey,
       'tomorrow_api_key': tomorrowApiKey,
+      'openrouteservice_api_key': openRouteServiceApiKey,
       'stormglass_base_url': stormglassBaseUrl,
       'tomorrow_base_url': tomorrowBaseUrl,
       'open_meteo_base_url': openMeteoBaseUrl,
+      'openrouteservice_base_url': openRouteServiceBaseUrl,
       'cache_expiration_minutes': cacheExpirationMinutes,
       'max_cache_size': maxCacheSize,
       'wind_parameters': windParameters,

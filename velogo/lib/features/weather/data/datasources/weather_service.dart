@@ -46,20 +46,33 @@ class WeatherService {
   Future<Map<String, dynamic>> _getStormGlassWeather(double lat, double lon) async {
     try {
       await LogService.log('🌤️ [WeatherService] StormGlass запит: ${ApiConstants.stormGlassBaseUrl}/weather/point');
+
+      // Виправлені параметри для StormGlass API v2
       final response = await _dio.get(
         '${ApiConstants.stormGlassBaseUrl}/weather/point',
         queryParameters: {
           'lat': lat,
           'lng': lon,
-          'params': ApiConstants.windParameters.join(','),
+          'params': 'windSpeed,windDirection,gust,precipitation,humidity,airTemperature,visibility',
           'source': 'sg',
-          'key': ApiConstants.stormGlassApiKey,
+          'start': DateTime.now().toIso8601String(),
+          'end': DateTime.now().add(const Duration(hours: 1)).toIso8601String(),
         },
+        options: Options(
+          headers: {
+            'Authorization': ApiConstants.stormGlassApiKey,
+            'Content-Type': 'application/json',
+          },
+        ),
       );
       await LogService.log('✅ [WeatherService] StormGlass відповідь отримана');
       return _parseStormGlassResponse(response.data);
     } catch (e) {
       await LogService.log('❌ [WeatherService] StormGlass помилка: $e');
+      if (e is DioException) {
+        await LogService.log('❌ [WeatherService] StormGlass статус: ${e.response?.statusCode}');
+        await LogService.log('❌ [WeatherService] StormGlass відповідь: ${e.response?.data}');
+      }
       rethrow;
     }
   }
@@ -88,19 +101,26 @@ class WeatherService {
   Future<Map<String, dynamic>> _getOpenMeteoWeather(double lat, double lon) async {
     try {
       await LogService.log('🌤️ [WeatherService] Open-Meteo запит: ${ApiConstants.openMeteoBaseUrl}/forecast');
+
+      // Виправлені параметри для Open-Meteo API
       final response = await _dio.get(
         '${ApiConstants.openMeteoBaseUrl}/forecast',
         queryParameters: {
           'latitude': lat,
           'longitude': lon,
-          'hourly': ApiConstants.windParameters.join(','),
+          'hourly': 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,precipitation_type,relative_humidity_2m,temperature_2m,visibility',
           'timezone': 'auto',
+          'forecast_days': 1,
         },
       );
       await LogService.log('✅ [WeatherService] Open-Meteo відповідь отримана');
       return _parseOpenMeteoResponse(response.data);
     } catch (e) {
       await LogService.log('❌ [WeatherService] Open-Meteo помилка: $e');
+      if (e is DioException) {
+        await LogService.log('❌ [WeatherService] Open-Meteo статус: ${e.response?.statusCode}');
+        await LogService.log('❌ [WeatherService] Open-Meteo відповідь: ${e.response?.data}');
+      }
       rethrow;
     }
   }
@@ -112,11 +132,11 @@ class WeatherService {
       'hourly': {
         'wind_speed': [hourly['windSpeed']?['sg'] ?? 0.0],
         'wind_direction': [hourly['windDirection']?['sg'] ?? 0.0],
-        'wind_gust': [hourly['windGust']?['sg'] ?? 0.0],
+        'wind_gust': [hourly['gust']?['sg'] ?? 0.0],
         'precipitation': [hourly['precipitation']?['sg'] ?? 0.0],
-        'precipitation_type': [hourly['precipitationType']?['sg'] ?? 0.0],
+        'precipitation_type': [0.0], // StormGlass не підтримує precipitationType
         'humidity': [hourly['humidity']?['sg'] ?? 50.0],
-        'temperature': [hourly['temperature']?['sg'] ?? 20.0],
+        'temperature': [hourly['airTemperature']?['sg'] ?? 20.0],
         'visibility': [hourly['visibility']?['sg'] ?? 10.0],
       }
     };
@@ -145,12 +165,12 @@ class WeatherService {
     final hourly = data['hourly'] ?? {};
     return {
       'hourly': {
-        'wind_speed': [hourly['windspeed_10m']?[0] ?? 0.0],
-        'wind_direction': [hourly['winddirection_10m']?[0] ?? 0.0],
-        'wind_gust': [hourly['windgusts_10m']?[0] ?? 0.0],
+        'wind_speed': [hourly['wind_speed_10m']?[0] ?? 0.0],
+        'wind_direction': [hourly['wind_direction_10m']?[0] ?? 0.0],
+        'wind_gust': [hourly['wind_gusts_10m']?[0] ?? 0.0],
         'precipitation': [hourly['precipitation']?[0] ?? 0.0],
         'precipitation_type': [hourly['precipitation_type']?[0] ?? 0.0],
-        'humidity': [hourly['relativehumidity_2m']?[0] ?? 50.0],
+        'humidity': [hourly['relative_humidity_2m']?[0] ?? 50.0],
         'temperature': [hourly['temperature_2m']?[0] ?? 20.0],
         'visibility': [hourly['visibility']?[0] ?? 10.0],
       }
