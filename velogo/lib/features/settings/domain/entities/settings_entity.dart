@@ -13,5 +13,7 @@ class SettingsEntity with _$SettingsEntity {
     @Default(false) bool weatherAlerts,
     @Default(false) bool generalNotifications,
     @Default(false) bool healthDataIntegration,
+    @Default(false) bool routeDragging,
+    @Default("cycling-regular") String routeProfile,
   }) = _SettingsEntity;
 }

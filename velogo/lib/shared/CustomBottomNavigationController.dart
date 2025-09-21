@@ -12,6 +12,8 @@ import '../features/navigation/presentation/pages/main_screen.dart';
 import '../features/map/presentation/pages/route_screen.dart';
 import '../features/profile/presentation/pages/profile_screen.dart';
 import '../features/settings/presentation/pages/settings_screen.dart';
+import '../features/settings/presentation/bloc/settings/settings_cubit.dart';
+import '../core/di/injection_container.dart';
 
 class CustomBottomNavigationController extends StatelessWidget {
   const CustomBottomNavigationController({super.key});
@@ -124,7 +126,10 @@ class CustomBottomNavigationController extends StatelessWidget {
       case NavigationTab.home:
         return const MainScreen();
       case NavigationTab.myRoutes:
-        return const RouteScreen();
+        return BlocProvider(
+          create: (context) => sl<SettingsCubit>()..loadSettings(),
+          child: const RouteScreen(),
+        );
       case NavigationTab.profile:
         return const ProfileScreen();
       case NavigationTab.settings:

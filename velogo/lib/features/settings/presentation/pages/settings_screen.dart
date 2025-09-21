@@ -82,6 +82,12 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 8),
+                CustomToggleTile(
+                  label: "Route Dragging",
+                  value: settings.routeDragging,
+                  onChanged: settingsCubit.toggleRouteDragging,
+                ),
+                const SizedBox(height: 8),
                 CompactDropdown<String>(
                   label: "Map Style",
                   hintText: "Select Style",
@@ -91,6 +97,30 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: (value) {
                     if (value != null) {
                       settingsCubit.changeMapStyle(value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                CompactDropdown<String>(
+                  label: "Route Profile",
+                  hintText: "Select Profile",
+                  selectedValue: settings.routeProfile,
+                  items: const ["cycling-regular", "driving-car", "foot-walking"],
+                  itemLabelBuilder: (item) {
+                    switch (item) {
+                      case "cycling-regular":
+                        return "Велосипед";
+                      case "driving-car":
+                        return "Автомобіль";
+                      case "foot-walking":
+                        return "Пішки";
+                      default:
+                        return item;
+                    }
+                  },
+                  onChanged: (value) {
+                    if (value != null) {
+                      settingsCubit.changeRouteProfile(value);
                     }
                   },
                 ),

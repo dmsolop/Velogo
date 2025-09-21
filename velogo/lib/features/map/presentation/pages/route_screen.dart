@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
 import '../../../../shared/base_widgets.dart';
@@ -15,6 +16,7 @@ import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
 import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/services/offline_tile_provider.dart';
+import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});
@@ -273,7 +275,7 @@ class RouteScreenState extends State<RouteScreen> {
       final routeCoordinates = await RoadRoutingService.calculateRoute(
         startPoint: _lastPoint!,
         endPoint: point,
-        profile: 'cycling-regular', // Велосипедний профіль
+        profile: _getRouteProfile(),
       );
 
       // Завжди створюємо нову секцію для кожної ділянки маршруту
@@ -568,6 +570,18 @@ class RouteScreenState extends State<RouteScreen> {
       maxZoom: baseOptions.maxZoom,
       interactionOptions: baseOptions.interactionOptions,
       onTap: (_, point) => _addRoutePoint(point),
+    );
+  }
+
+  /// Отримати профіль маршруту з налаштувань
+  String _getRouteProfile() {
+    // Отримуємо поточний стан налаштувань
+    final settingsState = context.read<SettingsCubit>().state;
+    return settingsState.when(
+      initial: () => 'cycling-regular', // Значення за замовчуванням
+      loading: () => 'cycling-regular', // Значення за замовчуванням
+      loaded: (settings) => settings.routeProfile,
+      error: (failure) => 'cycling-regular', // Fallback значення
     );
   }
 }

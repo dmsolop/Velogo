@@ -18,7 +18,7 @@ class MapContextService {
   static final Map<MapContext, MapZoomConfig> _contextConfigs = {
     MapContext.routeCreation: MapZoomConfig(
       defaultZoom: 16.5, // Збільшено з 15.5
-      minZoom: 14.0,
+      minZoom: 10.0,
       maxZoom: 18.0,
       autoFit: false,
       animationDuration: Duration(milliseconds: 600),

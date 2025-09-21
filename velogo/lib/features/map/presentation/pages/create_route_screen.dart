@@ -16,6 +16,7 @@ import '../../../../core/services/map_context_service.dart';
 import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/services/offline_tile_provider.dart';
 import '../../../../core/services/route_drag_service.dart';
+import '../../../../core/services/log_service.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings/settings_state.dart';
 import '../../../../core/di/injection_container.dart';
@@ -50,20 +51,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   @override
   void initState() {
     super.initState();
-    // Ініціалізуємо RouteDragService з налаштувань
-    _initializeRouteDragService();
-  }
-
-  Future<void> _initializeRouteDragService() async {
-    // Завантажуємо налаштування з SharedPreferences
-    try {
-      // Тут можна додати логіку для завантаження налаштувань
-      // Поки що використовуємо значення за замовчуванням
-      RouteDragService.setDragEnabled(false);
-    } catch (e) {
-      // Якщо не вдалося завантажити налаштування, використовуємо значення за замовчуванням
-      RouteDragService.setDragEnabled(false);
-    }
+    // RouteDragService буде ініціалізований автоматично при завантаженні налаштувань
   }
 
   @override
@@ -72,15 +60,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       create: (context) => sl<SettingsCubit>()..loadSettings(),
       child: BlocListener<SettingsCubit, SettingsState>(
         listener: (context, state) {
-          state.when(
-            initial: () {},
-            loading: () {},
-            loaded: (settings) {
-              // Оновлюємо RouteDragService при зміні налаштувань
-              RouteDragService.updateFromSettings(settings.routeDragging);
-            },
-            error: (failure) {},
-          );
+          // BlocListener не потрібен, оскільки RouteDragService оновлюється в SettingsCubit
         },
         child: Scaffold(
           appBar: AppBar(
@@ -132,7 +112,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       final routeCoordinates = await RoadRoutingService.calculateRoute(
         startPoint: _lastPoint!,
         endPoint: point,
-        profile: 'cycling-regular', // Велосипедний профіль
+        profile: _getRouteProfile(),
       );
 
       // Завжди створюємо нову секцію для кожної ділянки маршруту
@@ -619,16 +599,23 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       maxZoom: baseOptions.maxZoom,
       interactionOptions: baseOptions.interactionOptions,
       onTap: (_, point) {
+        LogService.log('🔍 [CreateRouteScreen] Звичайне натискання на: ${point.latitude},${point.longitude}');
+        LogService.log('🔍 [CreateRouteScreen] _isDragging: $_isDragging, _isDrawingMode: $_isDrawingMode');
+
         if (_isDragging) {
           // Якщо ми в режимі перетягування, завершуємо перетягування
+          LogService.log('🔍 [CreateRouteScreen] Завершуємо перетягування');
           _handleSegmentDrag(point);
         } else if (_isDrawingMode) {
+          LogService.log('🔍 [CreateRouteScreen] Додаємо точку маршруту');
           _addRoutePoint(point);
         } else {
+          LogService.log('🔍 [CreateRouteScreen] Додаємо точку інтересу');
           _addInterestPoint(point);
         }
       },
       onLongPress: (_, point) {
+        LogService.log('🔍 [CreateRouteScreen] Довге натискання на: ${point.latitude},${point.longitude}');
         // Обробка довгого натискання для перетягування відрізків
         _handleLongPressOnRoute(point);
       },
@@ -652,14 +639,21 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   /// Обробка довгого натискання на маршрут
   void _handleLongPressOnRoute(LatLng point) {
+    LogService.log('🔍 [CreateRouteScreen] Довге натискання на точку: ${point.latitude},${point.longitude}');
+    LogService.log('🔍 [CreateRouteScreen] RouteDragService.isDragEnabled: ${RouteDragService.isDragEnabled}');
+    LogService.log('🔍 [CreateRouteScreen] _sections.length: ${_sections.length}');
+
     if (!RouteDragService.isDragEnabled || _sections.isEmpty) {
+      LogService.log('⚠️ [CreateRouteScreen] Перетягування вимкнено або немає секцій');
       return;
     }
 
     // Знаходимо найближчий відрізок маршруту
     final nearestSegmentIndex = _findNearestSegment(point);
+    LogService.log('🔍 [CreateRouteScreen] Найближчий відрізок: $nearestSegmentIndex');
 
     if (nearestSegmentIndex == -1) {
+      LogService.log('⚠️ [CreateRouteScreen] Не знайдено найближчий відрізок');
       return;
     }
 
@@ -668,10 +662,12 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       _draggedSegmentIndex = nearestSegmentIndex;
     });
 
+    LogService.log('✅ [CreateRouteScreen] Режим перетягування активовано для відрізка $nearestSegmentIndex');
+
     // Показуємо підказку користувачу
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Натисніть в новому місці для додавання проміжної точки'),
+        content: Text('Натисніть в новому місці для переміщення точки маршруту'),
         duration: Duration(seconds: 3),
       ),
     );
@@ -679,26 +675,33 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   /// Обробка перетягування відрізка маршруту
   Future<void> _handleSegmentDrag(LatLng newPosition) async {
+    LogService.log('🔍 [CreateRouteScreen] Обробка перетягування до: ${newPosition.latitude},${newPosition.longitude}');
+    LogService.log('🔍 [CreateRouteScreen] _isDragging: $_isDragging, _draggedSegmentIndex: $_draggedSegmentIndex');
+
     if (!_isDragging || _draggedSegmentIndex == null) {
+      LogService.log('⚠️ [CreateRouteScreen] Перетягування не активне або немає індексу відрізка');
       return;
     }
 
     try {
-      // Вставляємо нову точку в маршрут безпосередньо
-      await _insertNewRoutePoint(newPosition, _draggedSegmentIndex!);
+      LogService.log('✅ [CreateRouteScreen] Переміщуємо секцію $_draggedSegmentIndex до нової позиції');
+      // Переміщуємо секцію до нової позиції
+      await _moveRouteSection(newPosition, _draggedSegmentIndex!);
 
       setState(() {
         _isDragging = false;
         _draggedSegmentIndex = null;
       });
 
+      LogService.log('✅ [CreateRouteScreen] Точка маршруту успішно переміщена');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Нова точка маршруту додана'),
+          content: Text('Точка маршруту переміщена'),
           duration: Duration(seconds: 1),
         ),
       );
     } catch (e) {
+      LogService.log('❌ [CreateRouteScreen] Помилка при переміщенні секції: $e');
       setState(() {
         _isDragging = false;
         _draggedSegmentIndex = null;
@@ -706,52 +709,70 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Помилка при додаванні точки: $e'),
+          content: Text('Помилка при переміщенні секції: $e'),
           duration: const Duration(seconds: 2),
         ),
       );
     }
   }
 
-  /// Вставити нову точку в маршрут
-  Future<void> _insertNewRoutePoint(LatLng newPoint, int segmentIndex) async {
+  /// Перемістити секцію маршруту до нової позиції
+  Future<void> _moveRouteSection(LatLng newPosition, int segmentIndex) async {
+    LogService.log('🔍 [CreateRouteScreen] Переміщення секції $segmentIndex до: ${newPosition.latitude},${newPosition.longitude}');
+    LogService.log('🔍 [CreateRouteScreen] Кількість секцій: ${_sections.length}');
+    
     if (segmentIndex < 0 || segmentIndex >= _sections.length) {
+      LogService.log('⚠️ [CreateRouteScreen] Невірний індекс відрізка: $segmentIndex');
       return;
     }
 
     final section = _sections[segmentIndex];
-    final coordinates = List<LatLng>.from(section.coordinates);
+    LogService.log('🔍 [CreateRouteScreen] Поточна секція має ${section.coordinates.length} точок');
 
-    // Знаходимо найближчу позицію для вставки нової точки
-    int insertIndex = _findBestInsertionPoint(coordinates, newPoint);
+    // Знаходимо найближчу точку в секції до нової позиції
+    int closestPointIndex = _findClosestPointInSection(section.coordinates, newPosition);
+    LogService.log('🔍 [CreateRouteScreen] Найближча точка в секції: $closestPointIndex');
 
-    // Вставляємо нову точку
-    coordinates.insert(insertIndex, newPoint);
+    // Створюємо нові координати з переміщеною точкою
+    final newCoordinates = List<LatLng>.from(section.coordinates);
+    newCoordinates[closestPointIndex] = newPosition;
+    LogService.log('🔍 [CreateRouteScreen] Точка $closestPointIndex переміщена до нової позиції');
 
-    // Перераховуємо маршрут з новою точкою
-    final newRoute = await RoadRoutingService.calculateRouteWithWaypoints(
-      waypoints: coordinates,
-      profile: 'cycling-regular',
+    // Замість перерахунку всього маршруту, просто оновлюємо координати
+    // Це збереже структуру маршруту без створення зайвих гілок
+    final updatedSection = RouteSection(
+      id: section.id,
+      coordinates: newCoordinates,
+      distance: _calculateDistance(newCoordinates),
+      elevationGain: section.elevationGain,
+      surfaceType: section.surfaceType,
+      windEffect: section.windEffect,
+      difficulty: section.difficulty,
+      averageSpeed: section.averageSpeed,
+      notes: section.notes,
     );
 
-    if (newRoute.isNotEmpty) {
-      // Оновлюємо секцію з новим маршрутом
-      final updatedSection = RouteSection(
-        id: section.id,
-        coordinates: newRoute,
-        distance: _calculateDistance(newRoute),
-        elevationGain: section.elevationGain,
-        surfaceType: section.surfaceType,
-        windEffect: section.windEffect,
-        difficulty: section.difficulty,
-        averageSpeed: section.averageSpeed,
-        notes: section.notes,
-      );
+    setState(() {
+      _sections[segmentIndex] = updatedSection;
+    });
+    
+    LogService.log('✅ [CreateRouteScreen] Секція оновлена успішно без перерахунку маршруту');
+  }
 
-      setState(() {
-        _sections[segmentIndex] = updatedSection;
-      });
+  /// Знайти найближчу точку в секції до заданої позиції
+  int _findClosestPointInSection(List<LatLng> coordinates, LatLng targetPoint) {
+    double minDistance = double.infinity;
+    int closestIndex = 0;
+
+    for (int i = 0; i < coordinates.length; i++) {
+      final distance = _calculateDistanceBetweenPoints(coordinates[i], targetPoint);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
     }
+
+    return closestIndex;
   }
 
   /// Знайти найкращу позицію для вставки нової точки
@@ -805,11 +826,13 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   /// Знайти найближчий відрізок маршруту до точки
   int _findNearestSegment(LatLng point) {
+    LogService.log('🔍 [CreateRouteScreen] Пошук найближчого відрізка для точки: ${point.latitude},${point.longitude}');
     double minDistance = double.infinity;
     int nearestIndex = -1;
 
     for (int i = 0; i < _sections.length; i++) {
       final section = _sections[i];
+      LogService.log('🔍 [CreateRouteScreen] Перевіряємо секцію $i з ${section.coordinates.length} точками');
 
       for (int j = 0; j < section.coordinates.length - 1; j++) {
         final segmentStart = section.coordinates[j];
@@ -821,18 +844,25 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         if (distance < minDistance) {
           minDistance = distance;
           nearestIndex = i;
+          LogService.log('🔍 [CreateRouteScreen] Новий найближчий відрізок: $i, відстань: $distance');
         }
       }
     }
 
+    LogService.log('🔍 [CreateRouteScreen] Найближчий відрізок: $nearestIndex, мінімальна відстань: $minDistance');
     return nearestIndex;
   }
 
   /// Отримати профіль маршруту з налаштувань
   String _getRouteProfile() {
-    // Тимчасово повертаємо велосипедний профіль
-    // TODO: Інтегрувати з SettingsCubit
-    return 'cycling-regular';
+    // Отримуємо поточний стан налаштувань
+    final settingsState = context.read<SettingsCubit>().state;
+    return settingsState.when(
+      initial: () => 'cycling-regular', // Значення за замовчуванням
+      loading: () => 'cycling-regular', // Значення за замовчуванням
+      loaded: (settings) => settings.routeProfile,
+      error: (failure) => 'cycling-regular', // Fallback значення
+    );
   }
 
   /// Розрахувати відстань від точки до відрізка лінії

@@ -15,6 +15,8 @@ class SettingsModel with _$SettingsModel {
     @Default(false) bool weatherAlerts,
     @Default(false) bool generalNotifications,
     @Default(false) bool healthDataIntegration,
+    @Default(false) bool routeDragging,
+    @Default("cycling-regular") String routeProfile,
   }) = _SettingsModel;
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) => _$SettingsModelFromJson(json);
@@ -31,6 +33,8 @@ extension SettingsModelExtension on SettingsModel {
       weatherAlerts: weatherAlerts,
       generalNotifications: generalNotifications,
       healthDataIntegration: healthDataIntegration,
+      routeDragging: routeDragging,
+      routeProfile: routeProfile,
     );
   }
 }
@@ -46,6 +50,8 @@ extension SettingsEntityExtension on SettingsEntity {
       weatherAlerts: weatherAlerts,
       generalNotifications: generalNotifications,
       healthDataIntegration: healthDataIntegration,
+      routeDragging: routeDragging,
+      routeProfile: routeProfile,
     );
   }
 }

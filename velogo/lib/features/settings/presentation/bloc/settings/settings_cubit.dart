@@ -12,6 +12,7 @@ import 'package:velogo/features/settings/domain/usecases/update_general_notifica
 import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_route_dragging_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_route_profile_usecase.dart';
+import 'package:velogo/core/services/route_drag_service.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -48,7 +49,11 @@ class SettingsCubit extends Cubit<SettingsState> {
     final result = await getSettingsUseCase(NoParams());
     result.fold(
       (failure) => emit(SettingsState.error(failure)),
-      (settings) => emit(SettingsState.loaded(settings)),
+      (settings) {
+        // Оновлюємо RouteDragService з поточними налаштуваннями
+        RouteDragService.updateFromSettings(settings.routeDragging);
+        emit(SettingsState.loaded(settings));
+      },
     );
   }
 
@@ -180,7 +185,11 @@ class SettingsCubit extends Cubit<SettingsState> {
         final result = await updateRouteDraggingUseCase(value);
         result.fold(
           (failure) => emit(SettingsState.error(failure)),
-          (_) => emit(SettingsState.loaded(settings.copyWith(routeDragging: value))),
+          (_) {
+            // Оновлюємо RouteDragService з новим значенням
+            RouteDragService.updateFromSettings(value);
+            emit(SettingsState.loaded(settings.copyWith(routeDragging: value)));
+          },
         );
       },
       error: (failure) {},
