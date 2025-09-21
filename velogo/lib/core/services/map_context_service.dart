@@ -17,7 +17,7 @@ enum MapContext {
 class MapContextService {
   static final Map<MapContext, MapZoomConfig> _contextConfigs = {
     MapContext.routeCreation: MapZoomConfig(
-      defaultZoom: 15.5,
+      defaultZoom: 16.5, // Збільшено з 15.5
       minZoom: 14.0,
       maxZoom: 18.0,
       autoFit: false,
@@ -25,7 +25,7 @@ class MapContextService {
       animationCurve: Curves.easeInOut,
     ),
     MapContext.routeViewing: MapZoomConfig(
-      defaultZoom: 13.0,
+      defaultZoom: 15.0, // Збільшено з 13.0
       minZoom: 10.0,
       maxZoom: 16.0,
       autoFit: true, // Автоматично підлаштовувати під маршрут

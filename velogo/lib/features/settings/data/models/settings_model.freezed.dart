@@ -28,6 +28,8 @@ mixin _$SettingsModel {
   bool get weatherAlerts => throw _privateConstructorUsedError;
   bool get generalNotifications => throw _privateConstructorUsedError;
   bool get healthDataIntegration => throw _privateConstructorUsedError;
+  bool get routeDragging => throw _privateConstructorUsedError;
+  String get routeProfile => throw _privateConstructorUsedError;
 
   /// Serializes this SettingsModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -53,7 +55,9 @@ abstract class $SettingsModelCopyWith<$Res> {
       bool routeAlerts,
       bool weatherAlerts,
       bool generalNotifications,
-      bool healthDataIntegration});
+      bool healthDataIntegration,
+      bool routeDragging,
+      String routeProfile});
 }
 
 /// @nodoc
@@ -79,6 +83,8 @@ class _$SettingsModelCopyWithImpl<$Res, $Val extends SettingsModel>
     Object? weatherAlerts = null,
     Object? generalNotifications = null,
     Object? healthDataIntegration = null,
+    Object? routeDragging = null,
+    Object? routeProfile = null,
   }) {
     return _then(_value.copyWith(
       voiceInstructions: null == voiceInstructions
@@ -113,6 +119,14 @@ class _$SettingsModelCopyWithImpl<$Res, $Val extends SettingsModel>
           ? _value.healthDataIntegration
           : healthDataIntegration // ignore: cast_nullable_to_non_nullable
               as bool,
+      routeDragging: null == routeDragging
+          ? _value.routeDragging
+          : routeDragging // ignore: cast_nullable_to_non_nullable
+              as bool,
+      routeProfile: null == routeProfile
+          ? _value.routeProfile
+          : routeProfile // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -133,7 +147,9 @@ abstract class _$$SettingsModelImplCopyWith<$Res>
       bool routeAlerts,
       bool weatherAlerts,
       bool generalNotifications,
-      bool healthDataIntegration});
+      bool healthDataIntegration,
+      bool routeDragging,
+      String routeProfile});
 }
 
 /// @nodoc
@@ -157,6 +173,8 @@ class __$$SettingsModelImplCopyWithImpl<$Res>
     Object? weatherAlerts = null,
     Object? generalNotifications = null,
     Object? healthDataIntegration = null,
+    Object? routeDragging = null,
+    Object? routeProfile = null,
   }) {
     return _then(_$SettingsModelImpl(
       voiceInstructions: null == voiceInstructions
@@ -191,6 +209,14 @@ class __$$SettingsModelImplCopyWithImpl<$Res>
           ? _value.healthDataIntegration
           : healthDataIntegration // ignore: cast_nullable_to_non_nullable
               as bool,
+      routeDragging: null == routeDragging
+          ? _value.routeDragging
+          : routeDragging // ignore: cast_nullable_to_non_nullable
+              as bool,
+      routeProfile: null == routeProfile
+          ? _value.routeProfile
+          : routeProfile // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -206,7 +232,9 @@ class _$SettingsModelImpl implements _SettingsModel {
       this.routeAlerts = false,
       this.weatherAlerts = false,
       this.generalNotifications = false,
-      this.healthDataIntegration = false});
+      this.healthDataIntegration = false,
+      this.routeDragging = false,
+      this.routeProfile = "cycling-regular"});
 
   factory _$SettingsModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsModelImplFromJson(json);
@@ -235,10 +263,16 @@ class _$SettingsModelImpl implements _SettingsModel {
   @override
   @JsonKey()
   final bool healthDataIntegration;
+  @override
+  @JsonKey()
+  final bool routeDragging;
+  @override
+  @JsonKey()
+  final String routeProfile;
 
   @override
   String toString() {
-    return 'SettingsModel(voiceInstructions: $voiceInstructions, unitsOfMeasurement: $unitsOfMeasurement, mapStyle: $mapStyle, notifications: $notifications, routeAlerts: $routeAlerts, weatherAlerts: $weatherAlerts, generalNotifications: $generalNotifications, healthDataIntegration: $healthDataIntegration)';
+    return 'SettingsModel(voiceInstructions: $voiceInstructions, unitsOfMeasurement: $unitsOfMeasurement, mapStyle: $mapStyle, notifications: $notifications, routeAlerts: $routeAlerts, weatherAlerts: $weatherAlerts, generalNotifications: $generalNotifications, healthDataIntegration: $healthDataIntegration, routeDragging: $routeDragging, routeProfile: $routeProfile)';
   }
 
   @override
@@ -261,7 +295,11 @@ class _$SettingsModelImpl implements _SettingsModel {
             (identical(other.generalNotifications, generalNotifications) ||
                 other.generalNotifications == generalNotifications) &&
             (identical(other.healthDataIntegration, healthDataIntegration) ||
-                other.healthDataIntegration == healthDataIntegration));
+                other.healthDataIntegration == healthDataIntegration) &&
+            (identical(other.routeDragging, routeDragging) ||
+                other.routeDragging == routeDragging) &&
+            (identical(other.routeProfile, routeProfile) ||
+                other.routeProfile == routeProfile));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -275,7 +313,9 @@ class _$SettingsModelImpl implements _SettingsModel {
       routeAlerts,
       weatherAlerts,
       generalNotifications,
-      healthDataIntegration);
+      healthDataIntegration,
+      routeDragging,
+      routeProfile);
 
   /// Create a copy of SettingsModel
   /// with the given fields replaced by the non-null parameter values.
@@ -302,7 +342,9 @@ abstract class _SettingsModel implements SettingsModel {
       final bool routeAlerts,
       final bool weatherAlerts,
       final bool generalNotifications,
-      final bool healthDataIntegration}) = _$SettingsModelImpl;
+      final bool healthDataIntegration,
+      final bool routeDragging,
+      final String routeProfile}) = _$SettingsModelImpl;
 
   factory _SettingsModel.fromJson(Map<String, dynamic> json) =
       _$SettingsModelImpl.fromJson;
@@ -323,6 +365,10 @@ abstract class _SettingsModel implements SettingsModel {
   bool get generalNotifications;
   @override
   bool get healthDataIntegration;
+  @override
+  bool get routeDragging;
+  @override
+  String get routeProfile;
 
   /// Create a copy of SettingsModel
   /// with the given fields replaced by the non-null parameter values.

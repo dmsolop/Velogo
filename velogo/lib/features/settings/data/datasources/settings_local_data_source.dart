@@ -14,6 +14,8 @@ abstract class SettingsLocalDataSource {
   Future<void> updateWeatherAlerts(bool value);
   Future<void> updateGeneralNotifications(bool value);
   Future<void> updateHealthDataIntegration(bool value);
+  Future<void> updateRouteDragging(bool value);
+  Future<void> updateRouteProfile(String value);
 }
 
 class SettingsLocalDataSourceImpl implements SettingsLocalDataSource {
@@ -129,6 +131,28 @@ class SettingsLocalDataSourceImpl implements SettingsLocalDataSource {
     try {
       final settings = await getSettings();
       final updatedSettings = settings.copyWith(healthDataIntegration: value);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw CacheException();
+    }
+  }
+
+  @override
+  Future<void> updateRouteDragging(bool value) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(routeDragging: value);
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      throw CacheException();
+    }
+  }
+
+  @override
+  Future<void> updateRouteProfile(String value) async {
+    try {
+      final settings = await getSettings();
+      final updatedSettings = settings.copyWith(routeProfile: value);
       await saveSettings(updatedSettings);
     } catch (e) {
       throw CacheException();

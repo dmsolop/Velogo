@@ -110,4 +110,24 @@ class SettingsRepositoryImpl implements SettingsRepository {
       return Left(CacheFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> updateRouteDragging(bool value) async {
+    try {
+      await localDataSource.updateRouteDragging(value);
+      return const Right(unit);
+    } on CacheException {
+      return Left(CacheFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateRouteProfile(String value) async {
+    try {
+      await localDataSource.updateRouteProfile(value);
+      return const Right(unit);
+    } on CacheException {
+      return Left(CacheFailure());
+    }
+  }
 }

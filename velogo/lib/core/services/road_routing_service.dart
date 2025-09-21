@@ -24,7 +24,7 @@ class RoadRoutingService {
   static Future<List<LatLng>> calculateRoute({
     required LatLng startPoint,
     required LatLng endPoint,
-    String profile = 'driving-car', // driving-car, cycling-regular, foot-walking
+    String profile = 'cycling-regular', // cycling-regular, driving-car, foot-walking
   }) async {
     try {
       LogService.log('🛣️ [RoadRoutingService] Розрахунок маршруту: ${startPoint.latitude},${startPoint.longitude} -> ${endPoint.latitude},${endPoint.longitude}');
@@ -76,7 +76,7 @@ class RoadRoutingService {
         'format': 'geojson',
         'instructions': false, // Відключаємо інструкції для зменшення розміру відповіді
         'options': {
-          'avoid_features': ['highways', 'tollways'],
+          'avoid_features': _getAvoidFeaturesForProfile(profile),
         }
       };
 
@@ -223,7 +223,7 @@ class RoadRoutingService {
   /// Розрахунок маршруту через кілька точок
   static Future<List<LatLng>> calculateRouteWithWaypoints({
     required List<LatLng> waypoints,
-    String profile = 'driving-car',
+    String profile = 'cycling-regular',
   }) async {
     if (waypoints.length < 2) {
       return waypoints;
@@ -241,7 +241,7 @@ class RoadRoutingService {
         'format': 'geojson',
         'instructions': false, // Відключаємо інструкції для зменшення розміру відповіді
         'options': {
-          'avoid_features': ['highways', 'tollways'],
+          'avoid_features': _getAvoidFeaturesForProfile(profile),
         }
       };
 
@@ -429,8 +429,26 @@ class RoadRoutingService {
         return 'foot-walking';
       case 'driving':
       case 'car':
-      default:
         return 'driving-car';
+      default:
+        return 'cycling-regular'; // За замовчуванням велосипедний профіль
+    }
+  }
+
+  /// Отримання avoid_features для конкретного профілю
+  static List<String> _getAvoidFeaturesForProfile(String profile) {
+    switch (profile) {
+      case 'cycling-regular':
+      case 'cycling-road':
+      case 'cycling-mountain':
+      case 'cycling-electric':
+        return []; // Для велосипедів немає обмежень - можуть їхати скрізь
+      case 'foot-walking':
+      case 'foot-hiking':
+        return ['ferries']; // Для пішоходів тільки пароми
+      case 'driving-car':
+      default:
+        return ['highways', 'tollways', 'ferries']; // Для автомобілів всі обмеження
     }
   }
 

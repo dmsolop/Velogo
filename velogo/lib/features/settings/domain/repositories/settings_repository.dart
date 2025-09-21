@@ -13,4 +13,6 @@ abstract class SettingsRepository {
   Future<Either<Failure, Unit>> updateWeatherAlerts(bool value);
   Future<Either<Failure, Unit>> updateGeneralNotifications(bool value);
   Future<Either<Failure, Unit>> updateHealthDataIntegration(bool value);
+  Future<Either<Failure, Unit>> updateRouteDragging(bool value);
+  Future<Either<Failure, Unit>> updateRouteProfile(String value);
 }

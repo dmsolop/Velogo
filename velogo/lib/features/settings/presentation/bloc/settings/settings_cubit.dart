@@ -10,6 +10,8 @@ import 'package:velogo/features/settings/domain/usecases/update_route_alerts_use
 import 'package:velogo/features/settings/domain/usecases/update_weather_alerts_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_general_notifications_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_dragging_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_profile_usecase.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -23,6 +25,8 @@ class SettingsCubit extends Cubit<SettingsState> {
   final UpdateWeatherAlertsUseCase updateWeatherAlertsUseCase;
   final UpdateGeneralNotificationsUseCase updateGeneralNotificationsUseCase;
   final UpdateHealthDataIntegrationUseCase updateHealthDataIntegrationUseCase;
+  final UpdateRouteDraggingUseCase updateRouteDraggingUseCase;
+  final UpdateRouteProfileUseCase updateRouteProfileUseCase;
 
   SettingsCubit({
     required this.getSettingsUseCase,
@@ -35,6 +39,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     required this.updateWeatherAlertsUseCase,
     required this.updateGeneralNotificationsUseCase,
     required this.updateHealthDataIntegrationUseCase,
+    required this.updateRouteDraggingUseCase,
+    required this.updateRouteProfileUseCase,
   }) : super(const SettingsState.initial());
 
   Future<void> loadSettings() async {
@@ -160,6 +166,36 @@ class SettingsCubit extends Cubit<SettingsState> {
         result.fold(
           (failure) => emit(SettingsState.error(failure)),
           (_) => emit(SettingsState.loaded(settings.copyWith(healthDataIntegration: value))),
+        );
+      },
+      error: (failure) {},
+    );
+  }
+
+  Future<void> toggleRouteDragging(bool value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateRouteDraggingUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(routeDragging: value))),
+        );
+      },
+      error: (failure) {},
+    );
+  }
+
+  Future<void> changeRouteProfile(String value) async {
+    state.when(
+      initial: () {},
+      loading: () {},
+      loaded: (settings) async {
+        final result = await updateRouteProfileUseCase(value);
+        result.fold(
+          (failure) => emit(SettingsState.error(failure)),
+          (_) => emit(SettingsState.loaded(settings.copyWith(routeProfile: value))),
         );
       },
       error: (failure) {},

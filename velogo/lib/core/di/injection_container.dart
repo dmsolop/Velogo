@@ -36,6 +36,8 @@ import 'package:velogo/features/settings/domain/usecases/update_route_alerts_use
 import 'package:velogo/features/settings/domain/usecases/update_weather_alerts_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_general_notifications_usecase.dart';
 import 'package:velogo/features/settings/domain/usecases/update_health_data_integration_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_dragging_usecase.dart';
+import 'package:velogo/features/settings/domain/usecases/update_route_profile_usecase.dart';
 import 'package:velogo/features/settings/data/datasources/settings_local_data_source.dart';
 import 'package:velogo/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -197,6 +199,8 @@ Future<void> _initSettings() async {
   sl.registerLazySingleton(() => UpdateWeatherAlertsUseCase(sl()));
   sl.registerLazySingleton(() => UpdateGeneralNotificationsUseCase(sl()));
   sl.registerLazySingleton(() => UpdateHealthDataIntegrationUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateRouteDraggingUseCase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateRouteProfileUseCase(repository: sl()));
 
   // BLoCs
   sl.registerFactory(() => SettingsCubit(
@@ -210,6 +214,8 @@ Future<void> _initSettings() async {
         updateWeatherAlertsUseCase: sl(),
         updateGeneralNotificationsUseCase: sl(),
         updateHealthDataIntegrationUseCase: sl(),
+        updateRouteDraggingUseCase: sl(),
+        updateRouteProfileUseCase: sl(),
       ));
 }
 

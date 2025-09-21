@@ -16,6 +16,8 @@ _$SettingsModelImpl _$$SettingsModelImplFromJson(Map<String, dynamic> json) =>
       weatherAlerts: json['weatherAlerts'] as bool? ?? false,
       generalNotifications: json['generalNotifications'] as bool? ?? false,
       healthDataIntegration: json['healthDataIntegration'] as bool? ?? false,
+      routeDragging: json['routeDragging'] as bool? ?? false,
+      routeProfile: json['routeProfile'] as String? ?? "cycling-regular",
     );
 
 Map<String, dynamic> _$$SettingsModelImplToJson(_$SettingsModelImpl instance) =>
@@ -28,4 +30,6 @@ Map<String, dynamic> _$$SettingsModelImplToJson(_$SettingsModelImpl instance) =>
       'weatherAlerts': instance.weatherAlerts,
       'generalNotifications': instance.generalNotifications,
       'healthDataIntegration': instance.healthDataIntegration,
+      'routeDragging': instance.routeDragging,
+      'routeProfile': instance.routeProfile,
     };

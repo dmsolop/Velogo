@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/route_logic/route_section.dart';
@@ -13,6 +15,10 @@ import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
 import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/services/offline_tile_provider.dart';
+import '../../../../core/services/route_drag_service.dart';
+import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
+import '../../../settings/presentation/bloc/settings/settings_state.dart';
+import '../../../../core/di/injection_container.dart';
 
 class CreateRouteScreen extends StatefulWidget {
   const CreateRouteScreen({super.key});
@@ -37,46 +43,85 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   final TextEditingController _routeNameController = TextEditingController();
   final TextEditingController _routeDescriptionController = TextEditingController();
 
+  // Стан для перетягування
+  bool _isDragging = false;
+  int? _draggedSegmentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ініціалізуємо RouteDragService з налаштувань
+    _initializeRouteDragService();
+  }
+
+  Future<void> _initializeRouteDragService() async {
+    // Завантажуємо налаштування з SharedPreferences
+    try {
+      // Тут можна додати логіку для завантаження налаштувань
+      // Поки що використовуємо значення за замовчуванням
+      RouteDragService.setDragEnabled(false);
+    } catch (e) {
+      // Якщо не вдалося завантажити налаштування, використовуємо значення за замовчуванням
+      RouteDragService.setDragEnabled(false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Create Route",
-          style: TextStyle(
-            color: BaseColors.white,
+    return BlocProvider(
+      create: (context) => sl<SettingsCubit>()..loadSettings(),
+      child: BlocListener<SettingsCubit, SettingsState>(
+        listener: (context, state) {
+          state.when(
+            initial: () {},
+            loading: () {},
+            loaded: (settings) {
+              // Оновлюємо RouteDragService при зміні налаштувань
+              RouteDragService.updateFromSettings(settings.routeDragging);
+            },
+            error: (failure) {},
+          );
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              "Create Route",
+              style: TextStyle(
+                color: BaseColors.white,
+              ),
+            ),
+            backgroundColor: BaseColors.background,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: BaseColors.white,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ),
-        backgroundColor: BaseColors.background,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.close,
-            color: BaseColors.white,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: /* Center(child: Text("This is Create Route Screen")) */
-          Stack(
-        children: [
-          FlutterMap(
-            options: _createAdaptiveMapOptionsWithTap(),
+          body: /* Center(child: Text("This is Create Route Screen")) */
+              Stack(
             children: [
-              TileLayer(
-                tileProvider: OfflineTileProvider(),
-                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              FlutterMap(
+                options: _createAdaptiveMapOptionsWithTap(),
+                children: [
+                  TileLayer(
+                    tileProvider: OfflineTileProvider(),
+                    urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  ),
+                  PolylineLayer(
+                    polylines: _generatePolylines(),
+                  ),
+                  MarkerLayer(
+                    markers: _generateMarkers(),
+                  ),
+                ],
               ),
-              PolylineLayer(
-                polylines: _generatePolylines(),
-              ),
-              MarkerLayer(
-                markers: _generateMarkers(),
-              ),
+              _buildControlPanel(),
+              _buildBottomPanel(),
             ],
           ),
-          _buildControlPanel(),
-          _buildBottomPanel(),
-        ],
+        ),
       ),
     );
   }
@@ -87,7 +132,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       final routeCoordinates = await RoadRoutingService.calculateRoute(
         startPoint: _lastPoint!,
         endPoint: point,
-        profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
+        profile: 'cycling-regular', // Велосипедний профіль
       );
 
       // Завжди створюємо нову секцію для кожної ділянки маршруту
@@ -117,57 +162,67 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   }
 
   List<Polyline> _generatePolylines() {
-    return _sections.map((section) {
+    final polylines = <Polyline>[];
+
+    for (final entry in _sections.asMap().entries) {
+      final index = entry.key;
+      final section = entry.value;
       final color = getColorBasedOnDifficulty(section.difficulty);
-      return Polyline(
+      final isDragging = _isDragging && _draggedSegmentIndex == index;
+
+      // Основна лінія
+      polylines.add(Polyline(
         points: section.coordinates,
-        color: color,
-        strokeWidth: 4,
-      );
-    }).toList();
+        color: isDragging ? Colors.orange : color,
+        strokeWidth: isDragging ? 6 : 4,
+      ));
+
+      // Додаємо пунктирну лінію для відрізка, який готовий до перетягування
+      if (isDragging) {
+        polylines.add(Polyline(
+          points: section.coordinates,
+          color: Colors.orange.withOpacity(0.3),
+          strokeWidth: 8,
+          // pattern: const [10, 5], // Пунктирний паттерн - не підтримується в поточній версії
+        ));
+      }
+    }
+
+    return polylines;
   }
 
   List<Marker> _generateMarkers() {
     final markers = <Marker>[];
+    final allPoints = _getAllRoutePoints();
 
-    // Додаємо маркер для початкової точки (якщо є)
-    if (_sections.isNotEmpty) {
+    // Додаємо маркери для всіх точок маршруту
+    for (int i = 0; i < allPoints.length; i++) {
+      final point = allPoints[i];
+      final isFirst = i == 0;
+      final isLast = i == allPoints.length - 1;
       markers.add(
         Marker(
-          point: _sections.first.coordinates.first,
-          child: const Icon(Icons.place, color: Colors.green, size: 32),
-        ),
-      );
-    }
-
-    // Додаємо маркери для кінцевих точок секцій
-    for (int i = 0; i < _sections.length; i++) {
-      final section = _sections[i];
-      final isLastSection = i == _sections.length - 1;
-
-      markers.add(
-        Marker(
-          point: section.coordinates.last,
-          child: Icon(
-            isLastSection ? Icons.flag : Icons.location_on,
-            color: isLastSection ? Colors.red : Colors.blue,
-            size: 28,
+          point: point,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              isFirst ? Icons.place : (isLast ? Icons.flag : Icons.location_on),
+              color: isFirst ? Colors.green : (isLast ? Colors.red : Colors.blue),
+              size: isFirst ? 32 : (isLast ? 28 : 24),
+            ),
           ),
         ),
       );
-    }
-
-    // Додаємо маркер для поточної точки (якщо є і не збігається з останньою)
-    if (_lastPoint != null && _sections.isNotEmpty) {
-      final lastSectionEnd = _sections.last.coordinates.last;
-      if (_lastPoint!.latitude != lastSectionEnd.latitude || _lastPoint!.longitude != lastSectionEnd.longitude) {
-        markers.add(
-          Marker(
-            point: _lastPoint!,
-            child: const Icon(Icons.add_location, color: Colors.orange, size: 24),
-          ),
-        );
-      }
     }
 
     return markers;
@@ -178,45 +233,115 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       right: 16,
       // top: 100,
       bottom: 160,
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          CustomFloatingButton(
-            heroTag: 'mapLayers2Tag',
-            onPressed: () {
-              setState(() {});
-              // Логіка для шарів карти
-            },
-            icon: Icons.layers,
-          ),
-          const SizedBox(height: 8),
-          CustomFloatingButton(
-            heroTag: 'compas2Tag',
-            onPressed: () {
-              setState(() {});
-              // Логіка для Compass
-            },
-            icon: Icons.explore,
-          ),
-          const SizedBox(height: 8),
-          // CustomFloatingButton(
-          //   heroTag: 'completeRouteNavigateBackTag',
-          //   onPressed: () {
-          //     // Add the logic to finish the route or navigate back.
-          //     Navigator.pop(context);
-          //   },
-          //   icon: Icons.check,
-          // ),
-          const SizedBox(height: 8),
-          CustomFloatingButton(
-            heroTag: 'createRouteAndBackTag',
-            onPressed: () {
-              setState(() {});
-              // Логіка для cтворення маршруту
-            },
-            icon: Icons.create,
-          ),
-        ],
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              // Індикатор режиму перетягування
+              state.when(
+                initial: () => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                loaded: (settings) {
+                  if (settings.routeDragging) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.alt_route,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Перетягування увімкнено',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                error: (failure) => const SizedBox.shrink(),
+              ),
+              // Кнопка скасування режиму перетягування
+              if (_isDragging)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: CustomFloatingButton(
+                    heroTag: 'cancelDragTag',
+                    onPressed: () {
+                      setState(() {
+                        _isDragging = false;
+                        _draggedSegmentIndex = null;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Режим перетягування скасовано'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: Icons.close,
+                    color: Colors.red,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              CustomFloatingButton(
+                heroTag: 'mapLayers2Tag',
+                onPressed: () {
+                  setState(() {});
+                  // Логіка для шарів карти
+                },
+                icon: Icons.layers,
+              ),
+              const SizedBox(height: 8),
+              CustomFloatingButton(
+                heroTag: 'compas2Tag',
+                onPressed: () {
+                  setState(() {});
+                  // Логіка для Compass
+                },
+                icon: Icons.explore,
+              ),
+              const SizedBox(height: 8),
+              // CustomFloatingButton(
+              //   heroTag: 'completeRouteNavigateBackTag',
+              //   onPressed: () {
+              //     // Add the logic to finish the route or navigate back.
+              //     Navigator.pop(context);
+              //   },
+              //   icon: Icons.check,
+              // ),
+              const SizedBox(height: 8),
+              CustomFloatingButton(
+                heroTag: 'createRouteAndBackTag',
+                onPressed: () {
+                  setState(() {});
+                  // Логіка для cтворення маршруту
+                },
+                icon: Icons.create,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -349,11 +474,12 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
             _difficultyColor = Color(complexityResult.difficultyColor);
           });
 
-          // Показуємо рекомендації
-          final recommendations = complexityService.getRecommendations(complexityResult);
-          if (recommendations.isNotEmpty) {
-            _showRecommendationsDialog(recommendations);
-          }
+          // TODO: Змінити режим спливаючих вікон з рекомендаціями
+          // Замість показу діалогу, можна додати рекомендації в UI або показувати їх в іншому форматі
+          // final recommendations = complexityService.getRecommendations(complexityResult);
+          // if (recommendations.isNotEmpty) {
+          //   _showRecommendationsDialog(recommendations);
+          // }
         },
       );
     } catch (e) {
@@ -450,31 +576,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     }
   }
 
-  /// Показ діалогу з рекомендаціями
-  void _showRecommendationsDialog(List<String> recommendations) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Рекомендації'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: recommendations
-              .map((rec) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Text('• $rec'),
-                  ))
-              .toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Зрозуміло'),
-          ),
-        ],
-      ),
-    );
-  }
+  // TODO: Видалено метод _showRecommendationsDialog - див. TODO_RECOMMENDATIONS.md
 
   Color getColorBasedOnDifficulty(double difficulty) {
     if (difficulty < 2.0) {
@@ -516,7 +618,271 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       minZoom: baseOptions.minZoom,
       maxZoom: baseOptions.maxZoom,
       interactionOptions: baseOptions.interactionOptions,
-      onTap: (_, point) => _isDrawingMode ? _addRoutePoint(point) : _addInterestPoint(point),
+      onTap: (_, point) {
+        if (_isDragging) {
+          // Якщо ми в режимі перетягування, завершуємо перетягування
+          _handleSegmentDrag(point);
+        } else if (_isDrawingMode) {
+          _addRoutePoint(point);
+        } else {
+          _addInterestPoint(point);
+        }
+      },
+      onLongPress: (_, point) {
+        // Обробка довгого натискання для перетягування відрізків
+        _handleLongPressOnRoute(point);
+      },
+      onSecondaryTap: (_, point) {
+        // Скасування режиму перетягування при вторинному натисканні
+        if (_isDragging) {
+          setState(() {
+            _isDragging = false;
+            _draggedSegmentIndex = null;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Режим перетягування скасовано'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      },
     );
+  }
+
+  /// Обробка довгого натискання на маршрут
+  void _handleLongPressOnRoute(LatLng point) {
+    if (!RouteDragService.isDragEnabled || _sections.isEmpty) {
+      return;
+    }
+
+    // Знаходимо найближчий відрізок маршруту
+    final nearestSegmentIndex = _findNearestSegment(point);
+
+    if (nearestSegmentIndex == -1) {
+      return;
+    }
+
+    setState(() {
+      _isDragging = true;
+      _draggedSegmentIndex = nearestSegmentIndex;
+    });
+
+    // Показуємо підказку користувачу
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Натисніть в новому місці для додавання проміжної точки'),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  /// Обробка перетягування відрізка маршруту
+  Future<void> _handleSegmentDrag(LatLng newPosition) async {
+    if (!_isDragging || _draggedSegmentIndex == null) {
+      return;
+    }
+
+    try {
+      // Вставляємо нову точку в маршрут безпосередньо
+      await _insertNewRoutePoint(newPosition, _draggedSegmentIndex!);
+
+      setState(() {
+        _isDragging = false;
+        _draggedSegmentIndex = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Нова точка маршруту додана'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isDragging = false;
+        _draggedSegmentIndex = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Помилка при додаванні точки: $e'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// Вставити нову точку в маршрут
+  Future<void> _insertNewRoutePoint(LatLng newPoint, int segmentIndex) async {
+    if (segmentIndex < 0 || segmentIndex >= _sections.length) {
+      return;
+    }
+
+    final section = _sections[segmentIndex];
+    final coordinates = List<LatLng>.from(section.coordinates);
+
+    // Знаходимо найближчу позицію для вставки нової точки
+    int insertIndex = _findBestInsertionPoint(coordinates, newPoint);
+
+    // Вставляємо нову точку
+    coordinates.insert(insertIndex, newPoint);
+
+    // Перераховуємо маршрут з новою точкою
+    final newRoute = await RoadRoutingService.calculateRouteWithWaypoints(
+      waypoints: coordinates,
+      profile: 'cycling-regular',
+    );
+
+    if (newRoute.isNotEmpty) {
+      // Оновлюємо секцію з новим маршрутом
+      final updatedSection = RouteSection(
+        id: section.id,
+        coordinates: newRoute,
+        distance: _calculateDistance(newRoute),
+        elevationGain: section.elevationGain,
+        surfaceType: section.surfaceType,
+        windEffect: section.windEffect,
+        difficulty: section.difficulty,
+        averageSpeed: section.averageSpeed,
+        notes: section.notes,
+      );
+
+      setState(() {
+        _sections[segmentIndex] = updatedSection;
+      });
+    }
+  }
+
+  /// Знайти найкращу позицію для вставки нової точки
+  int _findBestInsertionPoint(List<LatLng> coordinates, LatLng newPoint) {
+    double minDistance = double.infinity;
+    int bestIndex = 0;
+
+    for (int i = 0; i < coordinates.length - 1; i++) {
+      final distance = _distanceToLineSegment(
+        newPoint,
+        coordinates[i],
+        coordinates[i + 1],
+      );
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        bestIndex = i + 1;
+      }
+    }
+
+    return bestIndex;
+  }
+
+  /// Розрахувати відстань маршруту
+  double _calculateDistance(List<LatLng> coordinates) {
+    if (coordinates.length < 2) return 0.0;
+
+    double totalDistance = 0.0;
+    for (int i = 0; i < coordinates.length - 1; i++) {
+      totalDistance += _calculateDistanceBetweenPoints(
+        coordinates[i],
+        coordinates[i + 1],
+      );
+    }
+    return totalDistance;
+  }
+
+  /// Розрахувати відстань між двома точками
+  double _calculateDistanceBetweenPoints(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371000; // Радіус Землі в метрах
+    final double lat1Rad = point1.latitude * (3.14159265359 / 180);
+    final double lat2Rad = point2.latitude * (3.14159265359 / 180);
+    final double deltaLatRad = (point2.latitude - point1.latitude) * (3.14159265359 / 180);
+    final double deltaLonRad = (point2.longitude - point1.longitude) * (3.14159265359 / 180);
+
+    final double a = sin(deltaLatRad / 2) * sin(deltaLatRad / 2) + cos(lat1Rad) * cos(lat2Rad) * sin(deltaLonRad / 2) * sin(deltaLonRad / 2);
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  /// Знайти найближчий відрізок маршруту до точки
+  int _findNearestSegment(LatLng point) {
+    double minDistance = double.infinity;
+    int nearestIndex = -1;
+
+    for (int i = 0; i < _sections.length; i++) {
+      final section = _sections[i];
+
+      for (int j = 0; j < section.coordinates.length - 1; j++) {
+        final segmentStart = section.coordinates[j];
+        final segmentEnd = section.coordinates[j + 1];
+
+        // Розраховуємо відстань від точки до відрізка
+        final distance = _distanceToLineSegment(point, segmentStart, segmentEnd);
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestIndex = i;
+        }
+      }
+    }
+
+    return nearestIndex;
+  }
+
+  /// Отримати профіль маршруту з налаштувань
+  String _getRouteProfile() {
+    // Тимчасово повертаємо велосипедний профіль
+    // TODO: Інтегрувати з SettingsCubit
+    return 'cycling-regular';
+  }
+
+  /// Розрахувати відстань від точки до відрізка лінії
+  double _distanceToLineSegment(LatLng point, LatLng lineStart, LatLng lineEnd) {
+    final A = point.latitude - lineStart.latitude;
+    final B = point.longitude - lineStart.longitude;
+    final C = lineEnd.latitude - lineStart.latitude;
+    final D = lineEnd.longitude - lineStart.longitude;
+
+    final dot = A * C + B * D;
+    final lenSq = C * C + D * D;
+
+    if (lenSq == 0) {
+      return sqrt(A * A + B * B);
+    }
+
+    final param = dot / lenSq;
+
+    double xx, yy;
+    if (param < 0) {
+      xx = lineStart.latitude;
+      yy = lineStart.longitude;
+    } else if (param > 1) {
+      xx = lineEnd.latitude;
+      yy = lineEnd.longitude;
+    } else {
+      xx = lineStart.latitude + param * C;
+      yy = lineStart.longitude + param * D;
+    }
+
+    final dx = point.latitude - xx;
+    final dy = point.longitude - yy;
+    return sqrt(dx * dx + dy * dy);
+  }
+
+  /// Отримати всі точки маршруту
+  List<LatLng> _getAllRoutePoints() {
+    final points = <LatLng>[];
+
+    for (final section in _sections) {
+      if (section.coordinates.isNotEmpty) {
+        points.add(section.coordinates.first);
+      }
+    }
+
+    // Додаємо останню точку
+    if (_lastPoint != null) {
+      points.add(_lastPoint!);
+    }
+
+    return points;
   }
 }

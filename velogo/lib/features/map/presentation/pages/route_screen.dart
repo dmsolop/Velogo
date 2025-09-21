@@ -273,7 +273,7 @@ class RouteScreenState extends State<RouteScreen> {
       final routeCoordinates = await RoadRoutingService.calculateRoute(
         startPoint: _lastPoint!,
         endPoint: point,
-        profile: 'driving-car', // Можна змінити на 'cycling-regular' для велосипедів
+        profile: 'cycling-regular', // Велосипедний профіль
       );
 
       // Завжди створюємо нову секцію для кожної ділянки маршруту
