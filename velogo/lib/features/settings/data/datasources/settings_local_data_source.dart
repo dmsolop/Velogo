@@ -3,21 +3,74 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:velogo/core/error/exceptions.dart';
 import 'package:velogo/features/settings/data/models/settings_model.dart';
 
+/// Абстрактний локальний джерело даних для налаштувань
+/// 
+/// Функціональність:
+/// - Визначає контракт для роботи з локальним сховищем налаштувань
+/// - Надає методи для збереження та отримання налаштувань
+/// - Використовує SharedPreferences для персистентності
+/// - Слідує Clean Architecture принципам
+/// 
+/// Використовується в: SettingsLocalDataSourceImpl, SettingsRepositoryImpl
 abstract class SettingsLocalDataSource {
+  /// Отримання налаштувань з локального сховища
+  /// Повертає: SettingsModel - налаштування або дефолтні значення
   Future<SettingsModel> getSettings();
+  
+  /// Збереження налаштувань в локальне сховище
+  /// Параметри: settings - налаштування для збереження
   Future<void> saveSettings(SettingsModel settings);
+  
+  /// Оновлення голосових інструкцій
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateVoiceInstructions(bool value);
+  
+  /// Оновлення одиниць вимірювання
+  /// Параметри: value - нові одиниці (metric/imperial)
   Future<void> updateUnitsOfMeasurement(String value);
+  
+  /// Оновлення стилю карти
+  /// Параметри: value - новий стиль карти
   Future<void> updateMapStyle(String value);
+  
+  /// Оновлення загальних сповіщень
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateNotifications(bool value);
+  
+  /// Оновлення сповіщень про маршрути
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateRouteAlerts(bool value);
+  
+  /// Оновлення сповіщень про погоду
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateWeatherAlerts(bool value);
+  
+  /// Оновлення загальних сповіщень
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateGeneralNotifications(bool value);
+  
+  /// Оновлення інтеграції з даними здоров'я
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateHealthDataIntegration(bool value);
+  
+  /// Оновлення налаштування перетягування маршрутів
+  /// Параметри: value - нове значення (true/false)
   Future<void> updateRouteDragging(bool value);
+  
+  /// Оновлення профілю маршрутизації
+  /// Параметри: value - новий профіль (cycling-regular, driving-car, foot-walking)
   Future<void> updateRouteProfile(String value);
 }
 
+/// Реалізація локального джерела даних для налаштувань
+/// 
+/// Функціональність:
+/// - Реалізує роботу з SharedPreferences для збереження налаштувань
+/// - Обробляє JSON серіалізацію/десеріалізацію налаштувань
+/// - Надає дефолтні значення при відсутності збережених налаштувань
+/// - Викидає CacheException при помилках
+/// 
+/// Використовується в: SettingsRepositoryImpl через Dependency Injection
 class SettingsLocalDataSourceImpl implements SettingsLocalDataSource {
   final SharedPreferences sharedPreferences;
   static const String settingsKey = 'settings';
