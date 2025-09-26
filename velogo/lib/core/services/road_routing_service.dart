@@ -7,10 +7,22 @@ import 'offline_map_service.dart';
 import 'remote_config_service.dart';
 
 /// Сервіс для маршрутизації по дорогах
+/// 
+/// Основні функції:
+/// - Розрахунок маршрутів між точками через OpenRouteService API
+/// - Підтримка різних профілів (велосипед, автомобіль, пішки)
+/// - Fallback на прямі лінії при відсутності інтернету
+/// - Кешування та оптимізація запитів
+/// 
+/// Використовується в: CreateRouteScreen, RouteScreen, RouteDragService
 class RoadRoutingService {
   static final RemoteConfigService _remoteConfig = RemoteConfigService();
 
-  /// Перевірити чи доступний інтернет
+  /// Перевірка доступності інтернет-з'єднання
+  /// 
+  /// Виконує HTTP запит до Google для перевірки з'єднання
+  /// 
+  /// Використовується в: calculateRoute(), calculateRouteWithWaypoints()
   static Future<bool> _isInternetAvailable() async {
     try {
       final response = await http.get(Uri.parse('https://www.google.com'));
@@ -21,6 +33,18 @@ class RoadRoutingService {
   }
 
   /// Розрахунок маршруту між двома точками по дорогах
+  /// 
+  /// Функціональність:
+  /// - Намагається використати OpenRouteService API (якщо є інтернет)
+  /// - Fallback на пряму лінію при відсутності з'єднання
+  /// - Підтримує різні профілі маршрутизації
+  /// 
+  /// Параметри:
+  /// - startPoint: початкова точка маршруту
+  /// - endPoint: кінцева точка маршруту  
+  /// - profile: профіль маршрутизації (cycling-regular, driving-car, foot-walking)
+  /// 
+  /// Використовується в: CreateRouteScreen._addRoutePoint(), RouteScreen._addRoutePoint()
   static Future<List<LatLng>> calculateRoute({
     required LatLng startPoint,
     required LatLng endPoint,
@@ -220,7 +244,18 @@ class RoadRoutingService {
     return points;
   }
 
-  /// Розрахунок маршруту через кілька точок
+  /// Розрахунок маршруту через кілька проміжних точок
+  /// 
+  /// Функціональність:
+  /// - Розраховує маршрут через всі передані waypoints
+  /// - Використовує OpenRouteService API для точного маршруту
+  /// - Повертає всі координати маршруту
+  /// 
+  /// Параметри:
+  /// - waypoints: список проміжних точок маршруту
+  /// - profile: профіль маршрутизації
+  /// 
+  /// Використовується в: CreateRouteScreen._moveRouteSection()
   static Future<List<LatLng>> calculateRouteWithWaypoints({
     required List<LatLng> waypoints,
     String profile = 'cycling-regular',
@@ -418,7 +453,15 @@ class RoadRoutingService {
     return earthRadius * c;
   }
 
-  /// Отримання профілю маршруту на основі типу активності
+  /// Отримання профілю маршрутизації за типом активності
+  /// 
+  /// Мапить типи активності на профілі OpenRouteService:
+  /// - cycling/bike -> cycling-regular
+  /// - walking/hiking -> foot-walking  
+  /// - driving/car -> driving-car
+  /// - default -> cycling-regular
+  /// 
+  /// Використовується в: різних місцях для визначення профілю за типом активності
   static String getProfileForActivity(String activityType) {
     switch (activityType.toLowerCase()) {
       case 'cycling':

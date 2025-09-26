@@ -15,6 +15,15 @@ import 'package:velogo/features/settings/domain/usecases/update_route_profile_us
 import 'package:velogo/core/services/route_drag_service.dart';
 import 'settings_state.dart';
 
+/// Cubit для управління налаштуваннями додатку
+/// 
+/// Основні функції:
+/// - Завантаження налаштувань з локального сховища
+/// - Оновлення різних параметрів налаштувань
+/// - Синхронізація з RouteDragService
+/// - Управління станом налаштувань через BLoC pattern
+/// 
+/// Використовується в: SettingsScreen, CreateRouteScreen, RouteScreen
 class SettingsCubit extends Cubit<SettingsState> {
   final GetSettingsUseCase getSettingsUseCase;
   final SaveSettingsUseCase saveSettingsUseCase;
@@ -44,6 +53,15 @@ class SettingsCubit extends Cubit<SettingsState> {
     required this.updateRouteProfileUseCase,
   }) : super(const SettingsState.initial());
 
+  /// Завантаження налаштувань з локального сховища
+  /// 
+  /// Функціональність:
+  /// - Встановлює стан loading
+  /// - Отримує налаштування через GetSettingsUseCase
+  /// - Оновлює RouteDragService з поточними налаштуваннями
+  /// - Емітить стан loaded або error
+  /// 
+  /// Використовується в: SettingsScreen, CreateRouteScreen (при ініціалізації)
   Future<void> loadSettings() async {
     emit(const SettingsState.loading());
     final result = await getSettingsUseCase(NoParams());
@@ -177,6 +195,14 @@ class SettingsCubit extends Cubit<SettingsState> {
     );
   }
 
+  /// Перемикання функції перетягування маршрутів
+  /// 
+  /// Функціональність:
+  /// - Оновлює налаштування через UpdateRouteDraggingUseCase
+  /// - Синхронізує стан з RouteDragService
+  /// - Емітить оновлений стан налаштувань
+  /// 
+  /// Використовується в: SettingsScreen (перемикач Route Dragging)
   Future<void> toggleRouteDragging(bool value) async {
     state.when(
       initial: () {},
@@ -196,6 +222,14 @@ class SettingsCubit extends Cubit<SettingsState> {
     );
   }
 
+  /// Зміна профілю маршрутизації
+  /// 
+  /// Функціональність:
+  /// - Оновлює профіль маршруту (cycling-regular, driving-car, foot-walking)
+  /// - Зберігає зміни через UpdateRouteProfileUseCase
+  /// - Емітить оновлений стан налаштувань
+  /// 
+  /// Використовується в: SettingsScreen (випадаючий список Route Profile)
   Future<void> changeRouteProfile(String value) async {
     state.when(
       initial: () {},
