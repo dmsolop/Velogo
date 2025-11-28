@@ -7,15 +7,21 @@ import 'dart:math';
 import '../../../../shared/base_widgets.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/dev_helpers.dart';
-import '../../data/models/route_logic/route_section.dart';
+import '../../domain/entities/route_entity.dart';
 import '../../../weather/data/datasources/weather_service.dart';
 import '../../data/models/road_surface.dart';
 import '../../../weather/data/models/weather_data.dart';
 import 'create_route_screen.dart';
 import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
-import '../../../../core/services/road_routing_service.dart';
+import '../../domain/usecases/calculate_route_usecase.dart';
+import '../../domain/usecases/calculate_route_distance_usecase.dart';
+import '../../domain/usecases/calculate_elevation_gain_usecase.dart';
+import '../../domain/usecases/calculate_wind_effect_usecase.dart';
 import '../../../../core/services/offline_tile_provider.dart';
+import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 
 class RouteScreen extends StatefulWidget {
@@ -26,10 +32,16 @@ class RouteScreen extends StatefulWidget {
 }
 
 class RouteScreenState extends State<RouteScreen> {
-  final List<RouteSection> _sections = [];
+  final List<RouteSectionEntity> _sections = [];
   final List<String> _interestingPlaces = ["Place A", "Place B", "Place C"];
   final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
+
+  // Use Cases
+  late final CalculateRouteUseCase _calculateRouteUseCase;
+  late final CalculateRouteDistanceUseCase _calculateRouteDistanceUseCase;
+  late final CalculateElevationGainUseCase _calculateElevationGainUseCase;
+  late final CalculateWindEffectUseCase _calculateWindEffectUseCase;
 
   // Нові поля для системи складності
   final WeatherService _weatherService = WeatherService();
@@ -46,6 +58,12 @@ class RouteScreenState extends State<RouteScreen> {
         statusBarIconBrightness: Brightness.dark, // Елементи статус-бару світлі
       ),
     );
+
+    // Ініціалізуємо Use Cases
+    _calculateRouteUseCase = sl<CalculateRouteUseCase>();
+    _calculateRouteDistanceUseCase = sl<CalculateRouteDistanceUseCase>();
+    _calculateElevationGainUseCase = sl<CalculateElevationGainUseCase>();
+    _calculateWindEffectUseCase = sl<CalculateWindEffectUseCase>();
   }
 
   @override
@@ -271,31 +289,70 @@ class RouteScreenState extends State<RouteScreen> {
 
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
-      // Розраховуємо маршрут по дорогах між точками
-      final routeCoordinates = await RoadRoutingService.calculateRoute(
-        startPoint: _lastPoint!,
-        endPoint: point,
-        profile: _getRouteProfile(),
+      // Розраховуємо маршрут по дорогах між точками через Use Case
+      final routeResult = await _calculateRouteUseCase(
+        CalculateRouteParams(
+          startPoint: _lastPoint!,
+          endPoint: point,
+          profile: _getRouteProfile(),
+        ),
       );
 
-      // Завжди створюємо нову секцію для кожної ділянки маршруту
-      // Це забезпечує правильне відображення маршруту по дорогах
-      final newSection = RouteSection(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        coordinates: routeCoordinates,
-        distance: RoadRoutingService.calculateRouteDistance(routeCoordinates),
-        elevationGain: _calculateElevationGain(_lastPoint!, point),
-        surfaceType: "asphalt",
-        windEffect: _calculateWindEffect(_lastPoint!, point),
-        averageSpeed: 15.0,
-      );
-      
-      setState(() {
-        _sections.add(newSection);
-      });
+      routeResult.fold(
+        (failure) {
+          // Обробка помилки
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Помилка розрахунку маршруту: ${failure.message}')),
+          );
+        },
+        (routeCoordinates) async {
+          // Розраховуємо відстань через Use Case
+          final distanceResult = await _calculateRouteDistanceUseCase(
+            CalculateRouteDistanceParams(coordinates: routeCoordinates),
+          );
 
-      // Розраховуємо складність з новою системою
-      await _calculateRouteDifficulty();
+          // Розраховуємо набір висоти через Use Case
+          final elevationResult = await _calculateElevationGainUseCase(
+            CalculateElevationGainParams(
+              startPoint: _lastPoint!,
+              endPoint: point,
+            ),
+          );
+
+          // Розраховуємо вплив вітру через Use Case
+          final windResult = await _calculateWindEffectUseCase(
+            CalculateWindEffectParams(
+              startPoint: _lastPoint!,
+              endPoint: point,
+            ),
+          );
+
+          // Обробляємо результати
+          final distance = distanceResult.fold((_) => 0.0, (d) => d);
+          final elevationGain = elevationResult.fold((_) => 0.0, (e) => e);
+          final windEffect = windResult.fold((_) => 0.0, (w) => w);
+
+          // Завжди створюємо нову секцію для кожної ділянки маршруту
+          // Це забезпечує правильне відображення маршруту по дорогах
+          final newSection = RouteSectionEntity(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            coordinates: routeCoordinates,
+            distance: distance,
+            elevationGain: elevationGain,
+            surfaceType: RoadSurfaceType.asphalt,
+            windEffect: windEffect,
+            difficulty: 0.0,
+            averageSpeed: 15.0,
+          );
+
+          setState(() {
+            _sections.add(newSection);
+          });
+
+          // Розраховуємо складність з новою системою
+          await _calculateRouteDifficulty();
+        },
+      );
     }
     _lastPoint = point;
   }
@@ -357,11 +414,7 @@ class RouteScreenState extends State<RouteScreen> {
     return markers;
   }
 
-  double _calculateElevationGain(LatLng start, LatLng end) => 10;
-
-  double _calculateTotalDistance() => _sections.fold(0, (sum, section) => sum + 1.0);
-
-  double _calculateWindEffect(LatLng start, LatLng end) => 0.0;
+  double _calculateTotalDistance() => _sections.fold(0.0, (sum, section) => sum + section.distance);
 
   /// Отримання рівня складності (текстовий опис)
   String _getDifficultyLevel(double difficulty) {
@@ -445,7 +498,7 @@ class RouteScreenState extends State<RouteScreen> {
           }
 
           // Визначаємо тип покриття
-          roadSurfaces.add(_getRoadSurfaceFromString(section.surfaceType));
+          roadSurfaces.add(_getRoadSurfaceFromType(section.surfaceType));
         }
       }
 
@@ -468,7 +521,7 @@ class RouteScreenState extends State<RouteScreen> {
   }
 
   /// Розрахунок уклону для секції
-  double _calculateSlope(RouteSection section) {
+  double _calculateSlope(RouteSectionEntity section) {
     if (section.coordinates.length < 2) return 0.0;
 
     // Спрощений розрахунок уклону
@@ -486,21 +539,23 @@ class RouteScreenState extends State<RouteScreen> {
     return (elevationGain / (distance * 1000)) * 100; // Відсотки
   }
 
-  /// Конвертація типу покриття з рядка в enum
-  RoadSurface _getRoadSurfaceFromString(String surfaceType) {
-    switch (surfaceType.toLowerCase()) {
-      case 'asphalt':
+  /// Конвертація типу покриття з RoadSurfaceType в RoadSurface
+  RoadSurface _getRoadSurfaceFromType(RoadSurfaceType surfaceType) {
+    switch (surfaceType) {
+      case RoadSurfaceType.asphalt:
         return RoadSurface.asphalt;
-      case 'concrete':
+      case RoadSurfaceType.concrete:
         return RoadSurface.concrete;
-      case 'gravel':
+      case RoadSurfaceType.gravel:
         return RoadSurface.gravel;
-      case 'dirt':
+      case RoadSurfaceType.dirt:
         return RoadSurface.dirt;
-      case 'mud':
-        return RoadSurface.mud;
-      default:
-        return RoadSurface.asphalt;
+      case RoadSurfaceType.cobblestone:
+        return RoadSurface.asphalt; // Fallback
+      case RoadSurfaceType.grass:
+        return RoadSurface.dirt; // Fallback
+      case RoadSurfaceType.sand:
+        return RoadSurface.dirt; // Fallback
     }
   }
 

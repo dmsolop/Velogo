@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../data/models/route_logic/route_section.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../domain/usecases/calculate_route_usecase.dart';
@@ -23,7 +22,6 @@ import '../../../../core/services/offline_tile_provider.dart';
 import '../../../../core/services/route_drag_service.dart';
 import '../../../../core/services/log_service.dart';
 import '../../../../core/services/road_routing_service.dart';
-import '../../../../core/error/failures.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings/settings_state.dart';
 import '../../../../core/di/injection_container.dart';
@@ -46,7 +44,7 @@ class CreateRouteScreen extends StatefulWidget {
 }
 
 class CreateRouteScreenState extends State<CreateRouteScreen> {
-  final List<RouteSection> _sections = [];
+  final List<RouteSectionEntity> _sections = [];
   final defaultCenter = ReferenceValues.defaultMapCenter;
   LatLng? _lastPoint;
   bool _isDrawingMode = true;
@@ -209,13 +207,14 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
           // Завжди створюємо нову секцію для кожної ділянки маршруту
           // Це забезпечує правильне відображення маршруту по дорогах
-          final newSection = RouteSection(
+          final newSection = RouteSectionEntity(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             coordinates: routeCoordinates,
             distance: distance,
             elevationGain: elevationGain,
-            surfaceType: "asphalt",
+            surfaceType: RoadSurfaceType.asphalt,
             windEffect: windEffect,
+            difficulty: 0.0,
             averageSpeed: 15.0,
           );
 
@@ -510,7 +509,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     _showRouteErrorDialog(error, message);
   }
 
-  double _calculateTotalDistance() => _sections.fold(0, (sum, section) => sum + 1.0);
+  double _calculateTotalDistance() => _sections.fold(0.0, (sum, section) => sum + section.distance);
 
   /// Розрахунок складності маршруту з використанням нового RouteComplexityService
   Future<void> _calculateRouteDifficulty() async {
@@ -611,19 +610,8 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       totalDistance += section.distance;
       totalElevationGain += section.elevationGain;
 
-      // Створюємо RouteSectionEntity
-      final routeSection = RouteSectionEntity(
-        id: section.id,
-        coordinates: section.coordinates,
-        distance: section.distance,
-        elevationGain: section.elevationGain,
-        surfaceType: _mapToRoadSurfaceType(section.surfaceType),
-        windEffect: section.windEffect,
-        difficulty: section.difficulty,
-        averageSpeed: section.averageSpeed,
-        notes: section.notes,
-      );
-      sections.add(routeSection);
+      // RouteSectionEntity вже використовується, просто додаємо до списку
+      sections.add(section);
     }
 
     return RouteEntity(
@@ -642,27 +630,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     );
   }
 
-  /// Мапінг типу покриття
-  RoadSurfaceType _mapToRoadSurfaceType(String surfaceType) {
-    switch (surfaceType.toLowerCase()) {
-      case 'asphalt':
-        return RoadSurfaceType.asphalt;
-      case 'concrete':
-        return RoadSurfaceType.concrete;
-      case 'gravel':
-        return RoadSurfaceType.gravel;
-      case 'dirt':
-        return RoadSurfaceType.dirt;
-      case 'cobblestone':
-        return RoadSurfaceType.cobblestone;
-      case 'grass':
-        return RoadSurfaceType.grass;
-      case 'sand':
-        return RoadSurfaceType.sand;
-      default:
-        return RoadSurfaceType.asphalt;
-    }
-  }
 
   /// Мапінг рівня складності
   RouteDifficulty _mapToRouteDifficulty(String difficultyLevel) {
@@ -884,16 +851,9 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
     // Замість перерахунку всього маршруту, просто оновлюємо координати
     // Це збереже структуру маршруту без створення зайвих гілок
-    final updatedSection = RouteSection(
-      id: section.id,
+    final updatedSection = section.copyWith(
       coordinates: newCoordinates,
       distance: _calculateDistance(newCoordinates),
-      elevationGain: section.elevationGain,
-      surfaceType: section.surfaceType,
-      windEffect: section.windEffect,
-      difficulty: section.difficulty,
-      averageSpeed: section.averageSpeed,
-      notes: section.notes,
     );
 
     setState(() {
