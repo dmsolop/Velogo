@@ -62,7 +62,7 @@ class WeatherService {
           headers: {
             'Authorization': ApiConstants.stormGlassApiKey,
             'Content-Type': 'application/json',
-          },
+        },
         ),
       );
       await LogService.log('✅ [WeatherService] StormGlass відповідь отримана');

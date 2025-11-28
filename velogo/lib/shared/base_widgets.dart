@@ -1,6 +1,30 @@
 import 'package:flutter/material.dart';
+import '../core/services/personalization_engine.dart';
 import 'base_colors.dart';
 import 'base_fonts.dart';
+
+/// Отримання кольору на основі складності маршруту
+///
+/// Функціональність:
+/// - Визначає колір маршруту на основі рівня складності
+/// - Використовується для візуалізації складності маршруту на карті
+/// - Використовує PersonalizationEngine для отримання кольору (бізнес-логіка)
+///
+/// Параметри:
+/// - difficulty: рівень складності маршруту (0-10)
+///
+/// Повертає: Color - колір відповідно до складності
+///
+/// Використовується в: CreateRouteScreen, RouteScreen для відображення маршрутів
+///
+/// Примітка: Логіка визначення кольору знаходиться в PersonalizationEngine.getDifficultyColor()
+/// Ця функція є обгорткою для конвертації int (hex) в Color (Flutter тип)
+Color getColorBasedOnDifficulty(double difficulty) {
+  // Використовуємо PersonalizationEngine для отримання кольору (бізнес-логіка)
+  final personalizationEngine = PersonalizationEngine();
+  final colorHex = personalizationEngine.getDifficultyColor(difficulty);
+  return Color(colorHex);
+}
 
 class CustomLogo extends StatelessWidget {
   final double? size;

@@ -7,16 +7,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/route_logic/route_section.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
-import '../../../../core/services/route_complexity_service.dart';
+import '../../domain/usecases/calculate_route_usecase.dart';
+import '../../domain/usecases/calculate_route_distance_usecase.dart';
+import '../../domain/usecases/calculate_elevation_gain_usecase.dart';
+import '../../domain/usecases/calculate_wind_effect_usecase.dart';
+import '../../domain/usecases/calculate_route_complexity_usecase.dart';
+import '../../../profile/domain/usecases/get_profile_usecase.dart';
+import '../../../../core/error/failures.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/base_widgets.dart';
 import '../../../../shared/dev_helpers.dart';
 import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
-import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/services/offline_tile_provider.dart';
 import '../../../../core/services/route_drag_service.dart';
 import '../../../../core/services/log_service.dart';
+import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/error/failures.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings/settings_state.dart';
 import '../../../../core/di/injection_container.dart';
@@ -44,6 +51,14 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   LatLng? _lastPoint;
   bool _isDrawingMode = true;
 
+  // Use Cases
+  late final CalculateRouteUseCase _calculateRouteUseCase;
+  late final CalculateRouteDistanceUseCase _calculateRouteDistanceUseCase;
+  late final CalculateElevationGainUseCase _calculateElevationGainUseCase;
+  late final CalculateWindEffectUseCase _calculateWindEffectUseCase;
+  late final CalculateRouteComplexityUseCase _calculateRouteComplexityUseCase;
+  late final GetProfileUseCase _getProfileUseCase;
+
   // Поля для системи складності
   double _routeDifficulty = 0.0;
   String _difficultyLevel = 'Помірний';
@@ -66,6 +81,14 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   void initState() {
     super.initState();
     // RouteDragService буде ініціалізований автоматично при завантаженні налаштувань
+    
+    // Ініціалізуємо Use Cases
+    _calculateRouteUseCase = sl<CalculateRouteUseCase>();
+    _calculateRouteDistanceUseCase = sl<CalculateRouteDistanceUseCase>();
+    _calculateElevationGainUseCase = sl<CalculateElevationGainUseCase>();
+    _calculateWindEffectUseCase = sl<CalculateWindEffectUseCase>();
+    _calculateRouteComplexityUseCase = sl<CalculateRouteComplexityUseCase>();
+    _getProfileUseCase = sl<GetProfileUseCase>();
   }
 
   /// Побудова основного інтерфейсу екрану створення маршруту
@@ -139,31 +162,71 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   /// Використовується в: _createAdaptiveMapOptionsWithTap() -> onTap
   void _addRoutePoint(LatLng point) async {
     if (_lastPoint != null) {
-      // Розраховуємо маршрут по дорогах між точками
-      final routeCoordinates = await RoadRoutingService.calculateRoute(
-        startPoint: _lastPoint!,
-        endPoint: point,
-        profile: _getRouteProfile(),
+      // Розраховуємо маршрут по дорогах між точками через Use Case
+      final routeResult = await _calculateRouteUseCase(
+        CalculateRouteParams(
+          startPoint: _lastPoint!,
+          endPoint: point,
+          profile: _getRouteProfile(),
+        ),
       );
 
-      // Завжди створюємо нову секцію для кожної ділянки маршруту
-      // Це забезпечує правильне відображення маршруту по дорогах
-      final newSection = RouteSection(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        coordinates: routeCoordinates,
-        distance: RoadRoutingService.calculateRouteDistance(routeCoordinates),
-        elevationGain: _calculateElevationGain(_lastPoint!, point),
-        surfaceType: "asphalt",
-        windEffect: _calculateWindEffect(_lastPoint!, point),
-        averageSpeed: 15.0,
+      // Перевіряємо результат розрахунку
+      routeResult.fold(
+        (failure) {
+          LogService.log('❌ [CreateRouteScreen] Помилка розрахунку маршруту: ${failure.message}');
+          // Мапимо Failure на RouteCalculationError для діалогу
+          _showRouteErrorFromFailure(failure);
+        },
+        (routeCoordinates) async {
+          LogService.log('✅ [CreateRouteScreen] Маршрут успішно розраховано: ${routeCoordinates.length} точок');
+
+          // Розраховуємо відстань через Use Case
+          final distanceResult = await _calculateRouteDistanceUseCase(
+            CalculateRouteDistanceParams(coordinates: routeCoordinates),
+          );
+
+          // Розраховуємо набір висоти через Use Case
+          final elevationResult = await _calculateElevationGainUseCase(
+            CalculateElevationGainParams(
+              startPoint: _lastPoint!,
+              endPoint: point,
+            ),
+          );
+
+          // Розраховуємо вплив вітру через Use Case
+          final windResult = await _calculateWindEffectUseCase(
+            CalculateWindEffectParams(
+              startPoint: _lastPoint!,
+              endPoint: point,
+            ),
+          );
+
+          // Обробляємо результати
+          final distance = distanceResult.fold((_) => 0.0, (d) => d);
+          final elevationGain = elevationResult.fold((_) => 0.0, (e) => e);
+          final windEffect = windResult.fold((_) => 0.0, (w) => w);
+
+          // Завжди створюємо нову секцію для кожної ділянки маршруту
+          // Це забезпечує правильне відображення маршруту по дорогах
+          final newSection = RouteSection(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            coordinates: routeCoordinates,
+            distance: distance,
+            elevationGain: elevationGain,
+            surfaceType: "asphalt",
+            windEffect: windEffect,
+            averageSpeed: 15.0,
+          );
+
+          setState(() {
+            _sections.add(newSection);
+          });
+
+          // Розраховуємо складність з новою системою
+          await _calculateRouteDifficulty();
+        },
       );
-
-      setState(() {
-        _sections.add(newSection);
-      });
-
-      // Розраховуємо складність з новою системою
-      await _calculateRouteDifficulty();
     }
     _lastPoint = point;
   }
@@ -420,9 +483,32 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     );
   }
 
-  double _calculateElevationGain(LatLng start, LatLng end) => 10;
+  /// Мапінг Failure на RouteCalculationError для відображення діалогу
+  void _showRouteErrorFromFailure(Failure failure) {
+    RouteCalculationError error;
+    String message;
 
-  double _calculateWindEffect(LatLng start, LatLng end) => -2;
+    if (failure is NetworkFailure) {
+      error = RouteCalculationError.noInternet;
+      message = failure.message ?? 'Немає інтернет-з\'єднання. Перевірте підключення до мережі.';
+    } else if (failure is ServerFailure) {
+      if (failure.message?.contains('API ключ') ?? false) {
+        error = RouteCalculationError.noApiKey;
+        message = failure.message ?? 'API ключ не налаштовано. Зверніться до адміністратора.';
+      } else {
+        error = RouteCalculationError.apiError;
+        message = failure.message ?? 'Помилка сервера маршрутизації.';
+      }
+    } else if (failure is CacheFailure) {
+      error = RouteCalculationError.noOfflineMaps;
+      message = failure.message ?? 'Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.';
+    } else {
+      error = RouteCalculationError.unknown;
+      message = failure.message ?? 'Сталася неочікувана помилка.';
+    }
+
+    _showRouteErrorDialog(error, message);
+  }
 
   double _calculateTotalDistance() => _sections.fold(0, (sum, section) => sum + 1.0);
 
@@ -438,7 +524,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       // Створюємо RouteEntity з поточних секцій
       final routeEntity = _createRouteEntityFromSections();
 
-      // Отримуємо профіль користувача
+      // Отримуємо профіль користувача через Use Case
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         setState(() {
@@ -447,23 +533,31 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         return;
       }
 
-      // TODO: Отримати профіль користувача через ProfileRepository
-      // Поки що створюємо базовий профіль
-      final profile = ProfileEntity(
-        id: user.uid,
-        name: user.displayName ?? '',
-        email: user.email ?? '',
-        fitnessLevel: 'intermediate', // TODO: Отримати з профілю
-        age: 30, // TODO: Отримати з профілю
+      // Отримуємо профіль користувача через GetProfileUseCase
+      final profileResult = await _getProfileUseCase(user.uid);
+      final profile = profileResult.fold(
+        (failure) {
+          // Якщо не вдалося отримати профіль, створюємо базовий
+          LogService.log('⚠️ [CreateRouteScreen] Не вдалося отримати профіль: ${failure.message}');
+          return ProfileEntity(
+            id: user.uid,
+            name: user.displayName ?? '',
+            email: user.email ?? '',
+            fitnessLevel: 'intermediate',
+            age: 30,
+          );
+        },
+        (profile) => profile,
       );
 
-      // Використовуємо новий RouteComplexityService
-      final complexityService = RouteComplexityService();
-      final result = await complexityService.calculateRouteComplexity(
-        route: routeEntity,
-        userProfile: profile,
-        startTime: DateTime.now(),
-        useHealthData: true,
+      // Використовуємо CalculateRouteComplexityUseCase
+      final result = await _calculateRouteComplexityUseCase(
+        CalculateRouteComplexityParams(
+          route: routeEntity,
+          userProfile: profile,
+          startTime: DateTime.now(),
+          useHealthData: true,
+        ),
       );
 
       result.fold(
@@ -588,20 +682,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   }
 
   // TODO: Видалено метод _showRecommendationsDialog - див. TODO_RECOMMENDATIONS.md
-
-  Color getColorBasedOnDifficulty(double difficulty) {
-    if (difficulty < 2.0) {
-      return const Color(0xFF4CAF50); // Зелений
-    } else if (difficulty < 4.0) {
-      return const Color(0xFFFF9800); // Помаранчевий
-    } else if (difficulty < 6.0) {
-      return const Color(0xFFFF5722); // Червоний
-    } else if (difficulty < 8.0) {
-      return const Color(0xFF9C27B0); // Фіолетовий
-    } else {
-      return const Color(0xFF000000); // Чорний
-    }
-  }
 
   /// Створення адаптивних опцій карти для контексту створення маршруту
   MapOptions _createAdaptiveMapOptions() {
@@ -915,6 +995,148 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
     LogService.log('🔍 [CreateRouteScreen] Найближчий відрізок: $nearestIndex, мінімальна відстань: $minDistance');
     return nearestIndex;
+  }
+
+  /// Отримання профілю маршруту з налаштувань користувача
+  ///
+  /// Повертає:
+  /// - 'cycling-regular' - за замовчуванням або при помилці
+  /// - Значення з налаштувань користувача (cycling-regular, driving-car, foot-walking)
+  ///
+  /// Показ діалогу з помилкою маршрутизації та пропозиціями рішень
+  ///
+  /// Функціональність:
+  /// - Показує користувачу детальну інформацію про помилку
+  /// - Надає конкретні дії для вирішення проблеми
+  /// - Дозволяє спробувати знову або скасувати дію
+  ///
+  /// Параметри:
+  /// - error: тип помилки маршрутизації
+  /// - message: детальне повідомлення про помилку
+  ///
+  /// Використовується в: _addRoutePoint() при помилці розрахунку маршруту
+  void _showRouteErrorDialog(RouteCalculationError error, String message) {
+    String title;
+    String actionText;
+    VoidCallback? action;
+
+    switch (error) {
+      case RouteCalculationError.noInternet:
+        title = 'Немає інтернет-з\'єднання';
+        actionText = 'Перевірити з\'єднання';
+        action = () {
+          // Можна додати логіку перевірки з'єднання
+          Navigator.of(context).pop();
+        };
+        break;
+      case RouteCalculationError.noApiKey:
+        title = 'API ключ не налаштовано';
+        actionText = 'Звернутися до підтримки';
+        action = () {
+          // Можна додати логіку звернення до підтримки
+          Navigator.of(context).pop();
+        };
+        break;
+      case RouteCalculationError.noOfflineMaps:
+        title = 'Немає офлайн карт';
+        actionText = 'Завантажити карти';
+        action = () {
+          // Можна додати логіку завантаження карт
+          Navigator.of(context).pop();
+        };
+        break;
+      case RouteCalculationError.apiError:
+        title = 'Помилка сервера';
+        actionText = 'Спробувати знову';
+        action = () {
+          Navigator.of(context).pop();
+          // Повторна спроба додати точку
+          if (_lastPoint != null) {
+            _addRoutePoint(_lastPoint!);
+          }
+        };
+        break;
+      default:
+        title = 'Помилка маршрутизації';
+        actionText = 'Спробувати знову';
+        action = () {
+          Navigator.of(context).pop();
+        };
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              const Text(
+                'Рекомендації:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ..._getErrorRecommendations(error),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Скасувати'),
+            ),
+            if (action != null)
+              ElevatedButton(
+                onPressed: action,
+                child: Text(actionText),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Отримання рекомендацій для різних типів помилок
+  ///
+  /// Параметри:
+  /// - error: тип помилки маршрутизації
+  ///
+  /// Повертає: список рекомендацій для користувача
+  List<Widget> _getErrorRecommendations(RouteCalculationError error) {
+    switch (error) {
+      case RouteCalculationError.noInternet:
+        return [
+          const Text('• Перевірте підключення до Wi-Fi або мобільного інтернету'),
+          const Text('• Перезапустіть додаток'),
+          const Text('• Спробуйте пізніше'),
+        ];
+      case RouteCalculationError.noApiKey:
+        return [
+          const Text('• Зверніться до служби підтримки'),
+          const Text('• Перевірте налаштування додатку'),
+        ];
+      case RouteCalculationError.noOfflineMaps:
+        return [
+          const Text('• Завантажте офлайн карти для цієї області'),
+          const Text('• Перевірте підключення до інтернету'),
+          const Text('• Оберіть інші точки маршруту'),
+        ];
+      case RouteCalculationError.apiError:
+        return [
+          const Text('• Перевірте підключення до інтернету'),
+          const Text('• Спробуйте через кілька хвилин'),
+          const Text('• Оберіть інші точки маршруту'),
+        ];
+      default:
+        return [
+          const Text('• Спробуйте пізніше'),
+          const Text('• Оберіть інші точки маршруту'),
+          const Text('• Перезапустіть додаток'),
+        ];
+    }
   }
 
   /// Отримання профілю маршруту з налаштувань користувача

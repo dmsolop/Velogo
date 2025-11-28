@@ -6,22 +6,48 @@ import '../services/log_service.dart';
 import 'offline_map_service.dart';
 import 'remote_config_service.dart';
 
+/// Типи помилок маршрутизації
+enum RouteCalculationError {
+  noInternet, // Немає інтернету
+  noApiKey, // Немає API ключа
+  apiError, // Помилка API
+  noOfflineMaps, // Немає офлайн карт
+  offlineCalculationFailed, // Помилка офлайн розрахунку
+  unknown, // Невідома помилка
+}
+
+/// Результат розрахунку маршруту
+class RouteCalculationResult {
+  final List<LatLng>? coordinates;
+  final RouteCalculationError? error;
+  final String? errorMessage;
+
+  RouteCalculationResult.success(this.coordinates)
+      : error = null,
+        errorMessage = null;
+
+  RouteCalculationResult.failure(this.error, this.errorMessage) : coordinates = null;
+
+  bool get isSuccess => coordinates != null;
+  bool get isFailure => error != null;
+}
+
 /// Сервіс для маршрутизації по дорогах
-/// 
+///
 /// Основні функції:
 /// - Розрахунок маршрутів між точками через OpenRouteService API
 /// - Підтримка різних профілів (велосипед, автомобіль, пішки)
 /// - Fallback на прямі лінії при відсутності інтернету
 /// - Кешування та оптимізація запитів
-/// 
+///
 /// Використовується в: CreateRouteScreen, RouteScreen, RouteDragService
 class RoadRoutingService {
   static final RemoteConfigService _remoteConfig = RemoteConfigService();
 
   /// Перевірка доступності інтернет-з'єднання
-  /// 
+  ///
   /// Виконує HTTP запит до Google для перевірки з'єднання
-  /// 
+  ///
   /// Використовується в: calculateRoute(), calculateRouteWithWaypoints()
   static Future<bool> _isInternetAvailable() async {
     try {
@@ -32,19 +58,102 @@ class RoadRoutingService {
     }
   }
 
-  /// Розрахунок маршруту між двома точками по дорогах
-  /// 
+  /// Розрахунок маршруту з детальною обробкою помилок (для планування)
+  ///
+  /// Функціональність:
+  /// - Намагається використати OpenRouteService API (якщо є інтернет)
+  /// - Повертає детальну інформацію про помилки замість fallback
+  /// - Підтримує різні профілі маршрутизації
+  ///
+  /// Параметри:
+  /// - startPoint: початкова точка маршруту
+  /// - endPoint: кінцева точка маршруту
+  /// - profile: профіль маршрутизації (cycling-regular, driving-car, foot-walking)
+  ///
+  /// Використовується в: CreateRouteScreen._addRoutePoint() для планування маршрутів
+  static Future<RouteCalculationResult> calculateRouteWithErrorHandling({
+    required LatLng startPoint,
+    required LatLng endPoint,
+    String profile = 'cycling-regular',
+  }) async {
+    try {
+      LogService.log('🛣️ [RoadRoutingService] Розрахунок маршруту з обробкою помилок: ${startPoint.latitude},${startPoint.longitude} -> ${endPoint.latitude},${endPoint.longitude}');
+
+      // 1. Перевіряємо інтернет
+      final hasInternet = await _isInternetAvailable();
+      if (!hasInternet) {
+        LogService.log('❌ [RoadRoutingService] Немає інтернету');
+        return RouteCalculationResult.failure(
+          RouteCalculationError.noInternet,
+          'Немає інтернет-з\'єднання. Перевірте підключення до мережі.',
+        );
+      }
+
+      // 2. Перевіряємо API ключ
+      final apiKey = _remoteConfig.openRouteServiceApiKey;
+      if (apiKey == 'YOUR_OPENROUTESERVICE_API_KEY_HERE' || apiKey.isEmpty) {
+        LogService.log('❌ [RoadRoutingService] API ключ не налаштовано');
+        return RouteCalculationResult.failure(
+          RouteCalculationError.noApiKey,
+          'API ключ не налаштовано. Зверніться до адміністратора.',
+        );
+      }
+
+      // 3. Намагаємося використати онлайн API
+      LogService.log('🌐 [RoadRoutingService] Використовуємо онлайн API');
+      final onlineRoute = await _calculateOnlineRoute(startPoint, endPoint, profile);
+      if (onlineRoute.isNotEmpty) {
+        LogService.log('✅ [RoadRoutingService] Онлайн маршрут успішно розраховано: ${onlineRoute.length} точок');
+        return RouteCalculationResult.success(onlineRoute);
+      }
+
+      // 4. Якщо онлайн API не спрацював, перевіряємо офлайн карти
+      LogService.log('📱 [RoadRoutingService] Онлайн API не спрацював, перевіряємо офлайн карти');
+      final hasOfflineMaps = await _hasOfflineMapsForArea(startPoint, endPoint);
+      if (!hasOfflineMaps) {
+        LogService.log('❌ [RoadRoutingService] Немає офлайн карт');
+        return RouteCalculationResult.failure(
+          RouteCalculationError.noOfflineMaps,
+          'Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.',
+        );
+      }
+
+      // 5. Намагаємося використати офлайн маршрутизацію
+      LogService.log('🗺️ [RoadRoutingService] Використовуємо офлайн маршрутизацію');
+      final offlineRoute = await _calculateRouteWithOfflineMaps(startPoint, endPoint, profile);
+      if (offlineRoute.isNotEmpty) {
+        LogService.log('✅ [RoadRoutingService] Офлайн маршрут успішно розраховано: ${offlineRoute.length} точок');
+        return RouteCalculationResult.success(offlineRoute);
+      }
+
+      // 6. Якщо все не спрацювало
+      LogService.log('❌ [RoadRoutingService] Всі методи маршрутизації не спрацювали');
+      return RouteCalculationResult.failure(
+        RouteCalculationError.offlineCalculationFailed,
+        'Не вдалося розрахувати маршрут. Спробуйте пізніше або змініть точки маршруту.',
+      );
+    } catch (e) {
+      LogService.log('❌ [RoadRoutingService] Неочікувана помилка: $e');
+      return RouteCalculationResult.failure(
+        RouteCalculationError.unknown,
+        'Сталася неочікувана помилка: $e',
+      );
+    }
+  }
+
+  /// Розрахунок маршруту між двома точками по дорогах (legacy метод з fallback)
+  ///
   /// Функціональність:
   /// - Намагається використати OpenRouteService API (якщо є інтернет)
   /// - Fallback на пряму лінію при відсутності з'єднання
   /// - Підтримує різні профілі маршрутизації
-  /// 
+  ///
   /// Параметри:
   /// - startPoint: початкова точка маршруту
-  /// - endPoint: кінцева точка маршруту  
+  /// - endPoint: кінцева точка маршруту
   /// - profile: профіль маршрутизації (cycling-regular, driving-car, foot-walking)
-  /// 
-  /// Використовується в: CreateRouteScreen._addRoutePoint(), RouteScreen._addRoutePoint()
+  ///
+  /// Використовується в: RouteScreen._addRoutePoint() для навігації
   static Future<List<LatLng>> calculateRoute({
     required LatLng startPoint,
     required LatLng endPoint,
@@ -245,16 +354,16 @@ class RoadRoutingService {
   }
 
   /// Розрахунок маршруту через кілька проміжних точок
-  /// 
+  ///
   /// Функціональність:
   /// - Розраховує маршрут через всі передані waypoints
   /// - Використовує OpenRouteService API для точного маршруту
   /// - Повертає всі координати маршруту
-  /// 
+  ///
   /// Параметри:
   /// - waypoints: список проміжних точок маршруту
   /// - profile: профіль маршрутизації
-  /// 
+  ///
   /// Використовується в: CreateRouteScreen._moveRouteSection()
   static Future<List<LatLng>> calculateRouteWithWaypoints({
     required List<LatLng> waypoints,
@@ -454,13 +563,13 @@ class RoadRoutingService {
   }
 
   /// Отримання профілю маршрутизації за типом активності
-  /// 
+  ///
   /// Мапить типи активності на профілі OpenRouteService:
   /// - cycling/bike -> cycling-regular
-  /// - walking/hiking -> foot-walking  
+  /// - walking/hiking -> foot-walking
   /// - driving/car -> driving-car
   /// - default -> cycling-regular
-  /// 
+  ///
   /// Використовується в: різних місцях для визначення профілю за типом активності
   static String getProfileForActivity(String activityType) {
     switch (activityType.toLowerCase()) {

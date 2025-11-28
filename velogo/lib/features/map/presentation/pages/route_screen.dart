@@ -250,7 +250,7 @@ class RouteScreenState extends State<RouteScreen> {
                 Text(
                   "Level: ${_getDifficultyLevel(_totalDifficulty)}",
                   style: TextStyle(
-                    color: Color(_getDifficultyColor(_totalDifficulty)),
+                    color: getColorBasedOnDifficulty(_totalDifficulty),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -289,7 +289,7 @@ class RouteScreenState extends State<RouteScreen> {
         windEffect: _calculateWindEffect(_lastPoint!, point),
         averageSpeed: 15.0,
       );
-
+      
       setState(() {
         _sections.add(newSection);
       });
@@ -349,7 +349,7 @@ class RouteScreenState extends State<RouteScreen> {
           Marker(
             point: _lastPoint!,
             child: const Icon(Icons.add_location, color: Colors.orange, size: 24),
-          ),
+        ),
         );
       }
     }
@@ -363,11 +363,6 @@ class RouteScreenState extends State<RouteScreen> {
 
   double _calculateWindEffect(LatLng start, LatLng end) => 0.0;
 
-  Color getColorBasedOnDifficulty(double difficulty) {
-    final colorValue = _getDifficultyColor(difficulty);
-    return Color(colorValue);
-  }
-
   /// Отримання рівня складності (текстовий опис)
   String _getDifficultyLevel(double difficulty) {
     if (difficulty < 2.0) {
@@ -380,21 +375,6 @@ class RouteScreenState extends State<RouteScreen> {
       return 'Дуже складний';
     } else {
       return 'Екстремальний';
-    }
-  }
-
-  /// Отримання кольору складності
-  int _getDifficultyColor(double difficulty) {
-    if (difficulty < 2.0) {
-      return 0xFF4CAF50; // Зелений
-    } else if (difficulty < 4.0) {
-      return 0xFFFF9800; // Помаранчевий
-    } else if (difficulty < 6.0) {
-      return 0xFFFF5722; // Червоний
-    } else if (difficulty < 8.0) {
-      return 0xFF9C27B0; // Фіолетовий
-    } else {
-      return 0xFF000000; // Чорний
     }
   }
 

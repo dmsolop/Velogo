@@ -265,4 +265,20 @@ class PersonalizationEngine {
     if (difficulty < 8.0) return DifficultyLevel.veryHard;
     return DifficultyLevel.extreme;
   }
+
+  /// Отримання кольору складності на основі рівня складності
+  ///
+  /// Функціональність:
+  /// - Визначає колір (hex код) на основі рівня складності маршруту
+  /// - Використовується для візуалізації складності
+  ///
+  /// Параметри:
+  /// - difficulty: рівень складності маршруту (0-10)
+  ///
+  /// Повертає: int - hex код кольору (наприклад, 0xFF4CAF50 для зеленого)
+  ///
+  /// Використовується в: UI для відображення кольору маршруту на карті
+  int getDifficultyColor(double difficulty) {
+    return _getDifficultyLevel(difficulty).color;
+  }
 }
