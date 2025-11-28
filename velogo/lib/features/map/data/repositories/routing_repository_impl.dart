@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/services/crashlytics_service.dart';
 import '../../domain/repositories/routing_repository.dart';
 
 /// Реалізація репозиторію для маршрутизації
@@ -25,21 +26,11 @@ class RoutingRepositoryImpl implements RoutingRepository {
       );
 
       if (result.isFailure) {
-        // Мапимо RouteCalculationError на Failure
-        switch (result.error!) {
-          case RouteCalculationError.noInternet:
-            return Left(NetworkFailure('Немає інтернет-з\'єднання. Перевірте підключення до мережі.'));
-          case RouteCalculationError.noApiKey:
-            return Left(ServerFailure('API ключ не налаштовано. Зверніться до адміністратора.'));
-          case RouteCalculationError.apiError:
-            return Left(ServerFailure('Помилка API маршрутизації: ${result.errorMessage}'));
-          case RouteCalculationError.noOfflineMaps:
-            return Left(CacheFailure('Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.'));
-          case RouteCalculationError.offlineCalculationFailed:
-            return Left(ServerFailure('Не вдалося розрахувати маршрут. Спробуйте пізніше або змініть точки маршруту.'));
-          case RouteCalculationError.unknown:
-            return Left(ServerFailure('Сталася неочікувана помилка: ${result.errorMessage}'));
-        }
+        // Використовуємо RouteCalculationFailure з RouteCalculationError
+        return Left(Failure.routeCalculation(
+          result.errorMessage,
+          result.error!,
+        ));
       }
 
       return Right(result.coordinates!);

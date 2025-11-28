@@ -261,6 +261,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       auth: (message) => message ?? 'Authentication failed. Please try again.',
       validation: (message) => message ?? 'Validation failed. Please check your input.',
       permission: (message) => message ?? 'Permission denied. Please try again.',
+      routeCalculation: (message, errorType) => message ?? 'Route calculation error. Please try again.',
     );
   }
 

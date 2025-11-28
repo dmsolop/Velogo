@@ -25,6 +25,8 @@ mixin _$Failure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -35,6 +37,8 @@ mixin _$Failure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -45,6 +49,8 @@ mixin _$Failure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -56,6 +62,7 @@ mixin _$Failure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -66,6 +73,7 @@ mixin _$Failure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -76,6 +84,7 @@ mixin _$Failure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -196,6 +205,8 @@ class _$ServerFailureImpl implements ServerFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return server(message);
   }
@@ -209,6 +220,8 @@ class _$ServerFailureImpl implements ServerFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return server?.call(message);
   }
@@ -222,6 +235,8 @@ class _$ServerFailureImpl implements ServerFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (server != null) {
@@ -239,6 +254,7 @@ class _$ServerFailureImpl implements ServerFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return server(this);
   }
@@ -252,6 +268,7 @@ class _$ServerFailureImpl implements ServerFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return server?.call(this);
   }
@@ -265,6 +282,7 @@ class _$ServerFailureImpl implements ServerFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (server != null) {
@@ -364,6 +382,8 @@ class _$CacheFailureImpl implements CacheFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return cache(message);
   }
@@ -377,6 +397,8 @@ class _$CacheFailureImpl implements CacheFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return cache?.call(message);
   }
@@ -390,6 +412,8 @@ class _$CacheFailureImpl implements CacheFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (cache != null) {
@@ -407,6 +431,7 @@ class _$CacheFailureImpl implements CacheFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return cache(this);
   }
@@ -420,6 +445,7 @@ class _$CacheFailureImpl implements CacheFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return cache?.call(this);
   }
@@ -433,6 +459,7 @@ class _$CacheFailureImpl implements CacheFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (cache != null) {
@@ -533,6 +560,8 @@ class _$NetworkFailureImpl implements NetworkFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return network(message);
   }
@@ -546,6 +575,8 @@ class _$NetworkFailureImpl implements NetworkFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return network?.call(message);
   }
@@ -559,6 +590,8 @@ class _$NetworkFailureImpl implements NetworkFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (network != null) {
@@ -576,6 +609,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return network(this);
   }
@@ -589,6 +623,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return network?.call(this);
   }
@@ -602,6 +637,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (network != null) {
@@ -701,6 +737,8 @@ class _$AuthFailureImpl implements AuthFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return auth(message);
   }
@@ -714,6 +752,8 @@ class _$AuthFailureImpl implements AuthFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return auth?.call(message);
   }
@@ -727,6 +767,8 @@ class _$AuthFailureImpl implements AuthFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (auth != null) {
@@ -744,6 +786,7 @@ class _$AuthFailureImpl implements AuthFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return auth(this);
   }
@@ -757,6 +800,7 @@ class _$AuthFailureImpl implements AuthFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return auth?.call(this);
   }
@@ -770,6 +814,7 @@ class _$AuthFailureImpl implements AuthFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (auth != null) {
@@ -870,6 +915,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return validation(message);
   }
@@ -883,6 +930,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return validation?.call(message);
   }
@@ -896,6 +945,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (validation != null) {
@@ -913,6 +964,7 @@ class _$ValidationFailureImpl implements ValidationFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return validation(this);
   }
@@ -926,6 +978,7 @@ class _$ValidationFailureImpl implements ValidationFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return validation?.call(this);
   }
@@ -939,6 +992,7 @@ class _$ValidationFailureImpl implements ValidationFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (validation != null) {
@@ -1040,6 +1094,8 @@ class _$PermissionFailureImpl implements PermissionFailure {
     required TResult Function(String? message) auth,
     required TResult Function(String? message) validation,
     required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
   }) {
     return permission(message);
   }
@@ -1053,6 +1109,8 @@ class _$PermissionFailureImpl implements PermissionFailure {
     TResult? Function(String? message)? auth,
     TResult? Function(String? message)? validation,
     TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
   }) {
     return permission?.call(message);
   }
@@ -1066,6 +1124,8 @@ class _$PermissionFailureImpl implements PermissionFailure {
     TResult Function(String? message)? auth,
     TResult Function(String? message)? validation,
     TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
     required TResult orElse(),
   }) {
     if (permission != null) {
@@ -1083,6 +1143,7 @@ class _$PermissionFailureImpl implements PermissionFailure {
     required TResult Function(AuthFailure value) auth,
     required TResult Function(ValidationFailure value) validation,
     required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
   }) {
     return permission(this);
   }
@@ -1096,6 +1157,7 @@ class _$PermissionFailureImpl implements PermissionFailure {
     TResult? Function(AuthFailure value)? auth,
     TResult? Function(ValidationFailure value)? validation,
     TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
   }) {
     return permission?.call(this);
   }
@@ -1109,6 +1171,7 @@ class _$PermissionFailureImpl implements PermissionFailure {
     TResult Function(AuthFailure value)? auth,
     TResult Function(ValidationFailure value)? validation,
     TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
     required TResult orElse(),
   }) {
     if (permission != null) {
@@ -1131,4 +1194,196 @@ abstract class PermissionFailure implements Failure {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PermissionFailureImplCopyWith<_$PermissionFailureImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$RouteCalculationFailureImplCopyWith<$Res>
+    implements $FailureCopyWith<$Res> {
+  factory _$$RouteCalculationFailureImplCopyWith(
+          _$RouteCalculationFailureImpl value,
+          $Res Function(_$RouteCalculationFailureImpl) then) =
+      __$$RouteCalculationFailureImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String? message, RouteCalculationError? errorType});
+}
+
+/// @nodoc
+class __$$RouteCalculationFailureImplCopyWithImpl<$Res>
+    extends _$FailureCopyWithImpl<$Res, _$RouteCalculationFailureImpl>
+    implements _$$RouteCalculationFailureImplCopyWith<$Res> {
+  __$$RouteCalculationFailureImplCopyWithImpl(
+      _$RouteCalculationFailureImpl _value,
+      $Res Function(_$RouteCalculationFailureImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Failure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = freezed,
+    Object? errorType = freezed,
+  }) {
+    return _then(_$RouteCalculationFailureImpl(
+      freezed == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String?,
+      freezed == errorType
+          ? _value.errorType
+          : errorType // ignore: cast_nullable_to_non_nullable
+              as RouteCalculationError?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$RouteCalculationFailureImpl implements RouteCalculationFailure {
+  const _$RouteCalculationFailureImpl([this.message, this.errorType]);
+
+  @override
+  final String? message;
+  @override
+  final RouteCalculationError? errorType;
+
+  @override
+  String toString() {
+    return 'Failure.routeCalculation(message: $message, errorType: $errorType)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RouteCalculationFailureImpl &&
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.errorType, errorType) ||
+                other.errorType == errorType));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message, errorType);
+
+  /// Create a copy of Failure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RouteCalculationFailureImplCopyWith<_$RouteCalculationFailureImpl>
+      get copyWith => __$$RouteCalculationFailureImplCopyWithImpl<
+          _$RouteCalculationFailureImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String? message) server,
+    required TResult Function(String? message) cache,
+    required TResult Function(String? message) network,
+    required TResult Function(String? message) auth,
+    required TResult Function(String? message) validation,
+    required TResult Function(String? message) permission,
+    required TResult Function(String? message, RouteCalculationError? errorType)
+        routeCalculation,
+  }) {
+    return routeCalculation(message, errorType);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String? message)? server,
+    TResult? Function(String? message)? cache,
+    TResult? Function(String? message)? network,
+    TResult? Function(String? message)? auth,
+    TResult? Function(String? message)? validation,
+    TResult? Function(String? message)? permission,
+    TResult? Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
+  }) {
+    return routeCalculation?.call(message, errorType);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String? message)? server,
+    TResult Function(String? message)? cache,
+    TResult Function(String? message)? network,
+    TResult Function(String? message)? auth,
+    TResult Function(String? message)? validation,
+    TResult Function(String? message)? permission,
+    TResult Function(String? message, RouteCalculationError? errorType)?
+        routeCalculation,
+    required TResult orElse(),
+  }) {
+    if (routeCalculation != null) {
+      return routeCalculation(message, errorType);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(ServerFailure value) server,
+    required TResult Function(CacheFailure value) cache,
+    required TResult Function(NetworkFailure value) network,
+    required TResult Function(AuthFailure value) auth,
+    required TResult Function(ValidationFailure value) validation,
+    required TResult Function(PermissionFailure value) permission,
+    required TResult Function(RouteCalculationFailure value) routeCalculation,
+  }) {
+    return routeCalculation(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(ServerFailure value)? server,
+    TResult? Function(CacheFailure value)? cache,
+    TResult? Function(NetworkFailure value)? network,
+    TResult? Function(AuthFailure value)? auth,
+    TResult? Function(ValidationFailure value)? validation,
+    TResult? Function(PermissionFailure value)? permission,
+    TResult? Function(RouteCalculationFailure value)? routeCalculation,
+  }) {
+    return routeCalculation?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(ServerFailure value)? server,
+    TResult Function(CacheFailure value)? cache,
+    TResult Function(NetworkFailure value)? network,
+    TResult Function(AuthFailure value)? auth,
+    TResult Function(ValidationFailure value)? validation,
+    TResult Function(PermissionFailure value)? permission,
+    TResult Function(RouteCalculationFailure value)? routeCalculation,
+    required TResult orElse(),
+  }) {
+    if (routeCalculation != null) {
+      return routeCalculation(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class RouteCalculationFailure implements Failure {
+  const factory RouteCalculationFailure(
+      [final String? message,
+      final RouteCalculationError? errorType]) = _$RouteCalculationFailureImpl;
+
+  @override
+  String? get message;
+  RouteCalculationError? get errorType;
+
+  /// Create a copy of Failure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$RouteCalculationFailureImplCopyWith<_$RouteCalculationFailureImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

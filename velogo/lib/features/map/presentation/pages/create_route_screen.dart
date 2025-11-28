@@ -22,6 +22,7 @@ import '../../../../core/services/offline_tile_provider.dart';
 import '../../../../core/services/route_drag_service.dart';
 import '../../../../core/services/log_service.dart';
 import '../../../../core/services/road_routing_service.dart';
+import '../../../../core/services/crashlytics_service.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings/settings_state.dart';
 import '../../../../core/di/injection_container.dart';
@@ -484,27 +485,40 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   /// Мапінг Failure на RouteCalculationError для відображення діалогу
   void _showRouteErrorFromFailure(Failure failure) {
-    RouteCalculationError error;
-    String message;
+    RouteCalculationError error = RouteCalculationError.unknown;
+    String message = 'Сталася неочікувана помилка.';
 
-    if (failure is NetworkFailure) {
-      error = RouteCalculationError.noInternet;
-      message = failure.message ?? 'Немає інтернет-з\'єднання. Перевірте підключення до мережі.';
-    } else if (failure is ServerFailure) {
-      if (failure.message?.contains('API ключ') ?? false) {
-        error = RouteCalculationError.noApiKey;
-        message = failure.message ?? 'API ключ не налаштовано. Зверніться до адміністратора.';
-      } else {
+    // Перевіряємо чи це RouteCalculationFailure
+    failure.when(
+      server: (msg) {
         error = RouteCalculationError.apiError;
-        message = failure.message ?? 'Помилка сервера маршрутизації.';
-      }
-    } else if (failure is CacheFailure) {
-      error = RouteCalculationError.noOfflineMaps;
-      message = failure.message ?? 'Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.';
-    } else {
-      error = RouteCalculationError.unknown;
-      message = failure.message ?? 'Сталася неочікувана помилка.';
-    }
+        message = msg ?? 'Помилка сервера маршрутизації.';
+      },
+      cache: (msg) {
+        error = RouteCalculationError.noOfflineMaps;
+        message = msg ?? 'Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.';
+      },
+      network: (msg) {
+        error = RouteCalculationError.noInternet;
+        message = msg ?? 'Немає інтернет-з\'єднання. Перевірте підключення до мережі.';
+      },
+      auth: (msg) {
+        error = RouteCalculationError.unknown;
+        message = msg ?? 'Помилка авторизації.';
+      },
+      validation: (msg) {
+        error = RouteCalculationError.unknown;
+        message = msg ?? 'Помилка валідації.';
+      },
+      permission: (msg) {
+        error = RouteCalculationError.unknown;
+        message = msg ?? 'Помилка дозволів.';
+      },
+      routeCalculation: (msg, errorType) {
+        error = errorType ?? RouteCalculationError.unknown;
+        message = msg ?? 'Помилка розрахунку маршруту.';
+      },
+    );
 
     _showRouteErrorDialog(error, message);
   }
@@ -967,7 +981,8 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   ///
   /// Функціональність:
   /// - Показує користувачу детальну інформацію про помилку
-  /// - Надає конкретні дії для вирішення проблеми
+  /// - Надає конкретні дії для вирішення проблеми (тільки для userActionable)
+  /// - Показує загальне повідомлення для developerIssue та systemError
   /// - Дозволяє спробувати знову або скасувати дію
   ///
   /// Параметри:
@@ -976,38 +991,43 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   ///
   /// Використовується в: _addRoutePoint() при помилці розрахунку маршруту
   void _showRouteErrorDialog(RouteCalculationError error, String message) {
+    // Визначаємо категорію помилки
+    final category = _getErrorCategory(error);
+    
     String title;
     String actionText;
     VoidCallback? action;
+    bool showRecommendations = false;
 
     switch (error) {
       case RouteCalculationError.noInternet:
         title = 'Немає інтернет-з\'єднання';
         actionText = 'Перевірити з\'єднання';
+        showRecommendations = true;
         action = () {
-          // Можна додати логіку перевірки з'єднання
           Navigator.of(context).pop();
         };
         break;
       case RouteCalculationError.noApiKey:
-        title = 'API ключ не налаштовано';
-        actionText = 'Звернутися до підтримки';
+        title = 'Виникла критична помилка';
+        actionText = 'Зрозуміло';
+        showRecommendations = false; // Не показуємо детальні рекомендації
         action = () {
-          // Можна додати логіку звернення до підтримки
           Navigator.of(context).pop();
         };
         break;
       case RouteCalculationError.noOfflineMaps:
         title = 'Немає офлайн карт';
         actionText = 'Завантажити карти';
+        showRecommendations = true;
         action = () {
-          // Можна додати логіку завантаження карт
           Navigator.of(context).pop();
         };
         break;
       case RouteCalculationError.apiError:
-        title = 'Помилка сервера';
+        title = 'Виникла критична помилка';
         actionText = 'Спробувати знову';
+        showRecommendations = false; // Не показуємо детальні рекомендації
         action = () {
           Navigator.of(context).pop();
           // Повторна спроба додати точку
@@ -1016,9 +1036,18 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
           }
         };
         break;
-      default:
-        title = 'Помилка маршрутизації';
+      case RouteCalculationError.offlineCalculationFailed:
+        title = 'Виникла критична помилка';
         actionText = 'Спробувати знову';
+        showRecommendations = false; // Не показуємо детальні рекомендації
+        action = () {
+          Navigator.of(context).pop();
+        };
+        break;
+      default:
+        title = 'Виникла критична помилка';
+        actionText = 'Спробувати знову';
+        showRecommendations = false;
         action = () {
           Navigator.of(context).pop();
         };
@@ -1034,13 +1063,21 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(message),
-              const SizedBox(height: 16),
-              const Text(
-                'Рекомендації:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ..._getErrorRecommendations(error),
+              if (showRecommendations) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Рекомендації:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                ..._getErrorRecommendations(error),
+              ] else if (category == ErrorCategory.developerIssue || category == ErrorCategory.systemError) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Помилка автоматично відправлена розробникам для вирішення.',
+                  style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -1057,6 +1094,21 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         );
       },
     );
+  }
+
+  /// Визначення категорії помилки
+  ErrorCategory _getErrorCategory(RouteCalculationError error) {
+    switch (error) {
+      case RouteCalculationError.noInternet:
+      case RouteCalculationError.noOfflineMaps:
+        return ErrorCategory.userActionable;
+      case RouteCalculationError.noApiKey:
+        return ErrorCategory.developerIssue;
+      case RouteCalculationError.apiError:
+      case RouteCalculationError.offlineCalculationFailed:
+      case RouteCalculationError.unknown:
+        return ErrorCategory.systemError;
+    }
   }
 
   /// Отримання рекомендацій для різних типів помилок

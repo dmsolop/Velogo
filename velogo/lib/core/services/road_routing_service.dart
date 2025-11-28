@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../services/log_service.dart';
 import 'offline_map_service.dart';
 import 'remote_config_service.dart';
+import 'crashlytics_service.dart';
 
 /// Типи помилок маршрутизації
 enum RouteCalculationError {
@@ -83,20 +84,29 @@ class RoadRoutingService {
       final hasInternet = await _isInternetAvailable();
       if (!hasInternet) {
         LogService.log('❌ [RoadRoutingService] Немає інтернету');
-        return RouteCalculationResult.failure(
+        final result = RouteCalculationResult.failure(
           RouteCalculationError.noInternet,
           'Немає інтернет-з\'єднання. Перевірте підключення до мережі.',
         );
+        // Не відправляємо в Crashlytics - це помилка користувача
+        return result;
       }
 
       // 2. Перевіряємо API ключ
       final apiKey = _remoteConfig.openRouteServiceApiKey;
       if (apiKey == 'YOUR_OPENROUTESERVICE_API_KEY_HERE' || apiKey.isEmpty) {
         LogService.log('❌ [RoadRoutingService] API ключ не налаштовано');
-        return RouteCalculationResult.failure(
+        final result = RouteCalculationResult.failure(
           RouteCalculationError.noApiKey,
           'API ключ не налаштовано. Зверніться до адміністратора.',
         );
+        // Відправляємо в Crashlytics - це помилка розробника
+        await CrashlyticsService().reportRouteCalculationError(
+          error: RouteCalculationError.noApiKey,
+          message: 'API ключ не налаштовано. Зверніться до адміністратора.',
+          profile: null, // Профіль не релевантний для цієї помилки
+        );
+        return result;
       }
 
       // 3. Намагаємося використати онлайн API
@@ -107,15 +117,20 @@ class RoadRoutingService {
         return RouteCalculationResult.success(onlineRoute);
       }
 
+      // Якщо онлайн API не спрацював, це може бути помилка API
+      LogService.log('⚠️ [RoadRoutingService] Онлайн API повернув порожній результат');
+
       // 4. Якщо онлайн API не спрацював, перевіряємо офлайн карти
       LogService.log('📱 [RoadRoutingService] Онлайн API не спрацював, перевіряємо офлайн карти');
       final hasOfflineMaps = await _hasOfflineMapsForArea(startPoint, endPoint);
       if (!hasOfflineMaps) {
         LogService.log('❌ [RoadRoutingService] Немає офлайн карт');
-        return RouteCalculationResult.failure(
+        final result = RouteCalculationResult.failure(
           RouteCalculationError.noOfflineMaps,
           'Немає офлайн карт для цієї області. Завантажте карти або перевірте інтернет.',
         );
+        // Не відправляємо в Crashlytics - це помилка користувача
+        return result;
       }
 
       // 5. Намагаємося використати офлайн маршрутизацію
@@ -128,16 +143,30 @@ class RoadRoutingService {
 
       // 6. Якщо все не спрацювало
       LogService.log('❌ [RoadRoutingService] Всі методи маршрутизації не спрацювали');
-      return RouteCalculationResult.failure(
+      final result = RouteCalculationResult.failure(
         RouteCalculationError.offlineCalculationFailed,
         'Не вдалося розрахувати маршрут. Спробуйте пізніше або змініть точки маршруту.',
       );
+      // Відправляємо в Crashlytics - це системна помилка
+      await CrashlyticsService().reportRouteCalculationError(
+        error: RouteCalculationError.offlineCalculationFailed,
+        message: 'Не вдалося розрахувати маршрут. Спробуйте пізніше або змініть точки маршруту.',
+        profile: profile, // Профіль релевантний для офлайн помилок
+      );
+      return result;
     } catch (e) {
       LogService.log('❌ [RoadRoutingService] Неочікувана помилка: $e');
-      return RouteCalculationResult.failure(
+      final result = RouteCalculationResult.failure(
         RouteCalculationError.unknown,
         'Сталася неочікувана помилка: $e',
       );
+      // Відправляємо в Crashlytics - це системна помилка
+      await CrashlyticsService().reportRouteCalculationError(
+        error: RouteCalculationError.unknown,
+        message: 'Сталася неочікувана помилка: $e',
+        profile: null,
+      );
+      return result;
     }
   }
 
@@ -243,10 +272,22 @@ class RoadRoutingService {
         return coordinates;
       } else {
         LogService.log('❌ [RoadRoutingService] Помилка онлайн API: ${response.statusCode} - ${response.body}');
+        // Відправляємо помилку API в Crashlytics
+        await CrashlyticsService().reportRouteCalculationError(
+          error: RouteCalculationError.apiError,
+          message: 'API помилка: ${response.statusCode} - ${response.body}',
+          profile: profile, // Профіль релевантний для помилок API
+        );
         return [];
       }
     } catch (e) {
       LogService.log('❌ [RoadRoutingService] Помилка онлайн API: $e');
+      // Відправляємо неочікувану помилку в Crashlytics
+      await CrashlyticsService().reportRouteCalculationError(
+        error: RouteCalculationError.unknown,
+        message: 'Неочікувана помилка онлайн API: $e',
+        profile: profile,
+      );
       return [];
     }
   }

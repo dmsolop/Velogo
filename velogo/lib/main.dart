@@ -18,6 +18,8 @@ import 'features/navigation/domain/entities/theme_entity.dart';
 import 'features/map/presentation/bloc/route/route_cubit.dart'; // New import
 import 'features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart'; // New import
 import 'core/services/log_service.dart';
+import 'core/services/crashlytics_service.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +44,14 @@ void main() async {
   // Ініціалізація LogService
   await LogService.init();
   await LogService.log('🚀 [MAIN] Velogo app starting...');
+
+  // Ініціалізація Crashlytics
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  
+  // Ініціалізація CrashlyticsService
+  await CrashlyticsService().initialize();
 
   // Визначення початкового маршруту
   String initialRoute = AppNavigation.start;
