@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 import '../../../../shared/base_widgets.dart';
 import '../../../../shared/base_colors.dart';
 import '../../../../shared/dev_helpers.dart';
 import '../../domain/entities/route_entity.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../weather/data/datasources/weather_service.dart';
 import '../../data/models/road_surface.dart';
 import '../../../weather/data/models/weather_data.dart';
@@ -15,9 +17,11 @@ import 'create_route_screen.dart';
 import '../../../../core/services/adaptive_map_options.dart';
 import '../../../../core/services/map_context_service.dart';
 import '../../domain/usecases/calculate_route_usecase.dart';
-import '../../domain/usecases/calculate_route_distance_usecase.dart';
-import '../../domain/usecases/calculate_elevation_gain_usecase.dart';
-import '../../domain/usecases/calculate_wind_effect_usecase.dart';
+import '../../domain/usecases/calculate_route_complexity_usecase.dart';
+import '../../domain/usecases/calculate_section_parameters_usecase.dart';
+import '../../../profile/domain/usecases/get_profile_usecase.dart';
+import '../../../../core/services/route_segmentation_service.dart';
+import '../../../../core/services/log_service.dart';
 import '../../../../core/services/offline_tile_provider.dart';
 import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/error/failures.dart';
@@ -39,9 +43,9 @@ class RouteScreenState extends State<RouteScreen> {
 
   // Use Cases
   late final CalculateRouteUseCase _calculateRouteUseCase;
-  late final CalculateRouteDistanceUseCase _calculateRouteDistanceUseCase;
-  late final CalculateElevationGainUseCase _calculateElevationGainUseCase;
-  late final CalculateWindEffectUseCase _calculateWindEffectUseCase;
+  late final CalculateRouteComplexityUseCase _calculateRouteComplexityUseCase;
+  late final CalculateSectionParametersUseCase _calculateSectionParametersUseCase;
+  late final GetProfileUseCase _getProfileUseCase;
 
   // Нові поля для системи складності
   final WeatherService _weatherService = WeatherService();
@@ -61,9 +65,9 @@ class RouteScreenState extends State<RouteScreen> {
 
     // Ініціалізуємо Use Cases
     _calculateRouteUseCase = sl<CalculateRouteUseCase>();
-    _calculateRouteDistanceUseCase = sl<CalculateRouteDistanceUseCase>();
-    _calculateElevationGainUseCase = sl<CalculateElevationGainUseCase>();
-    _calculateWindEffectUseCase = sl<CalculateWindEffectUseCase>();
+    _calculateRouteComplexityUseCase = sl<CalculateRouteComplexityUseCase>();
+    _calculateSectionParametersUseCase = sl<CalculateSectionParametersUseCase>();
+    _getProfileUseCase = sl<GetProfileUseCase>();
   }
 
   @override
@@ -288,8 +292,17 @@ class RouteScreenState extends State<RouteScreen> {
   }
 
   void _addRoutePoint(LatLng point) async {
+    // При першому тапі просто зберігаємо точку для відображення маркера
+    if (_lastPoint == null) {
+      LogService.log('📍 [RouteScreen] Перший тап - створюємо початкову точку');
+      setState(() {
+        _lastPoint = point;
+      });
+      return;
+    }
+
+    // При наступних тапах розраховуємо маршрут
     if (_lastPoint != null) {
-      // Розраховуємо маршрут по дорогах між точками через Use Case
       final routeResult = await _calculateRouteUseCase(
         CalculateRouteParams(
           startPoint: _lastPoint!,
@@ -300,56 +313,74 @@ class RouteScreenState extends State<RouteScreen> {
 
       routeResult.fold(
         (failure) {
-          // Обробка помилки
+          LogService.log('❌ [RouteScreen] Помилка розрахунку маршруту: ${failure.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Помилка розрахунку маршруту: ${failure.message}')),
           );
         },
         (routeCoordinates) async {
-          // Розраховуємо відстань через Use Case
-          final distanceResult = await _calculateRouteDistanceUseCase(
-            CalculateRouteDistanceParams(coordinates: routeCoordinates),
-          );
+          LogService.log('✅ [RouteScreen] Маршрут успішно розраховано: ${routeCoordinates.length} точок');
 
-          // Розраховуємо набір висоти через Use Case
-          final elevationResult = await _calculateElevationGainUseCase(
-            CalculateElevationGainParams(
-              startPoint: _lastPoint!,
-              endPoint: point,
-            ),
-          );
+          // 1. Розбиваємо координати на підсекції
+          final splitPoints = RouteSegmentationService.findSplitPoints(routeCoordinates);
+          final segmentedCoordinates = RouteSegmentationService.createSectionsFromSplitPoints(routeCoordinates, splitPoints);
+          LogService.log('📊 [RouteScreen] Розбито на ${segmentedCoordinates.length} підсекцій');
 
-          // Розраховуємо вплив вітру через Use Case
-          final windResult = await _calculateWindEffectUseCase(
-            CalculateWindEffectParams(
-              startPoint: _lastPoint!,
-              endPoint: point,
-            ),
-          );
+          final newSections = <RouteSectionEntity>[];
+          final userProfile = await _getUserProfile(); // Отримуємо профіль користувача
 
-          // Обробляємо результати
-          final distance = distanceResult.fold((_) => 0.0, (d) => d);
-          final elevationGain = elevationResult.fold((_) => 0.0, (e) => e);
-          final windEffect = windResult.fold((_) => 0.0, (w) => w);
+          // 2. Для кожної підсекції розраховуємо параметри та створюємо RouteSectionEntity
+          for (final segment in segmentedCoordinates) {
+            final sectionStart = segment.first;
+            final sectionEnd = segment.last;
 
-          // Завжди створюємо нову секцію для кожної ділянки маршруту
-          // Це забезпечує правильне відображення маршруту по дорогах
-          final newSection = RouteSectionEntity(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            coordinates: routeCoordinates,
-            distance: distance,
-            elevationGain: elevationGain,
-            surfaceType: RoadSurfaceType.asphalt,
-            windEffect: windEffect,
-            difficulty: 0.0,
-            averageSpeed: 15.0,
-          );
+            final sectionParamsResult = await _calculateSectionParametersUseCase(
+              CalculateSectionParametersParams(
+                coordinates: segment,
+                startPoint: sectionStart,
+                endPoint: sectionEnd,
+                userProfile: userProfile,
+                // TODO: Передати weatherData та healthMetrics
+              ),
+            );
 
+            sectionParamsResult.fold(
+              (failure) {
+                LogService.log('❌ [RouteScreen] Помилка розрахунку параметрів секції: ${failure.message}');
+                // Можна додати обробку помилки або використати дефолтні значення
+                newSections.add(RouteSectionEntity(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  coordinates: segment,
+                  distance: 0.0,
+                  elevationGain: 0.0,
+                  surfaceType: RoadSurfaceType.asphalt,
+                  windEffect: 0.0,
+                  difficulty: 0.0,
+                  averageSpeed: 15.0,
+                ));
+              },
+              (params) {
+                newSections.add(RouteSectionEntity(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  coordinates: segment,
+                  distance: params.distance,
+                  elevationGain: params.elevationGain,
+                  surfaceType: params.surfaceType,
+                  windEffect: params.windEffect,
+                  difficulty: params.difficulty,
+                  averageSpeed: params.averageSpeed,
+                ));
+                LogService.log('✅ [RouteScreen] Секція створена: difficulty=${params.difficulty}, speed=${params.averageSpeed}');
+              },
+            );
+          }
+
+          // 3. Додаємо всі секції до списку
           setState(() {
-            _sections.add(newSection);
+            _sections.addAll(newSections);
           });
 
-          // Розраховуємо складність з новою системою
+          // 4. Розраховуємо загальну складність маршруту
           await _calculateRouteDifficulty();
         },
       );
@@ -617,6 +648,42 @@ class RouteScreenState extends State<RouteScreen> {
       loading: () => 'cycling-regular', // Значення за замовчуванням
       loaded: (settings) => settings.routeProfile,
       error: (failure) => 'cycling-regular', // Fallback значення
+    );
+  }
+
+  /// Отримати профіль користувача для розрахунку параметрів секції
+  ///
+  /// Функціональність:
+  /// - Отримує профіль користувача через GetProfileUseCase
+  /// - Якщо профіль не знайдено, створює дефолтний профіль
+  ///
+  /// Використовується в: _addRoutePoint
+  Future<ProfileEntity> _getUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      LogService.log('⚠️ [RouteScreen] Користувач не авторизований');
+      return ProfileEntity(
+        id: 'anonymous',
+        name: 'Anonymous',
+        email: '',
+        fitnessLevel: 'intermediate',
+        age: 30,
+      );
+    }
+
+    final profileResult = await _getProfileUseCase(user.uid);
+    return profileResult.fold(
+      (failure) {
+        LogService.log('⚠️ [RouteScreen] Не вдалося отримати профіль: ${failure.message}');
+        return ProfileEntity(
+          id: user.uid,
+          name: user.displayName ?? '',
+          email: user.email ?? '',
+          fitnessLevel: 'intermediate',
+          age: 30,
+        );
+      },
+      (profile) => profile,
     );
   }
 }

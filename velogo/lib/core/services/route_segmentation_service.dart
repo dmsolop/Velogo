@@ -165,7 +165,7 @@ class RouteSegmentationService {
   /// Примітка: Це спрощена оцінка. Для точності потрібно отримувати дані з Elevation API
   static double _estimateElevationChange(LatLng point1, LatLng point2) {
     // TODO: Інтегрувати з Elevation API для точних даних
-    // Поки що повертаємо 0 - буде розраховуватися через CalculateElevationGainUseCase
+    // Поки що повертаємо 0 - буде розраховуватися через RoutingRepository.calculateElevationGain
     return 0.0;
   }
 

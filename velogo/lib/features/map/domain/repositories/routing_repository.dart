@@ -33,7 +33,7 @@ abstract class RoutingRepository {
   /// Параметри:
   /// - coordinates: список координат маршруту
   ///
-  /// Використовується в: CalculateRouteDistanceUseCase
+  /// Використовується в: RouteComplexityService, CalculateSectionParametersUseCase
   Future<Either<Failure, double>> calculateRouteDistance(List<LatLng> coordinates);
 
   /// Розрахунок набору висоти між двома точками
@@ -42,7 +42,7 @@ abstract class RoutingRepository {
   /// - startPoint: початкова точка
   /// - endPoint: кінцева точка
   ///
-  /// Використовується в: CalculateElevationGainUseCase
+  /// Використовується в: RouteComplexityService, CalculateSectionParametersUseCase
   Future<Either<Failure, double>> calculateElevationGain({
     required LatLng startPoint,
     required LatLng endPoint,
@@ -54,7 +54,7 @@ abstract class RoutingRepository {
   /// - startPoint: початкова точка
   /// - endPoint: кінцева точка
   ///
-  /// Використовується в: CalculateWindEffectUseCase
+  /// Використовується в: RouteComplexityService, CalculateSectionParametersUseCase
   Future<Either<Failure, double>> calculateWindEffect({
     required LatLng startPoint,
     required LatLng endPoint,

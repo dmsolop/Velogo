@@ -65,9 +65,6 @@ import 'package:velogo/features/map/domain/usecases/create_automatic_route_useca
 import 'package:velogo/features/map/domain/usecases/search_markers_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/get_wind_layer_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/calculate_route_usecase.dart';
-import 'package:velogo/features/map/domain/usecases/calculate_route_distance_usecase.dart';
-import 'package:velogo/features/map/domain/usecases/calculate_elevation_gain_usecase.dart';
-import 'package:velogo/features/map/domain/usecases/calculate_wind_effect_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/calculate_route_complexity_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/calculate_section_parameters_usecase.dart';
 import 'package:velogo/features/map/domain/repositories/routing_repository.dart';
@@ -303,9 +300,6 @@ Future<void> _initMap() async {
   sl.registerLazySingleton(() => SearchMarkersUseCase(sl()));
   sl.registerLazySingleton(() => GetWindLayerUseCase(sl()));
   sl.registerLazySingleton(() => CalculateRouteUseCase(sl()));
-  sl.registerLazySingleton(() => CalculateRouteDistanceUseCase(sl()));
-  sl.registerLazySingleton(() => CalculateElevationGainUseCase(sl()));
-  sl.registerLazySingleton(() => CalculateWindEffectUseCase(sl()));
   sl.registerLazySingleton(() => CalculateRouteComplexityUseCase(sl()));
   sl.registerLazySingleton(() => CalculateSectionParametersUseCase(sl<RouteComplexityService>()));
 

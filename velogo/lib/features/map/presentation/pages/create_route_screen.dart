@@ -7,9 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/entities/route_entity.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../domain/usecases/calculate_route_usecase.dart';
-import '../../domain/usecases/calculate_route_distance_usecase.dart';
-import '../../domain/usecases/calculate_elevation_gain_usecase.dart';
-import '../../domain/usecases/calculate_wind_effect_usecase.dart';
 import '../../domain/usecases/calculate_route_complexity_usecase.dart';
 import '../../domain/usecases/calculate_section_parameters_usecase.dart';
 import '../../../profile/domain/usecases/get_profile_usecase.dart';
@@ -54,9 +51,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
 
   // Use Cases
   late final CalculateRouteUseCase _calculateRouteUseCase;
-  late final CalculateRouteDistanceUseCase _calculateRouteDistanceUseCase;
-  late final CalculateElevationGainUseCase _calculateElevationGainUseCase;
-  late final CalculateWindEffectUseCase _calculateWindEffectUseCase;
   late final CalculateRouteComplexityUseCase _calculateRouteComplexityUseCase;
   late final CalculateSectionParametersUseCase _calculateSectionParametersUseCase;
   late final GetProfileUseCase _getProfileUseCase;
@@ -86,9 +80,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     
     // Ініціалізуємо Use Cases
     _calculateRouteUseCase = sl<CalculateRouteUseCase>();
-    _calculateRouteDistanceUseCase = sl<CalculateRouteDistanceUseCase>();
-    _calculateElevationGainUseCase = sl<CalculateElevationGainUseCase>();
-    _calculateWindEffectUseCase = sl<CalculateWindEffectUseCase>();
     _calculateRouteComplexityUseCase = sl<CalculateRouteComplexityUseCase>();
     _calculateSectionParametersUseCase = sl<CalculateSectionParametersUseCase>();
     _getProfileUseCase = sl<GetProfileUseCase>();
@@ -991,27 +982,6 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     }
 
     return closestIndex;
-  }
-
-  /// Знайти найкращу позицію для вставки нової точки
-  int _findBestInsertionPoint(List<LatLng> coordinates, LatLng newPoint) {
-    double minDistance = double.infinity;
-    int bestIndex = 0;
-
-    for (int i = 0; i < coordinates.length - 1; i++) {
-      final distance = _distanceToLineSegment(
-        newPoint,
-        coordinates[i],
-        coordinates[i + 1],
-      );
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        bestIndex = i + 1;
-      }
-    }
-
-    return bestIndex;
   }
 
   /// Розрахувати відстань маршруту
