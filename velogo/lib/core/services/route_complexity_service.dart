@@ -9,6 +9,7 @@ import 'local_storage_service.dart';
 import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/weather/data/models/weather_data.dart';
 import '../../features/map/domain/entities/route_entity.dart';
+import '../../features/map/domain/repositories/routing_repository.dart';
 import '../services/log_service.dart';
 
 /// Основний сервіс для розрахунку складності маршруту з персоналізацією
@@ -20,6 +21,14 @@ class RouteComplexityService {
   final PersonalizationEngine _personalizationEngine = PersonalizationEngine();
   final HealthIntegrationService _healthIntegrationService = HealthIntegrationServiceFactory.create();
   final LocalStorageService _localStorage = LocalStorageService();
+  
+  // Repository для розрахунку elevationGain та windEffect
+  RoutingRepository? _routingRepository;
+  
+  /// Встановити RoutingRepository для розрахунку elevationGain та windEffect
+  void setRoutingRepository(RoutingRepository repository) {
+    _routingRepository = repository;
+  }
 
   /// Розрахунок загальної складності маршруту з персоналізацією
   Future<Either<Failure, PersonalizedDifficultyResult>> calculateRouteComplexity({
@@ -101,6 +110,201 @@ class RouteComplexityService {
       LogService.log('❌ [RouteComplexityService] Помилка розрахунку секції: $e');
       return Left(ServerFailure('Failed to calculate section complexity: $e'));
     }
+  }
+
+  /// Розрахунок всіх параметрів секції на основі координат та профілю користувача
+  ///
+  /// Функціональність:
+  /// - Розраховує elevationGain, windEffect, surfaceType, difficulty, averageSpeed
+  /// - Враховує індивідуальні можливості користувача
+  /// - Використовує погодні дані (якщо доступні)
+  ///
+  /// Параметри:
+  /// - coordinates: координати секції
+  /// - startPoint: початкова точка секції (для розрахунку elevationGain)
+  /// - endPoint: кінцева точка секції
+  /// - userProfile: профіль користувача
+  /// - weatherData: погодні дані (опціонально)
+  /// - healthMetrics: health-метрики (опціонально)
+  ///
+  /// Повертає: SectionParameters з усіма розрахованими параметрами
+  ///
+  /// Використовується в: CalculateSectionParametersUseCase
+  Future<Either<Failure, SectionParameters>> calculateSectionParameters({
+    required List<LatLng> coordinates,
+    required LatLng startPoint,
+    required LatLng endPoint,
+    required ProfileEntity userProfile,
+    WeatherData? weatherData,
+    HealthMetrics? healthMetrics,
+  }) async {
+    try {
+      LogService.log('📊 [RouteComplexityService] Розрахунок параметрів секції з ${coordinates.length} координатами');
+
+      // 1. Розраховуємо відстань
+      final distance = _calculateSectionDistance(coordinates);
+
+      // 2. Розраховуємо elevationGain через Repository
+      double elevationGain = 0.0;
+      if (_routingRepository != null) {
+        final elevationResult = await _routingRepository!.calculateElevationGain(
+          startPoint: startPoint,
+          endPoint: endPoint,
+        );
+        elevationGain = elevationResult.fold((_) => 0.0, (e) => e);
+      }
+
+      // 3. Розраховуємо windEffect через Repository
+      double windEffect = 0.0;
+      if (_routingRepository != null) {
+        final windResult = await _routingRepository!.calculateWindEffect(
+          startPoint: startPoint,
+          endPoint: endPoint,
+        );
+        windEffect = windResult.fold((_) => 0.0, (w) => w);
+      }
+
+      // 4. Визначаємо surfaceType (тимчасово - за замовчуванням asphalt)
+      // TODO: Реалізувати визначення типу покриття на основі координат
+      final surfaceType = RoadSurfaceType.asphalt;
+
+      // 5. Розраховуємо базову складність
+      final baseDifficulty = _calculateBaseDifficultyFromParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: surfaceType,
+        distance: distance,
+        weatherData: weatherData,
+        coordinates: coordinates,
+      );
+
+      // 6. Розраховуємо персоналізовану складність
+      final personalizedResult = _personalizationEngine.calculatePersonalizedDifficulty(
+        baseDifficulty: baseDifficulty,
+        profile: userProfile,
+        healthMetrics: healthMetrics,
+      );
+
+      // 7. Розраховуємо averageSpeed на основі складності та профілю
+      final averageSpeed = _calculateAverageSpeed(
+        difficulty: personalizedResult.personalizedDifficulty,
+        surfaceType: surfaceType,
+        profile: userProfile,
+      );
+
+      final parameters = SectionParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: surfaceType,
+        difficulty: personalizedResult.personalizedDifficulty,
+        averageSpeed: averageSpeed,
+        distance: distance,
+      );
+
+      LogService.log('✅ [RouteComplexityService] Параметри секції розраховано: difficulty=${parameters.difficulty}, speed=${parameters.averageSpeed}');
+      return Right(parameters);
+    } catch (e) {
+      LogService.log('❌ [RouteComplexityService] Помилка розрахунку параметрів секції: $e');
+      return Left(ServerFailure('Failed to calculate section parameters: $e'));
+    }
+  }
+
+  /// Розрахунок відстані секції
+  double _calculateSectionDistance(List<LatLng> coordinates) {
+    if (coordinates.length < 2) return 0.0;
+
+    double totalDistance = 0.0;
+    for (int i = 1; i < coordinates.length; i++) {
+      totalDistance += _calculateDistanceBetweenPoints(coordinates[i - 1], coordinates[i]);
+    }
+    return totalDistance;
+  }
+
+  /// Розрахунок відстані між двома точками (Haversine formula)
+  double _calculateDistanceBetweenPoints(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371000; // Радіус Землі в метрах
+
+    final lat1Rad = point1.latitude * pi / 180;
+    final lat2Rad = point2.latitude * pi / 180;
+    final deltaLatRad = (point2.latitude - point1.latitude) * pi / 180;
+    final deltaLonRad = (point2.longitude - point1.longitude) * pi / 180;
+
+    final a = sin(deltaLatRad / 2) * sin(deltaLatRad / 2) +
+        cos(lat1Rad) * cos(lat2Rad) * sin(deltaLonRad / 2) * sin(deltaLonRad / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  /// Розрахунок базової складності на основі параметрів
+  double _calculateBaseDifficultyFromParameters({
+    required double elevationGain,
+    required double windEffect,
+    required RoadSurfaceType surfaceType,
+    required double distance,
+    WeatherData? weatherData,
+    required List<LatLng> coordinates,
+  }) {
+    double difficulty = 0.0;
+
+    // Базовий фактор відстані
+    difficulty += distance / 1000.0 * 0.1; // 0.1 на км
+
+    // Фактор підйому
+    difficulty += elevationGain / 100.0 * 0.5; // 0.5 на 100м підйому
+
+    // Фактор покриття
+    final surfaceFactor = _getBaseSurfaceFactor(surfaceType);
+    difficulty *= surfaceFactor;
+
+    // Фактор вітру
+    if (weatherData != null && coordinates.isNotEmpty) {
+      final routeBearing = _calculateRouteBearing(coordinates);
+      final windImpact = _calculateWindEffect(weatherData, routeBearing);
+      difficulty += windImpact;
+    }
+
+    // Фактор погоди на покриття
+    if (weatherData != null) {
+      difficulty *= _calculateSurfaceWeatherEffect(surfaceType, weatherData);
+    }
+
+    return difficulty.clamp(0.0, 10.0); // Обмежуємо до 0-10
+  }
+
+  /// Розрахунок середньої швидкості на основі складності та профілю
+  double _calculateAverageSpeed({
+    required double difficulty,
+    required RoadSurfaceType surfaceType,
+    required ProfileEntity profile,
+  }) {
+    // Базова швидкість залежно від профілю
+    double baseSpeed = 15.0; // км/год за замовчуванням
+
+    switch (profile.fitnessLevel.toLowerCase()) {
+      case 'beginner':
+        baseSpeed = 12.0;
+        break;
+      case 'intermediate':
+        baseSpeed = 15.0;
+        break;
+      case 'advanced':
+        baseSpeed = 18.0;
+        break;
+      case 'expert':
+        baseSpeed = 22.0;
+        break;
+    }
+
+    // Корекція на складність
+    final difficultyFactor = 1.0 - (difficulty / 10.0) * 0.3; // До -30% при максимальній складності
+    baseSpeed *= difficultyFactor;
+
+    // Корекція на покриття
+    final surfaceFactor = _getBaseSurfaceFactor(surfaceType);
+    baseSpeed /= surfaceFactor;
+
+    return baseSpeed.clamp(5.0, 30.0); // Обмежуємо до 5-30 км/год
   }
 
   /// Розрахунок складності в реальному часі під час поїздки

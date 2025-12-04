@@ -92,3 +92,35 @@ Map<String, dynamic> _$$DifficultyFactorImplToJson(
       'category': instance.category,
       'isPositive': instance.isPositive,
     };
+
+_$SectionParametersImpl _$$SectionParametersImplFromJson(
+        Map<String, dynamic> json) =>
+    _$SectionParametersImpl(
+      elevationGain: (json['elevationGain'] as num).toDouble(),
+      windEffect: (json['windEffect'] as num).toDouble(),
+      surfaceType: $enumDecode(_$RoadSurfaceTypeEnumMap, json['surfaceType']),
+      difficulty: (json['difficulty'] as num).toDouble(),
+      averageSpeed: (json['averageSpeed'] as num).toDouble(),
+      distance: (json['distance'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$$SectionParametersImplToJson(
+        _$SectionParametersImpl instance) =>
+    <String, dynamic>{
+      'elevationGain': instance.elevationGain,
+      'windEffect': instance.windEffect,
+      'surfaceType': _$RoadSurfaceTypeEnumMap[instance.surfaceType]!,
+      'difficulty': instance.difficulty,
+      'averageSpeed': instance.averageSpeed,
+      'distance': instance.distance,
+    };
+
+const _$RoadSurfaceTypeEnumMap = {
+  RoadSurfaceType.asphalt: 'asphalt',
+  RoadSurfaceType.concrete: 'concrete',
+  RoadSurfaceType.gravel: 'gravel',
+  RoadSurfaceType.dirt: 'dirt',
+  RoadSurfaceType.cobblestone: 'cobblestone',
+  RoadSurfaceType.grass: 'grass',
+  RoadSurfaceType.sand: 'sand',
+};

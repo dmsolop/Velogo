@@ -69,6 +69,7 @@ import 'package:velogo/features/map/domain/usecases/calculate_route_distance_use
 import 'package:velogo/features/map/domain/usecases/calculate_elevation_gain_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/calculate_wind_effect_usecase.dart';
 import 'package:velogo/features/map/domain/usecases/calculate_route_complexity_usecase.dart';
+import 'package:velogo/features/map/domain/usecases/calculate_section_parameters_usecase.dart';
 import 'package:velogo/features/map/domain/repositories/routing_repository.dart';
 import 'package:velogo/features/map/domain/repositories/route_complexity_repository.dart';
 import 'package:velogo/features/map/data/repositories/routing_repository_impl.dart';
@@ -292,6 +293,9 @@ Future<void> _initMap() async {
     () => RouteComplexityRepositoryImpl(),
   );
 
+  // Встановлюємо RoutingRepository в RouteComplexityService після реєстрації
+  sl<RouteComplexityService>().setRoutingRepository(sl<RoutingRepository>());
+
   // Use cases
   sl.registerLazySingleton(() => GetAllRoutesUseCase(sl()));
   sl.registerLazySingleton(() => CreateRouteUseCase(sl()));
@@ -303,6 +307,7 @@ Future<void> _initMap() async {
   sl.registerLazySingleton(() => CalculateElevationGainUseCase(sl()));
   sl.registerLazySingleton(() => CalculateWindEffectUseCase(sl()));
   sl.registerLazySingleton(() => CalculateRouteComplexityUseCase(sl()));
+  sl.registerLazySingleton(() => CalculateSectionParametersUseCase(sl<RouteComplexityService>()));
 
   // BLoCs
   sl.registerFactory(() => RouteCubit());

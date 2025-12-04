@@ -11,6 +11,7 @@ import '../../domain/usecases/calculate_route_distance_usecase.dart';
 import '../../domain/usecases/calculate_elevation_gain_usecase.dart';
 import '../../domain/usecases/calculate_wind_effect_usecase.dart';
 import '../../domain/usecases/calculate_route_complexity_usecase.dart';
+import '../../domain/usecases/calculate_section_parameters_usecase.dart';
 import '../../../profile/domain/usecases/get_profile_usecase.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../shared/base_colors.dart';
@@ -23,6 +24,7 @@ import '../../../../core/services/route_drag_service.dart';
 import '../../../../core/services/log_service.dart';
 import '../../../../core/services/road_routing_service.dart';
 import '../../../../core/services/crashlytics_service.dart';
+import '../../../../core/services/route_segmentation_service.dart';
 import '../../../settings/presentation/bloc/settings/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings/settings_state.dart';
 import '../../../../core/di/injection_container.dart';
@@ -56,6 +58,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   late final CalculateElevationGainUseCase _calculateElevationGainUseCase;
   late final CalculateWindEffectUseCase _calculateWindEffectUseCase;
   late final CalculateRouteComplexityUseCase _calculateRouteComplexityUseCase;
+  late final CalculateSectionParametersUseCase _calculateSectionParametersUseCase;
   late final GetProfileUseCase _getProfileUseCase;
 
   // Поля для системи складності
@@ -87,6 +90,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     _calculateElevationGainUseCase = sl<CalculateElevationGainUseCase>();
     _calculateWindEffectUseCase = sl<CalculateWindEffectUseCase>();
     _calculateRouteComplexityUseCase = sl<CalculateRouteComplexityUseCase>();
+    _calculateSectionParametersUseCase = sl<CalculateSectionParametersUseCase>();
     _getProfileUseCase = sl<GetProfileUseCase>();
   }
 
@@ -107,43 +111,43 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
           // BlocListener не потрібен, оскільки RouteDragService оновлюється в SettingsCubit
         },
         child: Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              "Create Route",
-              style: TextStyle(
-                color: BaseColors.white,
-              ),
-            ),
-            backgroundColor: BaseColors.background,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.close,
-                color: BaseColors.white,
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
+      appBar: AppBar(
+        title: const Text(
+          "Create Route",
+          style: TextStyle(
+            color: BaseColors.white,
           ),
-          body: /* Center(child: Text("This is Create Route Screen")) */
-              Stack(
+        ),
+        backgroundColor: BaseColors.background,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.close,
+            color: BaseColors.white,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: /* Center(child: Text("This is Create Route Screen")) */
+          Stack(
+        children: [
+          FlutterMap(
+            options: _createAdaptiveMapOptionsWithTap(),
             children: [
-              FlutterMap(
-                options: _createAdaptiveMapOptionsWithTap(),
-                children: [
-                  TileLayer(
+              TileLayer(
                     tileProvider: OfflineTileProvider(),
-                    urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  ),
-                  PolylineLayer(
-                    polylines: _generatePolylines(),
-                  ),
-                  MarkerLayer(
-                    markers: _generateMarkers(),
-                  ),
-                ],
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
               ),
-              _buildControlPanel(),
-              _buildBottomPanel(),
+              PolylineLayer(
+                polylines: _generatePolylines(),
+              ),
+              MarkerLayer(
+                markers: _generateMarkers(),
+              ),
             ],
+          ),
+          _buildControlPanel(),
+          _buildBottomPanel(),
+        ],
           ),
         ),
       ),
@@ -153,19 +157,30 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   /// Додавання нової точки маршруту
   ///
   /// Функціональність:
-  /// - Розраховує маршрут по дорогах між поточною та новою точкою
+  /// - При першому тапі: створює початкову точку/маркер
+  /// - При наступних тапах: розраховує маршрут по дорогах між поточною та новою точкою
   /// - Створює нову секцію маршруту з розрахованими координатами
   /// - Оновлює складність маршруту
   /// - Зберігає нову точку як останню для наступного з'єднання
   ///
   /// Використовується в: _createAdaptiveMapOptionsWithTap() -> onTap
   void _addRoutePoint(LatLng point) async {
+    // При першому тапі просто зберігаємо точку для відображення маркера
+    if (_lastPoint == null) {
+      LogService.log('📍 [CreateRouteScreen] Перший тап - створюємо початкову точку');
+      setState(() {
+        _lastPoint = point;
+      });
+      return;
+    }
+
+    // При наступних тапах розраховуємо маршрут
     if (_lastPoint != null) {
       // Розраховуємо маршрут по дорогах між точками через Use Case
       final routeResult = await _calculateRouteUseCase(
         CalculateRouteParams(
-          startPoint: _lastPoint!,
-          endPoint: point,
+        startPoint: _lastPoint!,
+        endPoint: point,
           profile: _getRouteProfile(),
         ),
       );
@@ -180,50 +195,87 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
         (routeCoordinates) async {
           LogService.log('✅ [CreateRouteScreen] Маршрут успішно розраховано: ${routeCoordinates.length} точок');
 
-          // Розраховуємо відстань через Use Case
-          final distanceResult = await _calculateRouteDistanceUseCase(
-            CalculateRouteDistanceParams(coordinates: routeCoordinates),
+          // 1. Розбиваємо координати на секції через RouteSegmentationService
+          final splitPoints = RouteSegmentationService.findSplitPoints(routeCoordinates);
+          final sectionCoordinatesList = RouteSegmentationService.createSectionsFromSplitPoints(
+            routeCoordinates,
+            splitPoints,
           );
 
-          // Розраховуємо набір висоти через Use Case
-          final elevationResult = await _calculateElevationGainUseCase(
-            CalculateElevationGainParams(
-              startPoint: _lastPoint!,
-              endPoint: point,
-            ),
+          LogService.log('📊 [CreateRouteScreen] Розбито на ${sectionCoordinatesList.length} секцій');
+
+          // 2. Отримуємо профіль користувача для розрахунку параметрів
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) {
+            LogService.log('⚠️ [CreateRouteScreen] Користувач не авторизований');
+            return;
+          }
+
+          final profileResult = await _getProfileUseCase(user.uid);
+          final profile = profileResult.fold(
+            (failure) {
+              LogService.log('⚠️ [CreateRouteScreen] Не вдалося отримати профіль: ${failure.message}');
+              return ProfileEntity(
+                id: user.uid,
+                name: user.displayName ?? '',
+                email: user.email ?? '',
+                fitnessLevel: 'intermediate',
+                age: 30,
+              );
+            },
+            (profile) => profile,
           );
 
-          // Розраховуємо вплив вітру через Use Case
-          final windResult = await _calculateWindEffectUseCase(
-            CalculateWindEffectParams(
-              startPoint: _lastPoint!,
-              endPoint: point,
-            ),
-          );
+          // 3. Створюємо секції з розрахованими параметрами
+          final newSections = <RouteSectionEntity>[];
+          
+          for (int i = 0; i < sectionCoordinatesList.length; i++) {
+            final sectionCoords = sectionCoordinatesList[i];
+            if (sectionCoords.length < 2) continue;
 
-          // Обробляємо результати
-          final distance = distanceResult.fold((_) => 0.0, (d) => d);
-          final elevationGain = elevationResult.fold((_) => 0.0, (e) => e);
-          final windEffect = windResult.fold((_) => 0.0, (w) => w);
+            final sectionStart = sectionCoords.first;
+            final sectionEnd = sectionCoords.last;
 
-          // Завжди створюємо нову секцію для кожної ділянки маршруту
-          // Це забезпечує правильне відображення маршруту по дорогах
-          final newSection = RouteSectionEntity(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            coordinates: routeCoordinates,
-            distance: distance,
-            elevationGain: elevationGain,
-            surfaceType: RoadSurfaceType.asphalt,
-            windEffect: windEffect,
-            difficulty: 0.0,
-            averageSpeed: 15.0,
-          );
+            // Розраховуємо параметри секції через Use Case
+            final paramsResult = await _calculateSectionParametersUseCase(
+              CalculateSectionParametersParams(
+                coordinates: sectionCoords,
+                startPoint: sectionStart,
+                endPoint: sectionEnd,
+                userProfile: profile,
+                weatherData: null, // TODO: Додати отримання погоди
+                healthMetrics: null, // TODO: Додати отримання health-метрик
+              ),
+            );
 
+            paramsResult.fold(
+              (failure) {
+                LogService.log('❌ [CreateRouteScreen] Помилка розрахунку параметрів секції: ${failure.message}');
+              },
+              (params) {
+                // Створюємо секцію з розрахованими параметрами
+                final section = RouteSectionEntity(
+                  id: '${DateTime.now().millisecondsSinceEpoch}_$i',
+                  coordinates: sectionCoords,
+                  distance: params.distance,
+                  elevationGain: params.elevationGain,
+                  surfaceType: params.surfaceType,
+                  windEffect: params.windEffect,
+                  difficulty: params.difficulty,
+                  averageSpeed: params.averageSpeed,
+                );
+                newSections.add(section);
+                LogService.log('✅ [CreateRouteScreen] Секція $i створена: difficulty=${params.difficulty}, speed=${params.averageSpeed}');
+              },
+            );
+          }
+
+          // 4. Додаємо всі секції до списку
           setState(() {
-            _sections.add(newSection);
+            _sections.addAll(newSections);
           });
 
-          // Розраховуємо складність з новою системою
+          // 5. Розраховуємо загальну складність маршруту
           await _calculateRouteDifficulty();
         },
       );
@@ -310,7 +362,7 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return Column(
-            children: [
+        children: [
               // Індикатор режиму перетягування
               state.when(
                 initial: () => const SizedBox.shrink(),
@@ -377,43 +429,43 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
                     color: Colors.red,
                   ),
                 ),
-              const SizedBox(height: 8),
-              CustomFloatingButton(
-                heroTag: 'mapLayers2Tag',
-                onPressed: () {
-                  setState(() {});
-                  // Логіка для шарів карти
-                },
-                icon: Icons.layers,
-              ),
-              const SizedBox(height: 8),
-              CustomFloatingButton(
-                heroTag: 'compas2Tag',
-                onPressed: () {
-                  setState(() {});
-                  // Логіка для Compass
-                },
-                icon: Icons.explore,
-              ),
-              const SizedBox(height: 8),
-              // CustomFloatingButton(
-              //   heroTag: 'completeRouteNavigateBackTag',
-              //   onPressed: () {
-              //     // Add the logic to finish the route or navigate back.
-              //     Navigator.pop(context);
-              //   },
-              //   icon: Icons.check,
-              // ),
-              const SizedBox(height: 8),
-              CustomFloatingButton(
-                heroTag: 'createRouteAndBackTag',
-                onPressed: () {
-                  setState(() {});
-                  // Логіка для cтворення маршруту
-                },
-                icon: Icons.create,
-              ),
-            ],
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'mapLayers2Tag',
+            onPressed: () {
+              setState(() {});
+              // Логіка для шарів карти
+            },
+            icon: Icons.layers,
+          ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'compas2Tag',
+            onPressed: () {
+              setState(() {});
+              // Логіка для Compass
+            },
+            icon: Icons.explore,
+          ),
+          const SizedBox(height: 8),
+          // CustomFloatingButton(
+          //   heroTag: 'completeRouteNavigateBackTag',
+          //   onPressed: () {
+          //     // Add the logic to finish the route or navigate back.
+          //     Navigator.pop(context);
+          //   },
+          //   icon: Icons.check,
+          // ),
+          const SizedBox(height: 8),
+          CustomFloatingButton(
+            heroTag: 'createRouteAndBackTag',
+            onPressed: () {
+              setState(() {});
+              // Логіка для cтворення маршруту
+            },
+            icon: Icons.create,
+          ),
+        ],
           );
         },
       ),
@@ -553,9 +605,9 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
           // Якщо не вдалося отримати профіль, створюємо базовий
           LogService.log('⚠️ [CreateRouteScreen] Не вдалося отримати профіль: ${failure.message}');
           return ProfileEntity(
-            id: user.uid,
-            name: user.displayName ?? '',
-            email: user.email ?? '',
+        id: user.uid,
+        name: user.displayName ?? '',
+        email: user.email ?? '',
             fitnessLevel: 'intermediate',
             age: 30,
           );
@@ -566,10 +618,10 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
       // Використовуємо CalculateRouteComplexityUseCase
       final result = await _calculateRouteComplexityUseCase(
         CalculateRouteComplexityParams(
-          route: routeEntity,
-          userProfile: profile,
-          startTime: DateTime.now(),
-          useHealthData: true,
+        route: routeEntity,
+        userProfile: profile,
+        startTime: DateTime.now(),
+        useHealthData: true,
         ),
       );
 
@@ -1203,17 +1255,34 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
   }
 
   /// Отримати всі точки маршруту
+  ///
+  /// Повертає:
+  /// - Початкову точку (якщо є _lastPoint, але немає секцій - це перший тап)
+  /// - Перші точки з секцій
+  /// - Останню точку (остання координата останньої секції або _lastPoint якщо немає секцій)
   List<LatLng> _getAllRoutePoints() {
     final points = <LatLng>[];
 
+    // Додаємо початкову точку (якщо є _lastPoint, але немає секцій - це перший тап)
+    if (_lastPoint != null && _sections.isEmpty) {
+      points.add(_lastPoint!);
+    }
+
+    // Додаємо перші точки з секцій
     for (final section in _sections) {
       if (section.coordinates.isNotEmpty) {
         points.add(section.coordinates.first);
       }
     }
 
-    // Додаємо останню точку
-    if (_lastPoint != null) {
+    // Додаємо останню точку (якщо є секції, остання точка - це остання координата останньої секції)
+    if (_sections.isNotEmpty) {
+      final lastSection = _sections.last;
+      if (lastSection.coordinates.isNotEmpty) {
+        points.add(lastSection.coordinates.last);
+      }
+    } else if (_lastPoint != null) {
+      // Якщо немає секцій, але є _lastPoint - це початкова точка
       points.add(_lastPoint!);
     }
 

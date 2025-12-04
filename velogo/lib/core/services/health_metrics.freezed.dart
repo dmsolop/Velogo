@@ -1055,3 +1055,274 @@ abstract class _DifficultyFactor implements DifficultyFactor {
   _$$DifficultyFactorImplCopyWith<_$DifficultyFactorImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+SectionParameters _$SectionParametersFromJson(Map<String, dynamic> json) {
+  return _SectionParameters.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SectionParameters {
+  double get elevationGain =>
+      throw _privateConstructorUsedError; // Набір висоти в метрах
+  double get windEffect =>
+      throw _privateConstructorUsedError; // Вплив вітру (може бути негативним для попутного)
+  RoadSurfaceType get surfaceType =>
+      throw _privateConstructorUsedError; // Тип покриття дороги
+  double get difficulty =>
+      throw _privateConstructorUsedError; // Складність секції (0-10)
+  double get averageSpeed =>
+      throw _privateConstructorUsedError; // Середня швидкість км/год
+  double get distance => throw _privateConstructorUsedError;
+
+  /// Serializes this SectionParameters to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SectionParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SectionParametersCopyWith<SectionParameters> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SectionParametersCopyWith<$Res> {
+  factory $SectionParametersCopyWith(
+          SectionParameters value, $Res Function(SectionParameters) then) =
+      _$SectionParametersCopyWithImpl<$Res, SectionParameters>;
+  @useResult
+  $Res call(
+      {double elevationGain,
+      double windEffect,
+      RoadSurfaceType surfaceType,
+      double difficulty,
+      double averageSpeed,
+      double distance});
+}
+
+/// @nodoc
+class _$SectionParametersCopyWithImpl<$Res, $Val extends SectionParameters>
+    implements $SectionParametersCopyWith<$Res> {
+  _$SectionParametersCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SectionParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? elevationGain = null,
+    Object? windEffect = null,
+    Object? surfaceType = null,
+    Object? difficulty = null,
+    Object? averageSpeed = null,
+    Object? distance = null,
+  }) {
+    return _then(_value.copyWith(
+      elevationGain: null == elevationGain
+          ? _value.elevationGain
+          : elevationGain // ignore: cast_nullable_to_non_nullable
+              as double,
+      windEffect: null == windEffect
+          ? _value.windEffect
+          : windEffect // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceType: null == surfaceType
+          ? _value.surfaceType
+          : surfaceType // ignore: cast_nullable_to_non_nullable
+              as RoadSurfaceType,
+      difficulty: null == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageSpeed: null == averageSpeed
+          ? _value.averageSpeed
+          : averageSpeed // ignore: cast_nullable_to_non_nullable
+              as double,
+      distance: null == distance
+          ? _value.distance
+          : distance // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SectionParametersImplCopyWith<$Res>
+    implements $SectionParametersCopyWith<$Res> {
+  factory _$$SectionParametersImplCopyWith(_$SectionParametersImpl value,
+          $Res Function(_$SectionParametersImpl) then) =
+      __$$SectionParametersImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {double elevationGain,
+      double windEffect,
+      RoadSurfaceType surfaceType,
+      double difficulty,
+      double averageSpeed,
+      double distance});
+}
+
+/// @nodoc
+class __$$SectionParametersImplCopyWithImpl<$Res>
+    extends _$SectionParametersCopyWithImpl<$Res, _$SectionParametersImpl>
+    implements _$$SectionParametersImplCopyWith<$Res> {
+  __$$SectionParametersImplCopyWithImpl(_$SectionParametersImpl _value,
+      $Res Function(_$SectionParametersImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SectionParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? elevationGain = null,
+    Object? windEffect = null,
+    Object? surfaceType = null,
+    Object? difficulty = null,
+    Object? averageSpeed = null,
+    Object? distance = null,
+  }) {
+    return _then(_$SectionParametersImpl(
+      elevationGain: null == elevationGain
+          ? _value.elevationGain
+          : elevationGain // ignore: cast_nullable_to_non_nullable
+              as double,
+      windEffect: null == windEffect
+          ? _value.windEffect
+          : windEffect // ignore: cast_nullable_to_non_nullable
+              as double,
+      surfaceType: null == surfaceType
+          ? _value.surfaceType
+          : surfaceType // ignore: cast_nullable_to_non_nullable
+              as RoadSurfaceType,
+      difficulty: null == difficulty
+          ? _value.difficulty
+          : difficulty // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageSpeed: null == averageSpeed
+          ? _value.averageSpeed
+          : averageSpeed // ignore: cast_nullable_to_non_nullable
+              as double,
+      distance: null == distance
+          ? _value.distance
+          : distance // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SectionParametersImpl implements _SectionParameters {
+  const _$SectionParametersImpl(
+      {required this.elevationGain,
+      required this.windEffect,
+      required this.surfaceType,
+      required this.difficulty,
+      required this.averageSpeed,
+      required this.distance});
+
+  factory _$SectionParametersImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SectionParametersImplFromJson(json);
+
+  @override
+  final double elevationGain;
+// Набір висоти в метрах
+  @override
+  final double windEffect;
+// Вплив вітру (може бути негативним для попутного)
+  @override
+  final RoadSurfaceType surfaceType;
+// Тип покриття дороги
+  @override
+  final double difficulty;
+// Складність секції (0-10)
+  @override
+  final double averageSpeed;
+// Середня швидкість км/год
+  @override
+  final double distance;
+
+  @override
+  String toString() {
+    return 'SectionParameters(elevationGain: $elevationGain, windEffect: $windEffect, surfaceType: $surfaceType, difficulty: $difficulty, averageSpeed: $averageSpeed, distance: $distance)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SectionParametersImpl &&
+            (identical(other.elevationGain, elevationGain) ||
+                other.elevationGain == elevationGain) &&
+            (identical(other.windEffect, windEffect) ||
+                other.windEffect == windEffect) &&
+            (identical(other.surfaceType, surfaceType) ||
+                other.surfaceType == surfaceType) &&
+            (identical(other.difficulty, difficulty) ||
+                other.difficulty == difficulty) &&
+            (identical(other.averageSpeed, averageSpeed) ||
+                other.averageSpeed == averageSpeed) &&
+            (identical(other.distance, distance) ||
+                other.distance == distance));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, elevationGain, windEffect,
+      surfaceType, difficulty, averageSpeed, distance);
+
+  /// Create a copy of SectionParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SectionParametersImplCopyWith<_$SectionParametersImpl> get copyWith =>
+      __$$SectionParametersImplCopyWithImpl<_$SectionParametersImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SectionParametersImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SectionParameters implements SectionParameters {
+  const factory _SectionParameters(
+      {required final double elevationGain,
+      required final double windEffect,
+      required final RoadSurfaceType surfaceType,
+      required final double difficulty,
+      required final double averageSpeed,
+      required final double distance}) = _$SectionParametersImpl;
+
+  factory _SectionParameters.fromJson(Map<String, dynamic> json) =
+      _$SectionParametersImpl.fromJson;
+
+  @override
+  double get elevationGain; // Набір висоти в метрах
+  @override
+  double get windEffect; // Вплив вітру (може бути негативним для попутного)
+  @override
+  RoadSurfaceType get surfaceType; // Тип покриття дороги
+  @override
+  double get difficulty; // Складність секції (0-10)
+  @override
+  double get averageSpeed; // Середня швидкість км/год
+  @override
+  double get distance;
+
+  /// Create a copy of SectionParameters
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SectionParametersImplCopyWith<_$SectionParametersImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

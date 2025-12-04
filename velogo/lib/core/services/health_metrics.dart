@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../features/map/domain/entities/route_entity.dart';
 
 part 'health_metrics.freezed.dart';
 part 'health_metrics.g.dart';
@@ -74,4 +75,21 @@ enum DifficultyLevel {
   const DifficultyLevel(this.displayName, this.color);
   final String displayName;
   final int color;
+}
+
+/// Параметри секції маршруту
+/// 
+/// Містить всі розраховані параметри для однієї секції маршруту
+@freezed
+class SectionParameters with _$SectionParameters {
+  const factory SectionParameters({
+    required double elevationGain,      // Набір висоти в метрах
+    required double windEffect,          // Вплив вітру (може бути негативним для попутного)
+    required RoadSurfaceType surfaceType, // Тип покриття дороги
+    required double difficulty,          // Складність секції (0-10)
+    required double averageSpeed,         // Середня швидкість км/год
+    required double distance,             // Відстань секції в метрах
+  }) = _SectionParameters;
+
+  factory SectionParameters.fromJson(Map<String, dynamic> json) => _$SectionParametersFromJson(json);
 }
