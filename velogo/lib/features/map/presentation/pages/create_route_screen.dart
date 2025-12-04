@@ -317,18 +317,57 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
     return polylines;
   }
 
+  /// Генерація маркерів для відображення на карті
+  ///
+  /// Функціональність:
+  /// - Відображає тільки початкову та кінцеву точки маршруту
+  /// - Проміжні точки не відображаються як маркери
+  /// - Структура готова для майбутнього додавання:
+  ///   * Магазини (продуктові, веломагазини, веломайстерні)
+  ///   * Історичні пам'ятки
+  ///   * Цікаві місцини
+  ///
+  /// Використовується в: build() -> FlutterMap.markers
   List<Marker> _generateMarkers() {
     final markers = <Marker>[];
     final allPoints = _getAllRoutePoints();
 
-    // Додаємо маркери для всіх точок маршруту
-    for (int i = 0; i < allPoints.length; i++) {
-      final point = allPoints[i];
-      final isFirst = i == 0;
-      final isLast = i == allPoints.length - 1;
+    if (allPoints.isEmpty) return markers;
+
+    // Відображаємо тільки початкову та кінцеву точки
+    final firstPoint = allPoints.first;
+    final lastPoint = allPoints.length > 1 ? allPoints.last : null;
+
+    // Початкова точка (старт)
+    markers.add(
+      Marker(
+        point: firstPoint,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.place,
+            color: Colors.green,
+            size: 32,
+          ),
+        ),
+      ),
+    );
+
+    // Кінцева точка (фініш) - тільки якщо є більше однієї точки
+    if (lastPoint != null && lastPoint != firstPoint) {
       markers.add(
         Marker(
-          point: point,
+          point: lastPoint,
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -341,15 +380,24 @@ class CreateRouteScreenState extends State<CreateRouteScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              isFirst ? Icons.place : (isLast ? Icons.flag : Icons.location_on),
-              color: isFirst ? Colors.green : (isLast ? Colors.red : Colors.blue),
-              size: isFirst ? 32 : (isLast ? 28 : 24),
+            child: const Icon(
+              Icons.flag,
+              color: Colors.red,
+              size: 28,
             ),
           ),
         ),
       );
     }
+
+    // TODO: Майбутнє додавання маркерів:
+    // - Магазини (продуктові, веломагазини, веломайстерні)
+    // - Історичні пам'ятки
+    // - Цікаві місцини
+    // Приклад:
+    // markers.addAll(_generateShopMarkers());
+    // markers.addAll(_generateHistoricalMarkers());
+    // markers.addAll(_generateInterestPointMarkers());
 
     return markers;
   }
