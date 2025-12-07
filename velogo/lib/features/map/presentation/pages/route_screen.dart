@@ -19,6 +19,8 @@ import '../../../../core/services/map_context_service.dart';
 import '../../domain/usecases/calculate_route_usecase.dart';
 import '../../domain/usecases/calculate_route_complexity_usecase.dart';
 import '../../domain/usecases/calculate_section_parameters_usecase.dart';
+import '../../presentation/bloc/section_parameters_update/section_parameters_update_cubit.dart';
+import '../../presentation/bloc/section_parameters_update/section_parameters_update_state.dart';
 import '../../../profile/domain/usecases/get_profile_usecase.dart';
 import '../../../../core/services/route_segmentation_service.dart';
 import '../../../../core/services/log_service.dart';
@@ -44,7 +46,7 @@ class RouteScreenState extends State<RouteScreen> {
   // Use Cases
   late final CalculateRouteUseCase _calculateRouteUseCase;
   late final CalculateRouteComplexityUseCase _calculateRouteComplexityUseCase;
-  late final CalculateSectionParametersUseCase _calculateSectionParametersUseCase;
+  late final CalculateBasicSectionParametersUseCase _calculateBasicSectionParametersUseCase;
   late final GetProfileUseCase _getProfileUseCase;
 
   // Нові поля для системи складності
@@ -66,44 +68,90 @@ class RouteScreenState extends State<RouteScreen> {
     // Ініціалізуємо Use Cases
     _calculateRouteUseCase = sl<CalculateRouteUseCase>();
     _calculateRouteComplexityUseCase = sl<CalculateRouteComplexityUseCase>();
-    _calculateSectionParametersUseCase = sl<CalculateSectionParametersUseCase>();
+    _calculateBasicSectionParametersUseCase = sl<CalculateBasicSectionParametersUseCase>();
     _getProfileUseCase = sl<GetProfileUseCase>();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Stack(
-          children: [
-            FlutterMap(
-              options: _createAdaptiveMapOptionsWithTap(),
-              children: [
-                TileLayer(
-                  tileProvider: OfflineTileProvider(),
-                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    LogService.log('🏗️ [RouteScreen] build() викликано');
+    final screenSize = MediaQuery.of(context).size;
+    LogService.log('📱 [RouteScreen] Розмір екрану: ${screenSize.width}x${screenSize.height}');
+    
+    return BlocProvider(
+      create: (context) => sl<SectionParametersUpdateCubit>(),
+      child: BlocListener<SectionParametersUpdateCubit, SectionParametersUpdateState>(
+        listener: (context, state) {
+          state.when(
+            initial: () {},
+            updating: (totalSections, completedSections) {},
+            sectionUpdated: (updatedSection, sectionIndex, totalSections, completedSections) {
+              // Оновлюємо секцію в списку
+              setState(() {
+                final index = _sections.indexWhere((s) => s.id == updatedSection.id);
+                if (index != -1) {
+                  _sections[index] = updatedSection;
+                }
+              });
+            },
+            completed: (allSections) {
+              // Всі секції оновлені - перераховуємо загальну складність
+              _calculateRouteDifficulty();
+            },
+            error: (message, sectionIndex) {
+              LogService.log('❌ [RouteScreen] Помилка оновлення секції $sectionIndex: $message');
+            },
+          );
+        },
+        child: Scaffold(
+          body: Builder(
+            builder: (context) {
+              LogService.log('🔨 [RouteScreen] Builder викликано');
+              final builderScreenSize = MediaQuery.of(context).size;
+              LogService.log('📱 [RouteScreen] Builder - розмір екрану: ${builderScreenSize.width}x${builderScreenSize.height}');
+              
+              final mapOptions = _createAdaptiveMapOptionsWithTap(context);
+              LogService.log('🗺️ [RouteScreen] MapOptions створено: center=${mapOptions.initialCenter}, zoom=${mapOptions.initialZoom}');
+              
+              final polylines = _generatePolylines();
+              final markers = _generateMarkers();
+              LogService.log('📊 [RouteScreen] Поліліній: ${polylines.length}, Маркерів: ${markers.length}');
+              
+              return SizedBox.expand(
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      options: mapOptions,
+                      children: [
+                        TileLayer(
+                          tileProvider: OfflineTileProvider(),
+                          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        ),
+                        PolylineLayer(
+                          polylines: polylines,
+                        ),
+                        MarkerLayer(
+                          markers: markers,
+                        ),
+                      ],
+                    ),
+                    _buildSearchBar(),
+                    _buildInterestingPlaces(),
+                    _buildControlButtons(),
+                    _buildDraggableBottomPanel(),
+                  ],
                 ),
-                PolylineLayer(
-                  polylines: _generatePolylines(),
-                ),
-                MarkerLayer(
-                  markers: _generateMarkers(),
-                ),
-              ],
-            ),
-            _buildSearchBar(),
-            _buildInterestingPlaces(),
-            _buildControlButtons(),
-            _buildDraggableBottomPanel(),
-          ],
+              );
+            },
+          ),
+          // bottomNavigationBar: CustomBottomNavigationBar(
+          //   currentIndex: 0, // Індекс для цього екрану
+          //   onTap: (index) {
+          //     // Логіка навігації між екранами
+          //   },
+          //   isDarkTheme: null,
+          // ),
         ),
-        // bottomNavigationBar: CustomBottomNavigationBar(
-        //   currentIndex: 0, // Індекс для цього екрану
-        //   onTap: (index) {
-        //     // Логіка навігації між екранами
-        //   },
-        //   isDarkTheme: null,
-        // ),
       ),
     );
   }
@@ -329,27 +377,27 @@ class RouteScreenState extends State<RouteScreen> {
           final newSections = <RouteSectionEntity>[];
           final userProfile = await _getUserProfile(); // Отримуємо профіль користувача
 
-          // 2. Для кожної підсекції розраховуємо параметри та створюємо RouteSectionEntity
-          for (final segment in segmentedCoordinates) {
-            final sectionStart = segment.first;
-            final sectionEnd = segment.last;
+          // 2. ЕТАП 1: Створюємо секції з базовими параметрами (швидко, без API викликів)
+          for (int i = 0; i < segmentedCoordinates.length; i++) {
+            final segment = segmentedCoordinates[i];
+            if (segment.length < 2) continue;
 
-            final sectionParamsResult = await _calculateSectionParametersUseCase(
-              CalculateSectionParametersParams(
+            // Швидкий розрахунок базових параметрів (без API викликів)
+            final basicParamsResult = await _calculateBasicSectionParametersUseCase(
+              CalculateBasicSectionParametersParams(
                 coordinates: segment,
-                startPoint: sectionStart,
-                endPoint: sectionEnd,
                 userProfile: userProfile,
-                // TODO: Передати weatherData та healthMetrics
+                weatherData: null, // TODO: Додати отримання погоди
+                healthMetrics: null, // TODO: Додати отримання health-метрик
               ),
             );
 
-            sectionParamsResult.fold(
+            basicParamsResult.fold(
               (failure) {
-                LogService.log('❌ [RouteScreen] Помилка розрахунку параметрів секції: ${failure.message}');
-                // Можна додати обробку помилки або використати дефолтні значення
+                LogService.log('❌ [RouteScreen] Помилка розрахунку базових параметрів секції: ${failure.message}');
+                // Створюємо секцію з дефолтними значеннями
                 newSections.add(RouteSectionEntity(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  id: '${DateTime.now().millisecondsSinceEpoch}_$i',
                   coordinates: segment,
                   distance: 0.0,
                   elevationGain: 0.0,
@@ -360,8 +408,9 @@ class RouteScreenState extends State<RouteScreen> {
                 ));
               },
               (params) {
-                newSections.add(RouteSectionEntity(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                // Створюємо секцію з базовими параметрами
+                final section = RouteSectionEntity(
+                  id: '${DateTime.now().millisecondsSinceEpoch}_$i',
                   coordinates: segment,
                   distance: params.distance,
                   elevationGain: params.elevationGain,
@@ -369,19 +418,25 @@ class RouteScreenState extends State<RouteScreen> {
                   windEffect: params.windEffect,
                   difficulty: params.difficulty,
                   averageSpeed: params.averageSpeed,
-                ));
-                LogService.log('✅ [RouteScreen] Секція створена: difficulty=${params.difficulty}, speed=${params.averageSpeed}');
+                );
+                newSections.add(section);
+                LogService.log('⚡ [RouteScreen] Секція $i створена з базовими параметрами: distance=${params.distance}m');
               },
             );
           }
 
-          // 3. Додаємо всі секції до списку
+          // 3. Додаємо всі секції до списку одразу (швидке відображення)
           setState(() {
             _sections.addAll(newSections);
           });
 
-          // 4. Розраховуємо загальну складність маршруту
-          await _calculateRouteDifficulty();
+          // 4. ЕТАП 2: Асинхронно оновлюємо параметри секцій через BLoC (elevationGain, windEffect)
+          context.read<SectionParametersUpdateCubit>().updateSectionsParameters(
+            sections: newSections,
+            profile: userProfile,
+            weatherData: null, // TODO: Додати отримання погоди
+            healthMetrics: null, // TODO: Додати отримання health-метрик
+          );
         },
       );
     }
@@ -610,9 +665,14 @@ class RouteScreenState extends State<RouteScreen> {
   }
 
   /// Створення адаптивних опцій карти для контексту перегляду маршруту
-  MapOptions _createAdaptiveMapOptions() {
+  MapOptions _createAdaptiveMapOptions(BuildContext context) {
+    LogService.log('⚙️ [RouteScreen] _createAdaptiveMapOptions викликано');
     final screenSize = MediaQuery.of(context).size;
+    LogService.log('📱 [RouteScreen] Screen size: ${screenSize.width}x${screenSize.height}');
+    
     final routePoints = _sections.isNotEmpty ? _sections.expand((section) => section.coordinates).toList() : null;
+    LogService.log('📍 [RouteScreen] Route points: ${routePoints?.length ?? 0}');
+    LogService.log('📍 [RouteScreen] Default center: $defaultCenter');
 
     final adaptiveOptions = AdaptiveMapOptions(
       context: MapContext.routeViewing,
@@ -623,13 +683,18 @@ class RouteScreenState extends State<RouteScreen> {
       padding: 0.1, // 10% відступ від країв
     );
 
-    return adaptiveOptions.toMapOptions();
+    final mapOptions = adaptiveOptions.toMapOptions();
+    LogService.log('✅ [RouteScreen] MapOptions створено: center=${mapOptions.initialCenter}, zoom=${mapOptions.initialZoom}');
+    return mapOptions;
   }
 
   /// Створення адаптивних опцій карти з обробкою натискань
-  MapOptions _createAdaptiveMapOptionsWithTap() {
-    final baseOptions = _createAdaptiveMapOptions();
-    return MapOptions(
+  MapOptions _createAdaptiveMapOptionsWithTap(BuildContext context) {
+    LogService.log('👆 [RouteScreen] _createAdaptiveMapOptionsWithTap викликано');
+    final baseOptions = _createAdaptiveMapOptions(context);
+    LogService.log('✅ [RouteScreen] Base options отримано: center=${baseOptions.initialCenter}, zoom=${baseOptions.initialZoom}');
+    
+    final mapOptions = MapOptions(
       initialCenter: baseOptions.initialCenter,
       initialZoom: baseOptions.initialZoom,
       minZoom: baseOptions.minZoom,
@@ -637,6 +702,9 @@ class RouteScreenState extends State<RouteScreen> {
       interactionOptions: baseOptions.interactionOptions,
       onTap: (_, point) => _addRoutePoint(point),
     );
+    
+    LogService.log('✅ [RouteScreen] MapOptions з обробниками створено');
+    return mapOptions;
   }
 
   /// Отримати профіль маршруту з налаштувань

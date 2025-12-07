@@ -209,6 +209,153 @@ class RouteComplexityService {
     }
   }
 
+  /// Швидкий розрахунок базових параметрів секції (без API викликів)
+  ///
+  /// Функціональність:
+  /// - Розраховує тільки distance (локально)
+  /// - Встановлює дефолтні значення для elevationGain, windEffect
+  /// - Розраховує базову складність без урахування elevation та wind
+  ///
+  /// Використовується в: CreateRouteScreen для швидкого відображення маршруту
+  Future<Either<Failure, SectionParameters>> calculateBasicSectionParameters({
+    required List<LatLng> coordinates,
+    required ProfileEntity userProfile,
+    WeatherData? weatherData,
+    HealthMetrics? healthMetrics,
+  }) async {
+    try {
+      LogService.log('⚡ [RouteComplexityService] Швидкий розрахунок базових параметрів секції');
+
+      // 1. Розраховуємо відстань (локально, швидко)
+      final distance = _calculateSectionDistance(coordinates);
+
+      // 2. Встановлюємо дефолтні значення для API-залежних параметрів
+      const elevationGain = 0.0;
+      const windEffect = 0.0;
+      const surfaceType = RoadSurfaceType.asphalt;
+
+      // 3. Розраховуємо базову складність без урахування elevation та wind
+      final baseDifficulty = _calculateBaseDifficultyFromParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: surfaceType,
+        distance: distance,
+        weatherData: weatherData,
+        coordinates: coordinates,
+      );
+
+      // 4. Розраховуємо персоналізовану складність
+      final personalizedResult = _personalizationEngine.calculatePersonalizedDifficulty(
+        baseDifficulty: baseDifficulty,
+        profile: userProfile,
+        healthMetrics: healthMetrics,
+      );
+
+      // 5. Розраховуємо averageSpeed на основі складності та профілю
+      final averageSpeed = _calculateAverageSpeed(
+        difficulty: personalizedResult.personalizedDifficulty,
+        surfaceType: surfaceType,
+        profile: userProfile,
+      );
+
+      final parameters = SectionParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: surfaceType,
+        difficulty: personalizedResult.personalizedDifficulty,
+        averageSpeed: averageSpeed,
+        distance: distance,
+      );
+
+      LogService.log('✅ [RouteComplexityService] Базові параметри секції розраховано: distance=${parameters.distance}m');
+      return Right(parameters);
+    } catch (e) {
+      LogService.log('❌ [RouteComplexityService] Помилка розрахунку базових параметрів секції: $e');
+      return Left(ServerFailure('Failed to calculate basic section parameters: $e'));
+    }
+  }
+
+  /// Асинхронне оновлення параметрів секції (elevationGain та windEffect)
+  ///
+  /// Функціональність:
+  /// - Розраховує elevationGain та windEffect паралельно через API
+  /// - Оновлює складність та averageSpeed на основі нових параметрів
+  ///
+  /// Використовується в: CreateRouteScreen для поступового оновлення складності
+  Future<Either<Failure, SectionParameters>> updateSectionParametersAsync({
+    required SectionParameters currentParameters,
+    required List<LatLng> coordinates,
+    required LatLng startPoint,
+    required LatLng endPoint,
+    required ProfileEntity userProfile,
+    WeatherData? weatherData,
+    HealthMetrics? healthMetrics,
+  }) async {
+    try {
+      LogService.log('🔄 [RouteComplexityService] Асинхронне оновлення параметрів секції');
+
+      // 1. Розраховуємо elevationGain та windEffect паралельно
+      double elevationGain = 0.0;
+      double windEffect = 0.0;
+
+      if (_routingRepository != null) {
+        // Паралельний розрахунок через Future.wait
+        final results = await Future.wait([
+          _routingRepository!.calculateElevationGain(
+            startPoint: startPoint,
+            endPoint: endPoint,
+          ),
+          _routingRepository!.calculateWindEffect(
+            startPoint: startPoint,
+            endPoint: endPoint,
+          ),
+        ]);
+
+        elevationGain = results[0].fold((_) => 0.0, (e) => e);
+        windEffect = results[1].fold((_) => 0.0, (w) => w);
+      }
+
+      // 2. Розраховуємо базову складність з оновленими параметрами
+      final baseDifficulty = _calculateBaseDifficultyFromParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: currentParameters.surfaceType,
+        distance: currentParameters.distance,
+        weatherData: weatherData,
+        coordinates: coordinates,
+      );
+
+      // 3. Розраховуємо персоналізовану складність
+      final personalizedResult = _personalizationEngine.calculatePersonalizedDifficulty(
+        baseDifficulty: baseDifficulty,
+        profile: userProfile,
+        healthMetrics: healthMetrics,
+      );
+
+      // 4. Розраховуємо averageSpeed на основі оновленої складності
+      final averageSpeed = _calculateAverageSpeed(
+        difficulty: personalizedResult.personalizedDifficulty,
+        surfaceType: currentParameters.surfaceType,
+        profile: userProfile,
+      );
+
+      final updatedParameters = SectionParameters(
+        elevationGain: elevationGain,
+        windEffect: windEffect,
+        surfaceType: currentParameters.surfaceType,
+        difficulty: personalizedResult.personalizedDifficulty,
+        averageSpeed: averageSpeed,
+        distance: currentParameters.distance,
+      );
+
+      LogService.log('✅ [RouteComplexityService] Параметри секції оновлено: difficulty=${updatedParameters.difficulty}, elevation=${updatedParameters.elevationGain}m, wind=${updatedParameters.windEffect}');
+      return Right(updatedParameters);
+    } catch (e) {
+      LogService.log('❌ [RouteComplexityService] Помилка оновлення параметрів секції: $e');
+      return Left(ServerFailure('Failed to update section parameters: $e'));
+    }
+  }
+
   /// Розрахунок відстані секції
   double _calculateSectionDistance(List<LatLng> coordinates) {
     if (coordinates.length < 2) return 0.0;

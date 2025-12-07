@@ -309,3 +309,587 @@ abstract class _CalculateSectionParametersParams
           _$CalculateSectionParametersParamsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+mixin _$CalculateBasicSectionParametersParams {
+  List<LatLng> get coordinates => throw _privateConstructorUsedError;
+  ProfileEntity get userProfile => throw _privateConstructorUsedError;
+  WeatherData? get weatherData => throw _privateConstructorUsedError;
+  HealthMetrics? get healthMetrics => throw _privateConstructorUsedError;
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CalculateBasicSectionParametersParamsCopyWith<
+          CalculateBasicSectionParametersParams>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CalculateBasicSectionParametersParamsCopyWith<$Res> {
+  factory $CalculateBasicSectionParametersParamsCopyWith(
+          CalculateBasicSectionParametersParams value,
+          $Res Function(CalculateBasicSectionParametersParams) then) =
+      _$CalculateBasicSectionParametersParamsCopyWithImpl<$Res,
+          CalculateBasicSectionParametersParams>;
+  @useResult
+  $Res call(
+      {List<LatLng> coordinates,
+      ProfileEntity userProfile,
+      WeatherData? weatherData,
+      HealthMetrics? healthMetrics});
+
+  $ProfileEntityCopyWith<$Res> get userProfile;
+  $HealthMetricsCopyWith<$Res>? get healthMetrics;
+}
+
+/// @nodoc
+class _$CalculateBasicSectionParametersParamsCopyWithImpl<$Res,
+        $Val extends CalculateBasicSectionParametersParams>
+    implements $CalculateBasicSectionParametersParamsCopyWith<$Res> {
+  _$CalculateBasicSectionParametersParamsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? coordinates = null,
+    Object? userProfile = null,
+    Object? weatherData = freezed,
+    Object? healthMetrics = freezed,
+  }) {
+    return _then(_value.copyWith(
+      coordinates: null == coordinates
+          ? _value.coordinates
+          : coordinates // ignore: cast_nullable_to_non_nullable
+              as List<LatLng>,
+      userProfile: null == userProfile
+          ? _value.userProfile
+          : userProfile // ignore: cast_nullable_to_non_nullable
+              as ProfileEntity,
+      weatherData: freezed == weatherData
+          ? _value.weatherData
+          : weatherData // ignore: cast_nullable_to_non_nullable
+              as WeatherData?,
+      healthMetrics: freezed == healthMetrics
+          ? _value.healthMetrics
+          : healthMetrics // ignore: cast_nullable_to_non_nullable
+              as HealthMetrics?,
+    ) as $Val);
+  }
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProfileEntityCopyWith<$Res> get userProfile {
+    return $ProfileEntityCopyWith<$Res>(_value.userProfile, (value) {
+      return _then(_value.copyWith(userProfile: value) as $Val);
+    });
+  }
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HealthMetricsCopyWith<$Res>? get healthMetrics {
+    if (_value.healthMetrics == null) {
+      return null;
+    }
+
+    return $HealthMetricsCopyWith<$Res>(_value.healthMetrics!, (value) {
+      return _then(_value.copyWith(healthMetrics: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$CalculateBasicSectionParametersParamsImplCopyWith<$Res>
+    implements $CalculateBasicSectionParametersParamsCopyWith<$Res> {
+  factory _$$CalculateBasicSectionParametersParamsImplCopyWith(
+          _$CalculateBasicSectionParametersParamsImpl value,
+          $Res Function(_$CalculateBasicSectionParametersParamsImpl) then) =
+      __$$CalculateBasicSectionParametersParamsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {List<LatLng> coordinates,
+      ProfileEntity userProfile,
+      WeatherData? weatherData,
+      HealthMetrics? healthMetrics});
+
+  @override
+  $ProfileEntityCopyWith<$Res> get userProfile;
+  @override
+  $HealthMetricsCopyWith<$Res>? get healthMetrics;
+}
+
+/// @nodoc
+class __$$CalculateBasicSectionParametersParamsImplCopyWithImpl<$Res>
+    extends _$CalculateBasicSectionParametersParamsCopyWithImpl<$Res,
+        _$CalculateBasicSectionParametersParamsImpl>
+    implements _$$CalculateBasicSectionParametersParamsImplCopyWith<$Res> {
+  __$$CalculateBasicSectionParametersParamsImplCopyWithImpl(
+      _$CalculateBasicSectionParametersParamsImpl _value,
+      $Res Function(_$CalculateBasicSectionParametersParamsImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? coordinates = null,
+    Object? userProfile = null,
+    Object? weatherData = freezed,
+    Object? healthMetrics = freezed,
+  }) {
+    return _then(_$CalculateBasicSectionParametersParamsImpl(
+      coordinates: null == coordinates
+          ? _value._coordinates
+          : coordinates // ignore: cast_nullable_to_non_nullable
+              as List<LatLng>,
+      userProfile: null == userProfile
+          ? _value.userProfile
+          : userProfile // ignore: cast_nullable_to_non_nullable
+              as ProfileEntity,
+      weatherData: freezed == weatherData
+          ? _value.weatherData
+          : weatherData // ignore: cast_nullable_to_non_nullable
+              as WeatherData?,
+      healthMetrics: freezed == healthMetrics
+          ? _value.healthMetrics
+          : healthMetrics // ignore: cast_nullable_to_non_nullable
+              as HealthMetrics?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$CalculateBasicSectionParametersParamsImpl
+    implements _CalculateBasicSectionParametersParams {
+  const _$CalculateBasicSectionParametersParamsImpl(
+      {required final List<LatLng> coordinates,
+      required this.userProfile,
+      this.weatherData,
+      this.healthMetrics})
+      : _coordinates = coordinates;
+
+  final List<LatLng> _coordinates;
+  @override
+  List<LatLng> get coordinates {
+    if (_coordinates is EqualUnmodifiableListView) return _coordinates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_coordinates);
+  }
+
+  @override
+  final ProfileEntity userProfile;
+  @override
+  final WeatherData? weatherData;
+  @override
+  final HealthMetrics? healthMetrics;
+
+  @override
+  String toString() {
+    return 'CalculateBasicSectionParametersParams(coordinates: $coordinates, userProfile: $userProfile, weatherData: $weatherData, healthMetrics: $healthMetrics)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CalculateBasicSectionParametersParamsImpl &&
+            const DeepCollectionEquality()
+                .equals(other._coordinates, _coordinates) &&
+            (identical(other.userProfile, userProfile) ||
+                other.userProfile == userProfile) &&
+            (identical(other.weatherData, weatherData) ||
+                other.weatherData == weatherData) &&
+            (identical(other.healthMetrics, healthMetrics) ||
+                other.healthMetrics == healthMetrics));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      const DeepCollectionEquality().hash(_coordinates),
+      userProfile,
+      weatherData,
+      healthMetrics);
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CalculateBasicSectionParametersParamsImplCopyWith<
+          _$CalculateBasicSectionParametersParamsImpl>
+      get copyWith => __$$CalculateBasicSectionParametersParamsImplCopyWithImpl<
+          _$CalculateBasicSectionParametersParamsImpl>(this, _$identity);
+}
+
+abstract class _CalculateBasicSectionParametersParams
+    implements CalculateBasicSectionParametersParams {
+  const factory _CalculateBasicSectionParametersParams(
+          {required final List<LatLng> coordinates,
+          required final ProfileEntity userProfile,
+          final WeatherData? weatherData,
+          final HealthMetrics? healthMetrics}) =
+      _$CalculateBasicSectionParametersParamsImpl;
+
+  @override
+  List<LatLng> get coordinates;
+  @override
+  ProfileEntity get userProfile;
+  @override
+  WeatherData? get weatherData;
+  @override
+  HealthMetrics? get healthMetrics;
+
+  /// Create a copy of CalculateBasicSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CalculateBasicSectionParametersParamsImplCopyWith<
+          _$CalculateBasicSectionParametersParamsImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$UpdateSectionParametersParams {
+  SectionParameters get currentParameters => throw _privateConstructorUsedError;
+  List<LatLng> get coordinates => throw _privateConstructorUsedError;
+  LatLng get startPoint => throw _privateConstructorUsedError;
+  LatLng get endPoint => throw _privateConstructorUsedError;
+  ProfileEntity get userProfile => throw _privateConstructorUsedError;
+  WeatherData? get weatherData => throw _privateConstructorUsedError;
+  HealthMetrics? get healthMetrics => throw _privateConstructorUsedError;
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $UpdateSectionParametersParamsCopyWith<UpdateSectionParametersParams>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $UpdateSectionParametersParamsCopyWith<$Res> {
+  factory $UpdateSectionParametersParamsCopyWith(
+          UpdateSectionParametersParams value,
+          $Res Function(UpdateSectionParametersParams) then) =
+      _$UpdateSectionParametersParamsCopyWithImpl<$Res,
+          UpdateSectionParametersParams>;
+  @useResult
+  $Res call(
+      {SectionParameters currentParameters,
+      List<LatLng> coordinates,
+      LatLng startPoint,
+      LatLng endPoint,
+      ProfileEntity userProfile,
+      WeatherData? weatherData,
+      HealthMetrics? healthMetrics});
+
+  $SectionParametersCopyWith<$Res> get currentParameters;
+  $ProfileEntityCopyWith<$Res> get userProfile;
+  $HealthMetricsCopyWith<$Res>? get healthMetrics;
+}
+
+/// @nodoc
+class _$UpdateSectionParametersParamsCopyWithImpl<$Res,
+        $Val extends UpdateSectionParametersParams>
+    implements $UpdateSectionParametersParamsCopyWith<$Res> {
+  _$UpdateSectionParametersParamsCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? currentParameters = null,
+    Object? coordinates = null,
+    Object? startPoint = null,
+    Object? endPoint = null,
+    Object? userProfile = null,
+    Object? weatherData = freezed,
+    Object? healthMetrics = freezed,
+  }) {
+    return _then(_value.copyWith(
+      currentParameters: null == currentParameters
+          ? _value.currentParameters
+          : currentParameters // ignore: cast_nullable_to_non_nullable
+              as SectionParameters,
+      coordinates: null == coordinates
+          ? _value.coordinates
+          : coordinates // ignore: cast_nullable_to_non_nullable
+              as List<LatLng>,
+      startPoint: null == startPoint
+          ? _value.startPoint
+          : startPoint // ignore: cast_nullable_to_non_nullable
+              as LatLng,
+      endPoint: null == endPoint
+          ? _value.endPoint
+          : endPoint // ignore: cast_nullable_to_non_nullable
+              as LatLng,
+      userProfile: null == userProfile
+          ? _value.userProfile
+          : userProfile // ignore: cast_nullable_to_non_nullable
+              as ProfileEntity,
+      weatherData: freezed == weatherData
+          ? _value.weatherData
+          : weatherData // ignore: cast_nullable_to_non_nullable
+              as WeatherData?,
+      healthMetrics: freezed == healthMetrics
+          ? _value.healthMetrics
+          : healthMetrics // ignore: cast_nullable_to_non_nullable
+              as HealthMetrics?,
+    ) as $Val);
+  }
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SectionParametersCopyWith<$Res> get currentParameters {
+    return $SectionParametersCopyWith<$Res>(_value.currentParameters, (value) {
+      return _then(_value.copyWith(currentParameters: value) as $Val);
+    });
+  }
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProfileEntityCopyWith<$Res> get userProfile {
+    return $ProfileEntityCopyWith<$Res>(_value.userProfile, (value) {
+      return _then(_value.copyWith(userProfile: value) as $Val);
+    });
+  }
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HealthMetricsCopyWith<$Res>? get healthMetrics {
+    if (_value.healthMetrics == null) {
+      return null;
+    }
+
+    return $HealthMetricsCopyWith<$Res>(_value.healthMetrics!, (value) {
+      return _then(_value.copyWith(healthMetrics: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$UpdateSectionParametersParamsImplCopyWith<$Res>
+    implements $UpdateSectionParametersParamsCopyWith<$Res> {
+  factory _$$UpdateSectionParametersParamsImplCopyWith(
+          _$UpdateSectionParametersParamsImpl value,
+          $Res Function(_$UpdateSectionParametersParamsImpl) then) =
+      __$$UpdateSectionParametersParamsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {SectionParameters currentParameters,
+      List<LatLng> coordinates,
+      LatLng startPoint,
+      LatLng endPoint,
+      ProfileEntity userProfile,
+      WeatherData? weatherData,
+      HealthMetrics? healthMetrics});
+
+  @override
+  $SectionParametersCopyWith<$Res> get currentParameters;
+  @override
+  $ProfileEntityCopyWith<$Res> get userProfile;
+  @override
+  $HealthMetricsCopyWith<$Res>? get healthMetrics;
+}
+
+/// @nodoc
+class __$$UpdateSectionParametersParamsImplCopyWithImpl<$Res>
+    extends _$UpdateSectionParametersParamsCopyWithImpl<$Res,
+        _$UpdateSectionParametersParamsImpl>
+    implements _$$UpdateSectionParametersParamsImplCopyWith<$Res> {
+  __$$UpdateSectionParametersParamsImplCopyWithImpl(
+      _$UpdateSectionParametersParamsImpl _value,
+      $Res Function(_$UpdateSectionParametersParamsImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? currentParameters = null,
+    Object? coordinates = null,
+    Object? startPoint = null,
+    Object? endPoint = null,
+    Object? userProfile = null,
+    Object? weatherData = freezed,
+    Object? healthMetrics = freezed,
+  }) {
+    return _then(_$UpdateSectionParametersParamsImpl(
+      currentParameters: null == currentParameters
+          ? _value.currentParameters
+          : currentParameters // ignore: cast_nullable_to_non_nullable
+              as SectionParameters,
+      coordinates: null == coordinates
+          ? _value._coordinates
+          : coordinates // ignore: cast_nullable_to_non_nullable
+              as List<LatLng>,
+      startPoint: null == startPoint
+          ? _value.startPoint
+          : startPoint // ignore: cast_nullable_to_non_nullable
+              as LatLng,
+      endPoint: null == endPoint
+          ? _value.endPoint
+          : endPoint // ignore: cast_nullable_to_non_nullable
+              as LatLng,
+      userProfile: null == userProfile
+          ? _value.userProfile
+          : userProfile // ignore: cast_nullable_to_non_nullable
+              as ProfileEntity,
+      weatherData: freezed == weatherData
+          ? _value.weatherData
+          : weatherData // ignore: cast_nullable_to_non_nullable
+              as WeatherData?,
+      healthMetrics: freezed == healthMetrics
+          ? _value.healthMetrics
+          : healthMetrics // ignore: cast_nullable_to_non_nullable
+              as HealthMetrics?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$UpdateSectionParametersParamsImpl
+    implements _UpdateSectionParametersParams {
+  const _$UpdateSectionParametersParamsImpl(
+      {required this.currentParameters,
+      required final List<LatLng> coordinates,
+      required this.startPoint,
+      required this.endPoint,
+      required this.userProfile,
+      this.weatherData,
+      this.healthMetrics})
+      : _coordinates = coordinates;
+
+  @override
+  final SectionParameters currentParameters;
+  final List<LatLng> _coordinates;
+  @override
+  List<LatLng> get coordinates {
+    if (_coordinates is EqualUnmodifiableListView) return _coordinates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_coordinates);
+  }
+
+  @override
+  final LatLng startPoint;
+  @override
+  final LatLng endPoint;
+  @override
+  final ProfileEntity userProfile;
+  @override
+  final WeatherData? weatherData;
+  @override
+  final HealthMetrics? healthMetrics;
+
+  @override
+  String toString() {
+    return 'UpdateSectionParametersParams(currentParameters: $currentParameters, coordinates: $coordinates, startPoint: $startPoint, endPoint: $endPoint, userProfile: $userProfile, weatherData: $weatherData, healthMetrics: $healthMetrics)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdateSectionParametersParamsImpl &&
+            (identical(other.currentParameters, currentParameters) ||
+                other.currentParameters == currentParameters) &&
+            const DeepCollectionEquality()
+                .equals(other._coordinates, _coordinates) &&
+            (identical(other.startPoint, startPoint) ||
+                other.startPoint == startPoint) &&
+            (identical(other.endPoint, endPoint) ||
+                other.endPoint == endPoint) &&
+            (identical(other.userProfile, userProfile) ||
+                other.userProfile == userProfile) &&
+            (identical(other.weatherData, weatherData) ||
+                other.weatherData == weatherData) &&
+            (identical(other.healthMetrics, healthMetrics) ||
+                other.healthMetrics == healthMetrics));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      currentParameters,
+      const DeepCollectionEquality().hash(_coordinates),
+      startPoint,
+      endPoint,
+      userProfile,
+      weatherData,
+      healthMetrics);
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdateSectionParametersParamsImplCopyWith<
+          _$UpdateSectionParametersParamsImpl>
+      get copyWith => __$$UpdateSectionParametersParamsImplCopyWithImpl<
+          _$UpdateSectionParametersParamsImpl>(this, _$identity);
+}
+
+abstract class _UpdateSectionParametersParams
+    implements UpdateSectionParametersParams {
+  const factory _UpdateSectionParametersParams(
+          {required final SectionParameters currentParameters,
+          required final List<LatLng> coordinates,
+          required final LatLng startPoint,
+          required final LatLng endPoint,
+          required final ProfileEntity userProfile,
+          final WeatherData? weatherData,
+          final HealthMetrics? healthMetrics}) =
+      _$UpdateSectionParametersParamsImpl;
+
+  @override
+  SectionParameters get currentParameters;
+  @override
+  List<LatLng> get coordinates;
+  @override
+  LatLng get startPoint;
+  @override
+  LatLng get endPoint;
+  @override
+  ProfileEntity get userProfile;
+  @override
+  WeatherData? get weatherData;
+  @override
+  HealthMetrics? get healthMetrics;
+
+  /// Create a copy of UpdateSectionParametersParams
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UpdateSectionParametersParamsImplCopyWith<
+          _$UpdateSectionParametersParamsImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}

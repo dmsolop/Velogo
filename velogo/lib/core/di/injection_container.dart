@@ -73,6 +73,7 @@ import 'package:velogo/features/map/data/repositories/routing_repository_impl.da
 import 'package:velogo/features/map/data/repositories/route_complexity_repository_impl.dart';
 import 'package:velogo/features/map/presentation/bloc/route/route_cubit.dart';
 import 'package:velogo/features/map/presentation/bloc/route_difficulty/route_difficulty_cubit.dart';
+import 'package:velogo/features/map/presentation/bloc/section_parameters_update/section_parameters_update_cubit.dart';
 import 'package:velogo/core/services/route_complexity_service.dart';
 import 'package:velogo/core/services/health_integration_service.dart';
 import 'package:velogo/core/services/personalization_engine.dart';
@@ -302,8 +303,11 @@ Future<void> _initMap() async {
   sl.registerLazySingleton(() => CalculateRouteUseCase(sl()));
   sl.registerLazySingleton(() => CalculateRouteComplexityUseCase(sl()));
   sl.registerLazySingleton(() => CalculateSectionParametersUseCase(sl<RouteComplexityService>()));
+  sl.registerLazySingleton(() => CalculateBasicSectionParametersUseCase(sl<RouteComplexityService>()));
+  sl.registerLazySingleton(() => UpdateSectionParametersUseCase(sl<RouteComplexityService>()));
 
   // BLoCs
   sl.registerFactory(() => RouteCubit());
   sl.registerFactory(() => RouteDifficultyCubit());
+  sl.registerFactory(() => SectionParametersUpdateCubit(sl()));
 }
