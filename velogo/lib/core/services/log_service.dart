@@ -104,4 +104,23 @@ class LogService {
       debugPrint('[LogService] Failed to check log size: $e');
     }
   }
+
+  /// Отримати шлях до лог-файлу
+  static String? getLogFilePath() {
+    return _logFile?.path;
+  }
+
+  /// Прочитати вміст лог-файлу
+  static Future<String?> readLogFile() async {
+    if (_logFile == null) return null;
+
+    try {
+      if (await _logFile!.exists()) {
+        return await _logFile!.readAsString();
+      }
+    } catch (e) {
+      debugPrint('[LogService] Failed to read log file: $e');
+    }
+    return null;
+  }
 }

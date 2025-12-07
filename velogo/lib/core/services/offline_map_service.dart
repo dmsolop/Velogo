@@ -76,15 +76,18 @@ class OfflineMapService {
       final tileFile = File('${cacheDir.path}/$z/$x/$y.png');
 
       if (await tileFile.exists()) {
-        LogService.log('📁 [OfflineMapService] Тайл знайдено в кеші: $z/$x/$y');
+        // Логуємо тільки для низьких zoom рівнів, щоб не спамити
+        if (z <= 10) {
+          LogService.log('📁 [OfflineMapService] Тайл знайдено в кеші: $z/$x/$y');
+        }
         return await tileFile.readAsBytes();
       }
 
-      // Якщо тайл не в кеші, спробуємо завантажити
-      LogService.log('🌐 [OfflineMapService] Завантаження тайлу: $z/$x/$y');
-      return await _downloadTileDirectly(x, y, z);
+      // Якщо тайл не в кеші, не намагаємося завантажувати тут
+      // OfflineTileProvider сам спробує завантажити з мережі
+      return null;
     } catch (e) {
-      LogService.log('❌ [OfflineMapService] Помилка отримання тайлу: $e');
+      // Не логуємо помилки тут, щоб не спамити
       return null;
     }
   }
@@ -208,19 +211,6 @@ class OfflineMapService {
     }
   }
 
-  static Future<Uint8List?> _downloadTileDirectly(int x, int y, int z) async {
-    try {
-      final url = 'https://tile.openstreetmap.org/$z/$x/$y.png';
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
-      }
-    } catch (e) {
-      LogService.log('❌ [OfflineMapService] Помилка прямого завантаження тайлу: $e');
-    }
-    return null;
-  }
 
   static List<MapTile> _calculateTilesForZoom(double minLat, double maxLat, double minLng, double maxLng, int zoom) {
     final minTile = _latLngToTile(minLat, minLng, zoom);

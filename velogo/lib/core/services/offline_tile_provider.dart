@@ -57,29 +57,61 @@ class OfflineTileImage extends ImageProvider<OfflineTileImage> {
         return await decode(buffer);
       }
 
-      // Якщо тайл не в кеші, використовуємо fallback сервер
-      LogService.log('🌐 [OfflineTileProvider] Використовуємо fallback сервер: ${coordinates.z}/${coordinates.x}/${coordinates.y}');
-      return await _loadFromNetwork(key, decode);
+      // Якщо тайл не в кеші, спробуємо завантажити з мережі
+      try {
+        return await _loadFromNetwork(key, decode);
+      } catch (networkError) {
+        // Якщо не вдалося завантажити з мережі, створюємо placeholder
+        // Логуємо тільки перший раз для кожного zoom рівня, щоб не спамити
+        if (coordinates.z <= 10) {
+          LogService.log('⚠️ [OfflineTileProvider] Немає інтернету або тайлів в кеші, використовуємо placeholder для zoom ${coordinates.z}');
+        }
+        return await _createPlaceholderTile(key, decode);
+      }
     } catch (e) {
-      LogService.log('❌ [OfflineTileProvider] Помилка завантаження тайлу: $e');
-      return await _loadFromNetwork(key, decode);
+      // Якщо виникла інша помилка, також створюємо placeholder
+      LogService.log('❌ [OfflineTileProvider] Помилка завантаження тайлу, використовуємо placeholder: $e');
+      return await _createPlaceholderTile(key, decode);
     }
   }
 
   Future<ui.Codec> _loadFromNetwork(OfflineTileImage key, ImageDecoderCallback decode) async {
-    try {
-      final url = '$fallbackServer/${coordinates.z}/${coordinates.x}/${coordinates.y}.png';
-      final response = await http.get(Uri.parse(url));
+    final url = '$fallbackServer/${coordinates.z}/${coordinates.x}/${coordinates.y}.png';
+    final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 200) {
-        final buffer = await ui.ImmutableBuffer.fromUint8List(response.bodyBytes);
-        return await decode(buffer);
-      } else {
-        throw Exception('HTTP ${response.statusCode}');
-      }
-    } catch (e) {
-      LogService.log('❌ [OfflineTileProvider] Помилка мережевого завантаження: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      final buffer = await ui.ImmutableBuffer.fromUint8List(response.bodyBytes);
+      return await decode(buffer);
+    } else {
+      throw Exception('HTTP ${response.statusCode}');
+    }
+  }
+
+  /// Створює placeholder тайл (сіре зображення) коли не вдається завантажити
+  Future<ui.Codec> _createPlaceholderTile(OfflineTileImage key, ImageDecoderCallback decode) async {
+    // Створюємо просте сіре зображення 256x256 через Canvas
+    const int tileSize = 256;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    
+    // Малюємо сірий прямокутник
+    final paint = Paint()..color = const Color(0xFFE0E0E0);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, tileSize.toDouble(), tileSize.toDouble()),
+      paint,
+    );
+    
+    // Конвертуємо в зображення
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(tileSize, tileSize);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    
+    if (byteData != null) {
+      final buffer = await ui.ImmutableBuffer.fromUint8List(byteData.buffer.asUint8List());
+      return await decode(buffer);
+    } else {
+      // Якщо не вдалося створити через Canvas, використовуємо простий підхід
+      throw Exception('Не вдалося створити placeholder');
     }
   }
 
